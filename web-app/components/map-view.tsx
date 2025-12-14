@@ -120,7 +120,7 @@ function EventCard({ event, userLocation }: { event: Event, userLocation: L.LatL
     <div className="bg-black/60 backdrop-blur-md rounded-xl p-4 shadow-2xl mb-3 border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group">
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-3">
-          <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{getEventIcon(event.type).options.html?.match(/>(.*?)</)?.[1]}</span>
+          <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
           <div>
             <h4 className="font-bold text-white text-lg leading-tight group-hover:text-blue-200 transition-colors shadow-black drop-shadow-sm">{event.title}</h4>
             <p className="text-xs text-blue-300 font-semibold flex items-center gap-1 mt-1">
