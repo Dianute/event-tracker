@@ -282,6 +282,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={tileUrl}
+          // @ts-ignore
           style={isCyber ? { filter: 'invert(100%) hue-rotate(180deg) brightness(150%) contrast(150%) saturate(300%)' } : {}}
         />
 
