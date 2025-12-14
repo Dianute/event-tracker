@@ -1,4 +1,5 @@
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
@@ -19,8 +20,10 @@ async function runScout() {
     }
 
     const browser = await puppeteer.launch({
-        headless: "new",
-        args: ['--no-sandbox']
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
     });
 
     try {
