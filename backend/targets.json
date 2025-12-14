@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "name": "Bandsintown (Klaipeda)",
+    "url": "https://www.bandsintown.com/c/klaipeda-lithuania",
+    "selector": "a[href*='/e/']"
+  },
+  {
+    "id": "c1fa0668-1568-4bed-ae18-8df0f2f96abd",
+    "name": "Bilietai.lt",
+    "url": "https://www.bilietai.lt/lit/renginiai/koncertai/",
+    "selector": "a.event_item, a[href*='/renginys/']"
+  },
+  {
+    "id": "bd2fd580-f1bc-4582-8051-7f87580470ea",
+    "name": "Kakava.lt",
+    "url": "https://kakava.lt/renginiai/1/koncertai",
+    "selector": "a.event-card"
+  }
+]
