@@ -308,7 +308,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-xl" style={{ filter: grayscale }}>{getEventIcon(event.type).options.html?.match(/>(.*?)</)?.[1]}</span>
+                      <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{event.type}</span>
                     </div>
                     {onDeleteEvent && (
