@@ -88,3 +88,20 @@
    ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
    ≡ƒôì Geocoded: Adomo Mickevi─ìiaus vie┼íoji biblioteka, Vil... (No City) -> [54.6802566, 25.2801825]
    ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ≡ƒôì Geocoded: Adomo Mickevi─ìiaus vie┼íoji biblioteka, Vil... (No City) -> [54.6802566, 25.2801825]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: ┼áv. Jon┼│ ba┼╛ny─ìia, Vilnius (No City) -> [54.6826784, 25.2885570]
+   ≡ƒôì Geocoded: Lietuvos nacionalin─ù filharmonija, Vilnius (No City) -> [54.6762902, 25.2877636]
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ΓÜá∩╕Å Geocode Failed: Lietuvos parod┼│ ir kongres┼│ centras LITEXP... (using fallback)
+   ΓÜá∩╕Å Geocode Failed: Gruod (using fallback)
+   ≡ƒôì Geocoded: Jazz Cellar 11, Vilnius (No City) -> [54.6754967, 25.2889064]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ΓÜá∩╕Å Geocode Failed: SMALA, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: ┼áv. Kotrynos ba┼╛ny─ìia, Vilnius (No City) -> [54.6818218, 25.2811137]
+Γ£¿ Parsed 100 events. uploading...
+Γ£à Scout Mission Complete.
