@@ -86,10 +86,13 @@ async function runScout() {
                         const parsed = parseEventText(raw.rawText);
                         let coords = { lat: 0, lng: 0 };
                         if (parsed.location) {
-                            const geo = await geocodeAddress(parsed.location, target.city);
+                            // Smart City Logic: Use detected city from text, fallback to target default
+                            const cityContext = parsed.detectedCity || target.city;
+
+                            const geo = await geocodeAddress(parsed.location, cityContext);
                             if (geo) {
                                 coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
-                                console.log(`   📍 Geocoded: ${parsed.location} -> [${geo.lat}, ${geo.lon}]`);
+                                console.log(`   📍 Geocoded: ${parsed.location} (${cityContext || 'No City'}) -> [${geo.lat}, ${geo.lon}]`);
                             } else {
                                 console.warn(`   ⚠️ Geocode Failed: ${parsed.location} (using fallback)`);
                                 // Fallback: Random scatter around a default center (Kaunas-ish)
@@ -204,7 +207,26 @@ function parseEventText(text) {
         dateRaw = lines.slice(1).join(' ');
     }
 
-    return { title, location: venue, dateRaw };
+    // 3. Smart City Detection
+    const LITHUANIAN_CITIES = [
+        "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys",
+        "Alytus", "Marijampolė", "Mažeikiai", "Jonava", "Utena",
+        "Kėdainiai", "Telšiai", "Visaginas", "Tauragė", "Ukmergė",
+        "Palanga", "Druskininkai", "Birštonas", "Trakai", "Neringa"
+    ];
+
+    let detectedCity = null;
+    const fullText = text.toLowerCase();
+
+    // Check line by line specifically for city names
+    for (const city of LITHUANIAN_CITIES) {
+        if (fullText.includes(city.toLowerCase())) {
+            detectedCity = city;
+            break; // Found primary city
+        }
+    }
+
+    return { title, location: venue, dateRaw, detectedCity };
 }
 
 async function geocodeAddress(address, defaultCity = "") {
