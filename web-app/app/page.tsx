@@ -33,6 +33,7 @@ export default function Home() {
 
   // Load events from Backend on mount
   useEffect(() => {
+    console.log("🔌 Connecting to Backend:", API_URL);
     fetch(`${API_URL}/events`)
       .then(res => res.json())
       .then(data => setEvents(data))
