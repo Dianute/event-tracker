@@ -9,6 +9,8 @@ export default function AdminPage() {
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("IDLE");
     const [customUrl, setCustomUrl] = useState("");
+    const [targets, setTargets] = useState<any[]>([]);
+    const [newTarget, setNewTarget] = useState({ name: "", url: "", city: "" });
 
     const fetchHistory = () => {
         fetch(`${API_URL}/scout/history`)
@@ -25,8 +27,40 @@ export default function AdminPage() {
             .catch(err => console.error(err));
     };
 
+    const fetchTargets = () => {
+        fetch(`${API_URL}/targets`)
+            .then(res => res.json())
+            .then(setTargets)
+            .catch(console.error);
+    };
+
+    const handleDeleteTarget = (id: string) => {
+        if (!confirm("Are you sure?")) return;
+        fetch(`${API_URL}/targets/${id}`, { method: 'DELETE' })
+            .then(() => fetchTargets());
+    };
+
+    const handleAddTarget = () => {
+        if (!newTarget.name || !newTarget.url) return alert("Name and URL required");
+
+        // Auto-detect selector
+        let selector = "a[href*='/e/']";
+        if (newTarget.url.includes('bilietai.lt')) selector = ".event_short";
+        else if (newTarget.url.includes('kakava.lt')) selector = "a.event-card";
+
+        fetch(`${API_URL}/targets`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...newTarget, selector })
+        }).then(() => {
+            fetchTargets();
+            setNewTarget({ name: "", url: "", city: "" });
+        });
+    };
+
     useEffect(() => {
         fetchHistory();
+        fetchTargets();
         // Poll every 5 seconds
         const interval = setInterval(fetchHistory, 5000);
         return () => clearInterval(interval);
@@ -88,6 +122,81 @@ export default function AdminPage() {
                             className="px-6 py-3 h-[46px] bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-bold transition-all shadow-cyan-500/20 shadow-lg whitespace-nowrap"
                         >
                             {status === 'RUNNING' ? 'Scout Deployed...' : customUrl ? '🚀 Scout URL' : '🚀 Launch All'}
+                        </button>
+                    </div>
+                </section>
+
+                {/* Target Manager */}
+                <section className="mb-10">
+                    <h2 className="text-xl font-bold mb-4">Target Manager</h2>
+                    <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-gray-900/50 text-gray-400">
+                                <tr>
+                                    <th className="p-4">Name</th>
+                                    <th className="p-4">City</th>
+                                    <th className="p-4">URL</th>
+                                    <th className="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {targets.map((t) => (
+                                    <tr key={t.id} className="border-t border-gray-700 hover:bg-white/5">
+                                        <td className="p-4 font-bold">{t.name}</td>
+                                        <td className="p-4">{t.city || '-'}</td>
+                                        <td className="p-4 text-gray-400 truncate max-w-[200px]" title={t.url}>{t.url}</td>
+                                        <td className="p-4">
+                                            <button
+                                                onClick={() => handleDeleteTarget(t.id)}
+                                                className="text-red-400 hover:text-red-300 font-bold text-xs uppercase"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {targets.length === 0 && (
+                                    <tr><td colSpan={4} className="p-8 text-center text-gray-500">No targets configured.</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Add Target Form */}
+                    <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                        <h3 className="text-lg font-bold mb-4">Add New Target</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <input
+                                className="bg-gray-900 border border-gray-600 rounded p-2 text-white"
+                                placeholder="Name (e.g. Bilietai Siauliai)"
+                                value={newTarget.name}
+                                onChange={e => setNewTarget({ ...newTarget, name: e.target.value })}
+                            />
+                            <select
+                                className="bg-gray-900 border border-gray-600 rounded p-2 text-white"
+                                value={newTarget.city}
+                                onChange={e => setNewTarget({ ...newTarget, city: e.target.value })}
+                            >
+                                <option value="">Select City (Optional)</option>
+                                <option value="Vilnius">Vilnius</option>
+                                <option value="Kaunas">Kaunas</option>
+                                <option value="Klaipėda">Klaipėda</option>
+                                <option value="Šiauliai">Šiauliai</option>
+                                <option value="Panevėžys">Panevėžys</option>
+                                <option value="Palanga">Palanga</option>
+                            </select>
+                            <input
+                                className="bg-gray-900 border border-gray-600 rounded p-2 text-white md:col-span-2"
+                                placeholder="URL"
+                                value={newTarget.url}
+                                onChange={e => setNewTarget({ ...newTarget, url: e.target.value })}
+                            />
+                        </div>
+                        <button
+                            onClick={handleAddTarget}
+                            className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition-colors"
+                        >
+                            + Add Target
                         </button>
                     </div>
                 </section>
