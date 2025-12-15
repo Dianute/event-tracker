@@ -24,3 +24,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.cyberpunk-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(150%) contrast(150%) saturate(300%);
+}
