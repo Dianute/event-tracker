@@ -11,7 +11,12 @@ const PORT = 8080;
 const DB_PATH = path.join(__dirname, 'events.db');
 
 // Middleware
-app.use(cors());
+// Middleware
+app.use(cors({
+    origin: '*', // Allow all for now to rule out CORS issues
+    methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(bodyParser.json());
 
 // Database Setup
