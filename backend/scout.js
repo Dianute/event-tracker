@@ -19,11 +19,29 @@ async function runScout() {
         targets = [{ name: "Default", url: "https://www.bandsintown.com/c/klaipeda-lithuania", selector: "a[href*='/e/']" }];
     }
 
+    // Helper to find local Chrome on Windows
+    const chromePaths = [
+        'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
+        'C:\\Users\\Algis\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'
+    ];
+    let executablePath = null;
+
+    // Check if we are on Windows (local dev) or Linux (Production)
+    if (process.platform === 'win32') {
+        executablePath = chromePaths.find(p => fs.existsSync(p));
+        if (!executablePath) console.warn("⚠️ Local Chrome not found, trying default Puppeteer bundle...");
+    } else {
+        // Production (Railway/Linux)
+        executablePath = await chromium.executablePath();
+    }
+
     const browser = await puppeteer.launch({
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
+        executablePath: executablePath || await chromium.executablePath(),
+        headless: "new", // Force new headless mode
+        ignoreDefaultArgs: ['--disable-extensions'],
     });
 
     try {

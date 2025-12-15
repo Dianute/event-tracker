@@ -3,8 +3,12 @@ node_modules/
 *.log
 .env
 .DS_Store
-*.html
+*.db
+*.log
+.env
+.DS_Store
 *.json
+!package.json
 !package.json
 !targets.json
 !schema.sql
