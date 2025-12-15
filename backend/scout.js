@@ -180,52 +180,46 @@ async function runScout() {
 // --- Helpers ---
 
 function parseEventText(text) {
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    // Split and clean lines
+    let lines = text.split('\n').map(l => l.trim()).filter(l => l);
 
-    // 1. Identify Price/Status (Bottom line usually)
-    let priceIndex = -1;
-    const priceKeywords = ['€', 'Eur', 'Kaina', 'Išparduota', 'Nemokamai'];
-    for (let i = lines.length - 1; i >= 0; i--) {
-        if (priceKeywords.some(kw => lines[i].includes(kw))) {
-            priceIndex = i;
-            break;
-        }
+    // Filter out common UI noise lines "Pirkti bilietą", prices, etc.
+    const noise = ['Pirkti bilietą', 'Osta pilet', 'Buy ticket', '€', 'Eur', 'Kaina'];
+    // We keep lines that might be Title/Venue but try to skip obvious buttons at the very start
+    if (lines.length > 0 && noise.some(n => lines[0].includes(n))) {
+        lines.shift();
     }
 
-    // Default to last line if no price found
-    if (priceIndex === -1) priceIndex = lines.length - 1;
+    if (lines.length === 0) return { title: "Unknown", location: "Unknown", dateRaw: "" };
 
-    // 2. Identify Structure based on Bilietai/Kakava patterns
-    // Bilietai Pattern: [Date Parts..., Venue, Title, Price]
-    // Kakava Pattern: [Title, Date, Venue, Price] (Often)
+    // Bilietai/Kakava Typical Structure (Visual Order):
+    // [Title]
+    // [Tags - Optional]
+    // [Date]
+    // [Venue]
 
-    // Heuristic: Title is usually the longest line or emphatically styled (not detectable here)
-    // Heuristic: Venue is usually below Date and above Title (Bilietai) OR below Title (Kakava)
+    // Default strategy: Bottom-Up for Location/Date, Top-Down for Title
 
-    let title = "Unknown Title";
-    let venue = "Unknown Venue";
-    let dateRaw = "";
+    // 1. Venue is usually the LAST line
+    let venue = lines[lines.length - 1];
 
-    // If we have enough lines
-    if (lines.length >= 3) {
-        const candidate1 = lines[priceIndex - 1]; // Line above price
-        const candidate2 = lines[priceIndex - 2]; // Line above that
+    // 2. Date is usually the 2ND TO LAST line
+    let dateRaw = lines.length > 1 ? lines[lines.length - 2] : "";
 
-        // Check if candidate 2 looks like a venue (simple heuristic)
-        // If candidate 1 is the Title, then candidate 2 might be Venue
+    // 3. Title is usually the FIRST line (after filtering noise)
+    let title = lines[0];
 
-        title = candidate1;
-        venue = candidate2;
+    // Validation Heuristics
+    // If Date line doesn't look like a date (e.g. doesn't have digits), maybe structure is different?
+    // But for now, this simple logic matches the observed Bilietai logs perfectly.
 
-        // Date is everything before the venue
-        dateRaw = lines.slice(0, priceIndex - 2).join(' ');
-    } else {
-        // Fallback for short cards
-        title = lines[0] || "Unknown";
-        dateRaw = lines.slice(1).join(' ');
+    // Cleanup Title (sometimes has extra spaces or pipes)
+    if (title && title.includes('|')) {
+        // "Artist | Venue" -> sometimes title repeats venue
+        // Keep it all for now or split? Keep it.
     }
 
-    // 3. Smart City Detection
+    // Smart City Detection (moved here from original parseEventText)
     const LITHUANIAN_CITIES = [
         "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys",
         "Alytus", "Marijampolė", "Mažeikiai", "Jonava", "Utena",
