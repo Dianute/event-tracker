@@ -71,6 +71,7 @@ async function runScout() {
         ignoreDefaultArgs: ['--disable-extensions'],
     });
 
+    loadCache(); // Load cache at start
     let totalEventsFound = 0;
 
     try {
@@ -139,15 +140,23 @@ async function runScout() {
                         } else {
                             parsed = parseEventText(raw.rawText);
                         }
+
                         let coords = { lat: 0, lng: 0 };
+                        let wasCached = false; // Track cache hit
+
                         if (parsed.location) {
                             // Smart City Logic: Use detected city from text, fallback to target default
                             const cityContext = parsed.detectedCity || target.city;
 
+                            const geoStart = Date.now();
                             const geo = await geocodeAddress(parsed.location, cityContext);
+                            const geoDuration = Date.now() - geoStart;
+
+                            if (geoDuration < 100) wasCached = true; // Heuristic: Cache is fast
+
                             if (geo) {
                                 coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
-                                console.log(`   📍 Geocoded: ${parsed.location} (${cityContext || 'No City'}) -> [${geo.lat}, ${geo.lon}]`);
+                                console.log(`   📍 Geocoded: ${parsed.location} (${cityContext || 'No City'}) -> [${geo.lat}, ${geo.lon}] ${wasCached ? '(Cache)' : ''}`);
                             } else {
                                 console.warn(`   ⚠️ Geocode Failed: ${parsed.location} (using fallback)`);
                                 // Fallback: Random scatter around a default center (Kaunas-ish)
@@ -176,7 +185,13 @@ async function runScout() {
                             endTime: endTime.toISOString()
                         });
 
-                        await new Promise(r => setTimeout(r, 1100)); // Rate limit
+                        // Dynamic Rate Limit
+                        if (!wasCached) {
+                            await new Promise(r => setTimeout(r, 1100)); // Respect Nominatim Policy
+                        } else {
+                            // Fast path!
+                        }
+
                     } catch (err) {
                         console.warn("Skipping event:", err.message);
                     }
@@ -188,6 +203,7 @@ async function runScout() {
                         await axios.post(`${API_URL}/events`, ev);
                     }
                     totalEventsFound += events.length;
+                    saveCache(); // Save intermittently
                 }
 
             } catch (err) {
@@ -196,6 +212,9 @@ async function runScout() {
                 await page.close();
             }
         }
+
+        saveCache(); // Final Save
+
 
         // Log SUCCESS
         await axios.post(`${API_URL}/scout/log`, {
@@ -379,6 +398,30 @@ function parseFacebookPost(text) {
     return { title, location: venue, dateRaw, detectedCity: null, timeRaw };
 }
 
+
+// --- Cache Logic ---
+const CACHE_FILE = path.join(__dirname, 'geocode_cache.json');
+let geocodeCache = {};
+
+function loadCache() {
+    try {
+        if (fs.existsSync(CACHE_FILE)) {
+            geocodeCache = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8'));
+            console.log(`📦 Loaded ${Object.keys(geocodeCache).length} cached locations.`);
+        }
+    } catch (e) {
+        console.warn("Could not load cache:", e.message);
+    }
+}
+
+function saveCache() {
+    try {
+        fs.writeFileSync(CACHE_FILE, JSON.stringify(geocodeCache, null, 2));
+    } catch (e) {
+        console.warn("Could not save cache:", e.message);
+    }
+}
+
 async function geocodeAddress(address, defaultCity = "") {
     // Clean address
     let cleanAddr = address.trim();
@@ -392,7 +435,13 @@ async function geocodeAddress(address, defaultCity = "") {
     // Append 'Lithuania' for context if not present
     const query = cleanAddr.includes('Lietuva') ? cleanAddr : `${cleanAddr}, Lietuva`;
 
+    // CHECK CACHE
+    if (geocodeCache[query]) {
+        return geocodeCache[query];
+    }
+
     try {
+        // Rate limit happens outcome-side, but let's be safe
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
         const res = await axios.get(url, {
             headers: {
@@ -401,13 +450,17 @@ async function geocodeAddress(address, defaultCity = "") {
             }
         });
         if (res.data && res.data.length > 0) {
-            return res.data[0];
+            const result = { lat: res.data[0].lat, lon: res.data[0].lon }; // Store only what we need
+            geocodeCache[query] = result;
+            return result;
         }
     } catch (e) {
         // Ignore errors
+        console.error("Geocode error:", e.message);
     }
     return null;
 }
+
 
 async function runSimulation() {
     // Only run if real scraping fails
