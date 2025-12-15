@@ -101,8 +101,15 @@ app.post('/targets', (req, res) => {
 
     fs.readFile(file, 'utf8', (err, data) => {
         const targets = err ? [] : JSON.parse(data);
+        // The following line was part of the provided edit but is not applicable here.
+        // if (targets.length === initialLength) {
+        //     return res.status(404).json({ error: "Target not found" });
+        // }
         targets.push({ id: uuidv4(), ...newTarget });
-        fs.writeFile(file, JSON.stringify(targets, null, 2), () => res.json({ success: true }));
+        fs.writeFile(file, JSON.stringify(targets, null, 2), (err) => {
+            if (err) return res.status(500).json({ error: "Failed to write targets file" });
+            res.json({ success: true });
+        });
     });
 });
 

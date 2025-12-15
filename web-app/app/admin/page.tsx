@@ -28,7 +28,7 @@ export default function AdminPage() {
     };
 
     const fetchTargets = () => {
-        fetch(`${API_URL}/targets`)
+        fetch(`${API_URL}/targets?_t=${Date.now()}`)
             .then(res => res.json())
             .then(setTargets)
             .catch(console.error);
@@ -37,7 +37,11 @@ export default function AdminPage() {
     const handleDeleteTarget = (id: string) => {
         if (!confirm("Are you sure?")) return;
         fetch(`${API_URL}/targets/${id}`, { method: 'DELETE' })
-            .then(() => fetchTargets());
+            .then(res => {
+                if (!res.ok) return res.json().then(e => { throw new Error(e.error || 'Failed') });
+                fetchTargets();
+            })
+            .catch(err => alert("Delete failed: " + err.message));
     };
 
     const handleAddTarget = () => {
