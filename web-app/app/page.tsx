@@ -13,6 +13,8 @@ const MapView = dynamic<any>(() => import('@/components/map-view'), {
   loading: () => <div className="h-screen w-full flex items-center justify-center bg-gray-50">Loading Map...</div>
 });
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
 interface Event {
   id: string;
   title: string;
@@ -31,7 +33,7 @@ export default function Home() {
 
   // Load events from Backend on mount
   useEffect(() => {
-    fetch('http://localhost:8080/events')
+    fetch(`${API_URL}/events`)
       .then(res => res.json())
       .then(data => setEvents(data))
       .catch(err => console.error("Failed to fetch events:", err));
