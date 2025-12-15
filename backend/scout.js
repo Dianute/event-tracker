@@ -21,14 +21,32 @@ async function runScout() {
         console.error("⚠️ Failed to log start:", e.message);
     }
 
+    // Check CLI arguments for single-target mode
+    const args = process.argv.slice(2);
+    let customUrl = null;
+    if (args.length > 0 && args[0].startsWith('--url=')) {
+        customUrl = args[0].split('=')[1];
+    }
+
     // Read targets
     let targets = [];
-    try {
-        const data = fs.readFileSync(path.join(__dirname, 'targets.json'), 'utf8');
-        targets = JSON.parse(data);
-    } catch (e) {
-        console.log("⚠️ No targets.json found, using defaults.");
-        targets = [{ name: "Default", url: "https://www.bandsintown.com/c/klaipeda-lithuania", selector: "a[href*='/e/']" }];
+    if (customUrl) {
+        console.log(`🎯 Single-Target Mode: ${customUrl}`);
+        // Auto-detect selector
+        let selector = "a[href*='/e/']"; // Default
+        if (customUrl.includes('bilietai.lt')) selector = ".event_short";
+        else if (customUrl.includes('kakava.lt')) selector = "a.event-card"; // Kakava specific
+        else if (customUrl.includes('bandsintown')) selector = "a[href*='/e/']";
+
+        targets = [{ name: "Custom Target", url: customUrl, selector: selector }];
+    } else {
+        try {
+            const data = fs.readFileSync(path.join(__dirname, 'targets.json'), 'utf8');
+            targets = JSON.parse(data);
+        } catch (e) {
+            console.log("⚠️ No targets.json found, using defaults.");
+            targets = [{ name: "Default", url: "https://www.bandsintown.com/c/klaipeda-lithuania", selector: "a[href*='/e/']" }];
+        }
     }
 
     // Chrome Path Detection

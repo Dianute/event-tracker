@@ -8,6 +8,7 @@ export default function AdminPage() {
     const [logs, setLogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [status, setStatus] = useState("IDLE");
+    const [customUrl, setCustomUrl] = useState("");
 
     const fetchHistory = () => {
         fetch(`${API_URL}/scout/history`)
@@ -33,11 +34,18 @@ export default function AdminPage() {
 
     const handleRunScout = () => {
         setLoading(true);
-        fetch(`${API_URL}/scout/run`, { method: 'POST' })
+        const body = customUrl ? { url: customUrl } : {};
+
+        fetch(`${API_URL}/scout/run`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        })
             .then(res => res.json())
             .then(() => {
                 setStatus("RUNNING");
                 setTimeout(fetchHistory, 1000); // Refresh list
+                setCustomUrl(""); // Clear input
             })
             .catch(err => alert("Failed to start scout"))
             .finally(() => setLoading(false));
@@ -60,17 +68,26 @@ export default function AdminPage() {
 
                 {/* Controls */}
                 <section className="mb-10 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                    <div className="flex justify-between items-center">
-                        <div>
+                    <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+                        <div className="flex-1 w-full">
                             <h2 className="text-xl font-bold mb-2">Manual Override</h2>
-                            <p className="text-gray-400 text-sm">Force the agent to scan all targets immediately.</p>
+                            <p className="text-gray-400 text-sm mb-4">Force the agent to scan specific targets immediately.</p>
+
+                            <label className="block text-xs uppercase text-gray-500 font-bold mb-1">Target URL (Optional)</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. https://www.bilietai.lt/lit/renginiai/koncertai/kaunas"
+                                value={customUrl}
+                                onChange={(e) => setCustomUrl(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-cyan-500 transition-colors"
+                            />
                         </div>
                         <button
                             onClick={handleRunScout}
                             disabled={loading || status === 'RUNNING'}
-                            className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-bold transition-all shadow-cyan-500/20 shadow-lg"
+                            className="px-6 py-3 h-[46px] bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-bold transition-all shadow-cyan-500/20 shadow-lg whitespace-nowrap"
                         >
-                            {status === 'RUNNING' ? 'Scout Deployed...' : '🚀 Launch Scout Mission'}
+                            {status === 'RUNNING' ? 'Scout Deployed...' : customUrl ? '🚀 Scout URL' : '🚀 Launch All'}
                         </button>
                     </div>
                 </section>

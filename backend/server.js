@@ -141,11 +141,20 @@ app.post('/scout/log', (req, res) => {
 // POST /scout/run - Run the Scout Agent
 app.post('/scout/run', (req, res) => {
     const { spawn } = require('child_process');
+    const { url } = req.body;
     console.log("🚀 Triggering Scout Agent...");
 
     // Determine path based on environment
     const scoutScript = path.join(__dirname, 'scout.js');
-    const scout = spawn('node', [scoutScript], { cwd: __dirname });
+
+    // Prepare arguments
+    const args = [scoutScript];
+    if (url) {
+        console.log(`🎯 Custom URL: ${url}`);
+        args.push(`--url=${url}`);
+    }
+
+    const scout = spawn('node', args, { cwd: __dirname });
 
     scout.stdout.on('data', (data) => console.log(`Scout: ${data}`));
     scout.stderr.on('data', (data) => console.error(`Scout Error: ${data}`));
