@@ -57,7 +57,7 @@ export default function Home() {
     };
 
     // Save to Backend
-    fetch('http://localhost:8080/events', {
+    fetch(`${API_URL}/events`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newEvent)
@@ -76,7 +76,7 @@ export default function Home() {
   };
 
   const handleDeleteEvent = (id: string) => {
-    fetch(`http://localhost:8080/events/${id}`, { method: 'DELETE' })
+    fetch(`${API_URL}/events/${id}`, { method: 'DELETE' })
       .then(res => {
         if (res.ok) {
           setEvents(prev => prev.filter(e => e.id !== id));
