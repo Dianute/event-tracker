@@ -118,6 +118,19 @@ app.post('/scout/run', (req, res) => {
     res.json({ message: "Scout Agent started!" });
 });
 
+// Import cron
+const cron = require('node-cron');
+
+// Schedule Scout to run every 6 hours (at minute 0 of hours 0, 6, 12, 18)
+cron.schedule('0 */6 * * *', () => {
+    console.log("⏰ Default Cron Trigger: Running Scout Agent...");
+    const { spawn } = require('child_process');
+    const scout = spawn('node', ['scout.js'], { cwd: __dirname });
+
+    scout.stdout.on('data', (data) => console.log(`[Auto-Scout]: ${data}`));
+    scout.stderr.on('data', (data) => console.error(`[Auto-Scout Error]: ${data}`));
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`Backend Server running on http://localhost:${PORT}`);
