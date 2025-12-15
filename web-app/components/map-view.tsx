@@ -257,207 +257,210 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
     return timeMatch && searchMatch;
   })
-})
+
     .sort((a, b) => {
-  // Primary sort based on user selection
-  if (sortBy === 'time') {
-    const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
-    const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
-    return startA - startB;
-  } else {
-    // Distance Sort
-    if (!userLocation) return 0; // Fallback
-    const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
-    const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
-    return distA - distB;
-  }
-});
+      // Primary sort based on user selection
+      if (sortBy === 'time') {
+        const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
+        const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
+        return startA - startB;
+      } else {
+        // Distance Sort
+        if (!userLocation) return 0; // Fallback
+        const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
+        const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
+        return distA - distB;
+      }
+    });
 
-// Cyberpunk checks
-const isCyber = mapTheme === 'cyberpunk';
+  // Cyberpunk checks
+  const isCyber = mapTheme === 'cyberpunk';
 
-// TRON Logic
-const tileUrl = (mapTheme === 'light' || mapTheme === 'cyberpunk')
-  ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-  : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+  // TRON Logic
+  const tileUrl = (mapTheme === 'light' || mapTheme === 'cyberpunk')
+    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
-return (
-  <>
-    <MapContainer
-      center={[54.8985, 23.9036]} // Kaunas, Lithuania - better default for Lithuanian events
-      zoom={13}
-      scrollWheelZoom={true}
-      className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url={tileUrl}
-        className={isCyber ? 'cyberpunk-tiles' : ''}
-      />
+  return (
+    <>
+      <MapContainer
+        center={[54.8985, 23.9036]} // Kaunas, Lithuania - better default for Lithuanian events
+        zoom={13}
+        scrollWheelZoom={true}
+        className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={tileUrl}
+          className={isCyber ? 'cyberpunk-tiles' : ''}
+        />
 
-      {filteredEvents.map((event) => {
-        const isPast = event.endTime && new Date(event.endTime) < now;
-        const opacity = isPast ? 0.3 : 1;
-        const grayscale = isPast ? 'grayscale(100%)' : 'none';
+        {filteredEvents.map((event) => {
+          const isPast = event.endTime && new Date(event.endTime) < now;
+          const opacity = isPast ? 0.3 : 1;
+          const grayscale = isPast ? 'grayscale(100%)' : 'none';
 
-        // Parse Description (Location / Date / Link)
-        const descLines = event.description ? event.description.split('\n') : [];
-        const location = descLines[0] || '';
-        const rawDate = descLines[1] || '';
-        const link = descLines[2] && descLines[2].startsWith('http') ? descLines[2] : '';
+          // Parse Description (Location / Date / Link)
+          const descLines = event.description ? event.description.split('\n') : [];
+          const location = descLines[0] || '';
+          const rawDate = descLines[1] || '';
+          const link = descLines[2] && descLines[2].startsWith('http') ? descLines[2] : '';
 
-        return (
-          <Marker
-            key={event.id}
-            position={[event.lat, event.lng]}
-            icon={getEventIcon(event.type)}
-            opacity={opacity}
-          >
-            <Popup className="custom-popup">
-              <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{event.type}</span>
+          return (
+            <Marker
+              key={event.id}
+              position={[event.lat, event.lng]}
+              icon={getEventIcon(event.type)}
+              opacity={opacity}
+            >
+              <Popup className="custom-popup">
+                <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{event.type}</span>
+                    </div>
+                    {onDeleteEvent && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm('Delete this event?')) onDeleteEvent(event.id);
+                        }}
+                        className="text-gray-500 hover:text-red-500 transition-colors p-1"
+                        title="Delete Event"
+                      >
+                        🗑️
+                      </button>
+                    )}
                   </div>
-                  {onDeleteEvent && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Delete this event?')) onDeleteEvent(event.id);
-                      }}
-                      className="text-gray-500 hover:text-red-500 transition-colors p-1"
-                      title="Delete Event"
-                    >
-                      🗑️
-                    </button>
+
+                  <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{event.title}</h3>
+
+                  {/* Structured Info */}
+                  {location && (
+                    <div className="flex items-start gap-2 text-xs text-gray-300 mb-1">
+                      <span>📍</span>
+                      <span className="opacity-90">{location}</span>
+                    </div>
                   )}
-                </div>
+                  {rawDate && (
+                    <div className="flex items-start gap-2 text-xs text-gray-300 mb-3">
+                      <span>📅</span>
+                      <span className="opacity-90">{rawDate}</span>
+                    </div>
+                  )}
 
-                <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{event.title}</h3>
+                  {!location && <p className="text-sm text-gray-300 m-0 mt-2 leading-relaxed">{event.description}</p>}
 
-                {/* Structured Info */}
-                {location && (
-                  <div className="flex items-start gap-2 text-xs text-gray-300 mb-1">
-                    <span>📍</span>
-                    <span className="opacity-90">{location}</span>
-                  </div>
-                )}
-                {rawDate && (
-                  <div className="flex items-start gap-2 text-xs text-gray-300 mb-3">
-                    <span>📅</span>
-                    <span className="opacity-90">{rawDate}</span>
-                  </div>
-                )}
-
-                {!location && <p className="text-sm text-gray-300 m-0 mt-2 leading-relaxed">{event.description}</p>}
-
-                <div className="flex gap-2 mt-3">
-                  {link && (
+                  <div className="flex gap-2 mt-3">
+                    {link && (
+                      <a
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`flex-1 text-center text-xs font-bold py-2 rounded-lg transition-all ${isCyber ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-[0_0_10px_#00ffff]' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
+                      >
+                        🌐 Tickets / Info
+                      </a>
+                    )}
+                    {/* Maps Button */}
                     <a
-                      href={link}
+                      href={`https://www.google.com/maps/search/?api=1&query=${event.lat},${event.lng}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`flex-1 text-center text-xs font-bold py-2 rounded-lg transition-all ${isCyber ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-[0_0_10px_#00ffff]' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
+                      className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
+                      title="Open in Google Maps"
                     >
-                      🌐 Tickets / Info
+                      🗺️
                     </a>
-                  )}
-                  {/* Maps Button */}
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${event.lat},${event.lng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
-                    title="Open in Google Maps"
-                  >
-                    🗺️
-                  </a>
+                  </div>
+
                 </div>
+              </Popup>
+            </Marker>
+          );
+        })}
 
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-
-      <LocationMarker
-        onMapClick={onMapClick}
-        newLocation={newLocation || null}
-        onLocationFound={setUserLocation}
-      />
-    </MapContainer>
-
-    {/* Top Controls Container */}
-    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[1000] flex gap-3 w-full max-w-lg px-4 pointer-events-none">
-      {/* Search Bar */}
-      <div className={`pointer-events-auto flex-1 backdrop-blur-md rounded-2xl flex items-center px-4 py-2 ring-1 transition-all group focus-within:ring-opacity-100 
-            ${isCyber
-          ? 'bg-slate-900/80 ring-cyan-500/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]'
-          : 'bg-black/60 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-white/10 focus-within:ring-blue-500/50'}`}>
-        <span className="text-xl mr-2 grayscale brightness-200">🔍</span>
-        <input
-          type="text"
-          placeholder="Find tacos, jazz, parties..."
-          className={`bg-transparent border-none outline-none placeholder-gray-400 w-full font-medium ${isCyber ? 'text-cyan-100' : 'text-white'}`}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+        <LocationMarker
+          onMapClick={onMapClick}
+          newLocation={newLocation || null}
+          onLocationFound={setUserLocation}
         />
-        {searchQuery && (
-          <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white">×</button>
-        )}
+      </MapContainer>
+
+      {/* Top Controls Container */}
+      <div className="fixed top-4 left-0 w-full z-[1000] flex flex-col items-center gap-3 px-4 pointer-events-none">
+        {/* Search Bar */}
+        <div className={`pointer-events-auto w-full max-w-md backdrop-blur-md rounded-2xl flex items-center px-4 py-2 ring-1 transition-all group focus-within:ring-opacity-100 
+            ${isCyber
+            ? 'bg-slate-900/80 ring-cyan-500/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]'
+            : 'bg-black/60 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-white/10 focus-within:ring-blue-500/50'}`}>
+          <span className="text-xl mr-2 grayscale brightness-200">🔍</span>
+          <input
+            type="text"
+            placeholder="Find tacos, jazz, parties..."
+            className={`bg-transparent border-none outline-none placeholder-gray-400 w-full font-medium ${isCyber ? 'text-cyan-100' : 'text-white'}`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white">×</button>
+          )}
+        </div>
+
+        {/* Filter Row - Scrollable keys on mobile */}
+        <div className="flex gap-2 w-full max-w-md overflow-x-auto hide-scrollbar pointer-events-auto pb-2 justify-start md:justify-center">
+          {/* Sort Toggle */}
+          <button
+            onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap flex items-center gap-2 backdrop-blur-md flex-shrink-0
+              ${isCyber
+                ? 'bg-slate-900/80 text-cyan-400 border border-cyan-500/30 ring-1 ring-cyan-500/30'
+                : 'bg-black/60 text-white ring-1 ring-white/10'
+              }`}
+          >
+            {sortBy === 'time' ? '⏱️ Soonest' : '📍 Closest'}
+          </button>
+
+          {/* Filter Button */}
+          <button
+            onClick={() => setShowHappeningNow(!showHappeningNow)}
+            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap flex items-center gap-2 flex-shrink-0 ${showHappeningNow
+              ? (isCyber ? 'bg-cyan-500 text-black ring-2 ring-cyan-300 shadow-[0_0_20px_#00ffff]' : 'bg-green-500 text-white ring-2 ring-green-300 shadow-[0_0_15px_#22c55e]')
+              : (isCyber ? 'bg-slate-900/80 text-cyan-400 border border-cyan-500/30' : 'bg-black/60 text-white ring-1 ring-white/10')
+              } backdrop-blur-md`}
+          >
+            {showHappeningNow ? (isCyber ? '⚡ Live' : '🟢 Live') : '⚪ All'}
+          </button>
+
+          {/* Scout Agent Button */}
+          <button
+            onClick={() => setShowScout(true)}
+            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap ring-1 backdrop-blur-md flex-shrink-0 ${isCyber ? 'bg-slate-900/80 text-yellow-400 border-yellow-500/50 ring-yellow-500/50' : 'bg-black/60 text-yellow-400 ring-white/10'}`}
+          >
+            🕵️‍♂️ Agent
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            onClick={() => setMapTheme(prev => prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark')}
+            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap ring-1 backdrop-blur-md flex-shrink-0 ${isCyber ? 'bg-slate-900/80 text-pink-400 border-pink-500/50 ring-pink-500/50 shadow-[0_0_15px_rgba(255,0,255,0.3)]' : 'bg-black/60 text-white ring-white/10'}`}
+          >
+            {mapTheme === 'dark' ? '🌙' : mapTheme === 'light' ? '☀️' : '👾'}
+          </button>
+        </div>
       </div>
 
-      {/* Sort Toggle */}
-      <button
-        onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-        className={`pointer-events-auto px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap flex items-center gap-2 backdrop-blur-md 
-            ${isCyber
-            ? 'bg-slate-900/80 text-cyan-400 border border-cyan-500/30 ring-1 ring-cyan-500/30'
-            : 'bg-black/60 text-white ring-1 ring-white/10'
-          }`}
-      >
-        {sortBy === 'time' ? '⏱️ Soonest' : '📍 Closest'}
-      </button>
+      {showScout && <ScoutControl onClose={() => setShowScout(false)} />}
 
-      {/* Filter Button */}
-      <button
-        onClick={() => setShowHappeningNow(!showHappeningNow)}
-        className={`pointer-events-auto px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap flex items-center gap-2 ${showHappeningNow
-          ? (isCyber ? 'bg-cyan-500 text-black ring-2 ring-cyan-300 shadow-[0_0_20px_#00ffff]' : 'bg-green-500 text-white ring-2 ring-green-300 shadow-[0_0_15px_#22c55e]')
-          : (isCyber ? 'bg-slate-900/80 text-cyan-400 border border-cyan-500/30' : 'bg-black/60 text-white ring-1 ring-white/10')
-          } backdrop-blur-md`}
-      >
-        {showHappeningNow ? (isCyber ? '⚡ Live' : '🟢 Live') : '⚪ All'}
-      </button>
-
-      {/* Scout Agent Button */}
-      <button
-        onClick={() => setShowScout(true)}
-        className={`pointer-events-auto px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap ring-1 backdrop-blur-md ${isCyber ? 'bg-slate-900/80 text-yellow-400 border-yellow-500/50 ring-yellow-500/50' : 'bg-black/60 text-yellow-400 ring-white/10'}`}
-      >
-        🕵️‍♂️ Agent
-      </button>
-
-      {/* Theme Toggle */}
-      <button
-        onClick={() => setMapTheme(prev => prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark')}
-        className={`pointer-events-auto px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap ring-1 backdrop-blur-md ${isCyber ? 'bg-slate-900/80 text-pink-400 border-pink-500/50 ring-pink-500/50 shadow-[0_0_15px_rgba(255,0,255,0.3)]' : 'bg-black/60 text-white ring-white/10'}`}
-      >
-        {mapTheme === 'dark' ? '🌙' : mapTheme === 'light' ? '☀️' : '👾'}
-      </button>
-    </div>
-
-    {showScout && <ScoutControl onClose={() => setShowScout(false)} />}
-
-    {/* Live Event List Overlay (Bottom Left) */}
-    <div className="fixed bottom-6 left-6 z-[1000] w-80 max-h-[60vh] overflow-y-auto pointer-events-none flex flex-col hide-scrollbar">
-      {filteredEvents.slice(0, 20).map(event => (
-        <div key={event.id} className="pointer-events-auto">
-          <EventCard event={event} userLocation={userLocation} />
-        </div>
-      ))}
-    </div>
-  </>
-);
+      {/* Live Event List Overlay (Bottom Left) */}
+      <div className="fixed bottom-0 left-0 md:bottom-6 md:left-6 z-[1000] w-full md:w-80 max-h-[50vh] md:max-h-[60vh] overflow-y-auto pointer-events-none flex flex-col hide-scrollbar p-4 md:p-0 bg-gradient-to-t from-black/80 to-transparent md:bg-none">
+        {filteredEvents.slice(0, 20).map(event => (
+          <div key={event.id} className="pointer-events-auto">
+            <EventCard event={event} userLocation={userLocation} />
+          </div>
+        ))}
+      </div>
+    </>
+  );
 }
