@@ -124,6 +124,7 @@ async function runScout() {
 
                 console.log(`✨ Extracted ${rawEvents.length} raw cards from ${target.name}.`);
 
+                const events = [];
                 for (const raw of rawEvents) {
                     try {
                         let parsed;
