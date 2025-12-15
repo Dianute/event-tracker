@@ -6,7 +6,8 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid'); // Ensure this is installed or use crypto
 const crypto = require('crypto');
 
-const API_URL = "http://localhost:8080";
+const PORT = process.env.PORT || 8080;
+const API_URL = `http://localhost:${PORT}`;
 const RUN_ID = crypto.randomUUID();
 
 // Main Execution
