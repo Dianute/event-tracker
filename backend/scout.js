@@ -86,9 +86,18 @@ async function runScout() {
                         const parsed = parseEventText(raw.rawText);
                         let coords = { lat: 0, lng: 0 };
                         if (parsed.location) {
-                            const geo = await geocodeAddress(parsed.location);
-                            if (geo) coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
-                            else coords = { lat: 54.8985 + (Math.random() * 0.05), lng: 23.9036 + (Math.random() * 0.05) };
+                            const geo = await geocodeAddress(parsed.location, target.city);
+                            if (geo) {
+                                coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
+                                console.log(`   📍 Geocoded: ${parsed.location} -> [${geo.lat}, ${geo.lon}]`);
+                            } else {
+                                console.warn(`   ⚠️ Geocode Failed: ${parsed.location} (using fallback)`);
+                                // Fallback: Random scatter around a default center (Kaunas-ish)
+                                coords = {
+                                    lat: 54.8985 + (Math.random() * 0.05 - 0.025),
+                                    lng: 23.9036 + (Math.random() * 0.05 - 0.025)
+                                };
+                            }
                         }
 
                         events.push({
@@ -198,10 +207,15 @@ function parseEventText(text) {
     return { title, location: venue, dateRaw };
 }
 
-async function geocodeAddress(address) {
+async function geocodeAddress(address, defaultCity = "") {
     // Clean address
-    const cleanAddr = address.trim();
+    let cleanAddr = address.trim();
     if (!cleanAddr) return null;
+
+    // Append default city if not present in address
+    if (defaultCity && !cleanAddr.toLowerCase().includes(defaultCity.toLowerCase())) {
+        cleanAddr = `${cleanAddr}, ${defaultCity}`;
+    }
 
     // Append 'Lithuania' for context if not present
     const query = cleanAddr.includes('Lietuva') ? cleanAddr : `${cleanAddr}, Lietuva`;
