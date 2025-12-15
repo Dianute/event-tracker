@@ -12,3 +12,12 @@ CREATE TABLE IF NOT EXISTS events (
     link TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS scout_logs (
+    id TEXT PRIMARY KEY,
+    startTime DATETIME DEFAULT CURRENT_TIMESTAMP,
+    endTime DATETIME,
+    status TEXT, -- 'RUNNING', 'SUCCESS', 'FAILED'
+    eventsFound INTEGER DEFAULT 0,
+    logSummary TEXT
+);

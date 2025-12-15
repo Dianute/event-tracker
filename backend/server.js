@@ -106,12 +106,46 @@ app.post('/targets', (req, res) => {
     });
 });
 
+// GET /scout/history - Get execution logs
+app.get('/scout/history', (req, res) => {
+    db.all("SELECT * FROM scout_logs ORDER BY startTime DESC LIMIT 50", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
+    });
+});
+
+// POST /scout/log - Create or Update execution log
+app.post('/scout/log', (req, res) => {
+    const { id, status, eventsFound, logSummary, endTime } = req.body;
+
+    // Check if exists
+    db.get("SELECT id FROM scout_logs WHERE id = ?", [id], (err, row) => {
+        if (row) {
+            // Update
+            const sql = `UPDATE scout_logs SET status = ?, eventsFound = ?, logSummary = ?, endTime = ? WHERE id = ?`;
+            db.run(sql, [status, eventsFound, logSummary || "", endTime || null, id], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
+            });
+        } else {
+            // Insert (Start)
+            const sql = `INSERT INTO scout_logs (id, status, startTime) VALUES (?, ?, CURRENT_TIMESTAMP)`;
+            db.run(sql, [id, status], (err) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.json({ success: true });
+            });
+        }
+    });
+});
+
 // POST /scout/run - Run the Scout Agent
 app.post('/scout/run', (req, res) => {
     const { spawn } = require('child_process');
     console.log("🚀 Triggering Scout Agent...");
 
-    const scout = spawn('node', ['scout.js'], { cwd: __dirname });
+    // Determine path based on environment
+    const scoutScript = path.join(__dirname, 'scout.js');
+    const scout = spawn('node', [scoutScript], { cwd: __dirname });
 
     scout.stdout.on('data', (data) => console.log(`Scout: ${data}`));
     scout.stderr.on('data', (data) => console.error(`Scout Error: ${data}`));

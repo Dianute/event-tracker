@@ -3,13 +3,24 @@ const chromium = require('@sparticuz/chromium');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid'); // Ensure this is installed or use crypto
+const crypto = require('crypto');
 
-const API_URL = 'http://localhost:8080/events';
+const API_URL = "http://localhost:8080";
+const RUN_ID = crypto.randomUUID();
 
+// Main Execution
 async function runScout() {
-    console.log("🕵️‍♂️ Scout Agent Starting (Puppeteer Mode)...");
+    console.log(`🕵️‍♂️ Scout Agent Starting (Run ID: ${RUN_ID})...`);
 
-    // Read targets from JSON
+    // Log Start
+    try {
+        await axios.post(`${API_URL}/scout/log`, { id: RUN_ID, status: 'RUNNING' });
+    } catch (e) {
+        console.error("⚠️ Failed to log start:", e.message);
+    }
+
+    // Read targets
     let targets = [];
     try {
         const data = fs.readFileSync(path.join(__dirname, 'targets.json'), 'utf8');
@@ -19,20 +30,17 @@ async function runScout() {
         targets = [{ name: "Default", url: "https://www.bandsintown.com/c/klaipeda-lithuania", selector: "a[href*='/e/']" }];
     }
 
-    // Helper to find local Chrome on Windows
+    // Chrome Path Detection
     const chromePaths = [
         'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         'C:\\Users\\Algis\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'
     ];
     let executablePath = null;
-
-    // Check if we are on Windows (local dev) or Linux (Production)
     if (process.platform === 'win32') {
         executablePath = chromePaths.find(p => fs.existsSync(p));
         if (!executablePath) console.warn("⚠️ Local Chrome not found, trying default Puppeteer bundle...");
     } else {
-        // Production (Railway/Linux)
         executablePath = await chromium.executablePath();
     }
 
@@ -40,60 +48,46 @@ async function runScout() {
         args: chromium.args,
         defaultViewport: chromium.defaultViewport,
         executablePath: executablePath || await chromium.executablePath(),
-        headless: "new", // Force new headless mode
+        headless: "new",
         ignoreDefaultArgs: ['--disable-extensions'],
     });
+
+    let totalEventsFound = 0;
 
     try {
         for (const target of targets) {
             console.log(`🌍 Visiting: ${target.name} (${target.url})`);
             const page = await browser.newPage();
-            // Set User-Agent to avoid bot detection
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-
             try {
+                await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
                 await page.goto(target.url, { waitUntil: 'networkidle2', timeout: 45000 });
 
-                // Inject selector into browser context
                 const selector = target.selector || "a[href*='/e/']";
 
-                // Extract raw data strings first
+                // Extract raw data
                 const rawEvents = await page.evaluate((sel) => {
                     const found = [];
                     const items = document.querySelectorAll(sel);
-
                     items.forEach((item, index) => {
-                        if (index > 15) return; // Limit to 15 events
+                        if (index > 15) return;
                         const rawText = item.innerText;
                         const link = item.href;
-
-                        if (rawText && rawText.length > 10) {
-                            found.push({ rawText, link });
-                        }
+                        if (rawText && rawText.length > 10) found.push({ rawText, link });
                     });
                     return found;
                 }, selector);
 
-                console.log(`✨ Extracted ${rawEvents.length} raw cards. Processing...`);
+                console.log(`✨ Extracted ${rawEvents.length} raw cards from ${target.name}.`);
 
                 const events = [];
                 for (const raw of rawEvents) {
                     try {
                         const parsed = parseEventText(raw.rawText);
-
-                        // Geocode the location
                         let coords = { lat: 0, lng: 0 };
                         if (parsed.location) {
                             const geo = await geocodeAddress(parsed.location);
-                            if (geo) {
-                                coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
-                            } else {
-                                // Fallback: Random scatter around a default center (Kaunas-ish)
-                                coords = {
-                                    lat: 54.8985 + (Math.random() * 0.05 - 0.025),
-                                    lng: 23.9036 + (Math.random() * 0.05 - 0.025)
-                                };
-                            }
+                            if (geo) coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
+                            else coords = { lat: 54.8985 + (Math.random() * 0.05), lng: 23.9036 + (Math.random() * 0.05) };
                         }
 
                         events.push({
@@ -102,35 +96,50 @@ async function runScout() {
                             date: parsed.dateRaw,
                             link: raw.link,
                             description: `Event from ${target.name}`,
-                            type: "music", // Default
+                            type: "music",
                             lat: coords.lat,
                             lng: coords.lng,
-                            startTime: new Date().toISOString() // TODO: Parse real date
+                            startTime: new Date().toISOString()
                         });
 
-                        // Rate limit for Nominatim
-                        await new Promise(r => setTimeout(r, 1100));
-
+                        await new Promise(r => setTimeout(r, 1100)); // Rate limit
                     } catch (err) {
-                        console.warn("Skipping event due to parse error:", err.message);
+                        console.warn("Skipping event:", err.message);
                     }
                 }
 
                 if (events.length > 0) {
-                    console.log(`✨ Successfully parsed and geocoded ${events.length} events!`);
+                    console.log(`✨ Parsed ${events.length} events. uploading...`);
                     for (const ev of events) {
-                        await axios.post('http://localhost:8080/events', ev);
+                        await axios.post(`${API_URL}/events`, ev);
                     }
-                } else {
-                    console.log("⚠️ No events found after parsing.");
+                    totalEventsFound += events.length;
                 }
 
             } catch (err) {
                 console.error(`❌ Error scraping ${target.name}: ${err.message}`);
+            } finally {
+                await page.close();
             }
-            await page.close();
         }
 
+        // Log SUCCESS
+        await axios.post(`${API_URL}/scout/log`, {
+            id: RUN_ID,
+            status: 'SUCCESS',
+            eventsFound: totalEventsFound,
+            endTime: new Date().toISOString()
+        });
+
+    } catch (err) {
+        console.error(`❌ Fatal Error: ${err.message}`);
+        // Log FAILURE
+        await axios.post(`${API_URL}/scout/log`, {
+            id: RUN_ID,
+            status: 'FAILED',
+            logSummary: err.message,
+            endTime: new Date().toISOString()
+        });
     } finally {
         await browser.close();
         console.log("✅ Scout Mission Complete.");
