@@ -451,7 +451,7 @@ return (
     {showScout && <ScoutControl onClose={() => setShowScout(false)} />}
 
     {/* Live Event List Overlay (Bottom Left) */}
-    <div className="fixed bottom-6 left-6 z-[1000] w-80 max-h-[60vh] overflow-y-auto pointer-events-none flex flex-col-reverse hide-scrollbar">
+    <div className="fixed bottom-6 left-6 z-[1000] w-80 max-h-[60vh] overflow-y-auto pointer-events-none flex flex-col hide-scrollbar">
       {filteredEvents.slice(0, 20).map(event => (
         <div key={event.id} className="pointer-events-auto">
           <EventCard event={event} userLocation={userLocation} />
