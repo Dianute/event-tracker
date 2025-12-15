@@ -81,27 +81,61 @@ async function runScout() {
                 await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
                 await page.goto(target.url, { waitUntil: 'networkidle2', timeout: 45000 });
 
-                const selector = target.selector || "a[href*='/e/']";
+                // Detect if Facebook
+                const isFacebook = target.url.includes('facebook.com');
+                let selector = target.selector || "a[href*='/e/']";
+
+                if (isFacebook) {
+                    // Facebook Strategy: Look for Posts
+                    selector = 'div[role="article"]';
+                    console.log(`🕵️‍♂️ Facebook detected. Hunting for posts with selector: ${selector}`);
+
+                    // Specific anti-login-wall scrolling
+                    try {
+                        await page.keyboard.press('Escape'); // Close popups
+                        await page.mouse.wheel({ deltaY: 2000 });
+                        await new Promise(r => setTimeout(r, 2000));
+                    } catch (e) { }
+                }
+
+                // Wait for content
+                try {
+                    await page.waitForSelector(selector, { timeout: 10000 });
+                } catch (e) {
+                    console.log(`⚠️ Selector ${selector} not found (might be login wall or empty).`);
+                }
 
                 // Extract raw data
-                const rawEvents = await page.evaluate((sel) => {
+                const rawEvents = await page.evaluate((sel, isFb) => {
                     const found = [];
                     const items = document.querySelectorAll(sel);
                     items.forEach((item, index) => {
                         if (index > 15) return;
                         const rawText = item.innerText;
-                        const link = item.href;
+                        // For Facebook, link is tricky. Often valid link is in a timestamp or the post itself.
+                        // We try to find the first anchor.
+                        const link = isFb ? (item.querySelector('a')?.href || window.location.href) : item.href;
+
+                        // Facebook posts are long, length check > 10 is fine.
                         if (rawText && rawText.length > 10) found.push({ rawText, link });
                     });
                     return found;
-                }, selector);
+                }, selector, isFacebook);
 
                 console.log(`✨ Extracted ${rawEvents.length} raw cards from ${target.name}.`);
 
-                const events = [];
                 for (const raw of rawEvents) {
                     try {
-                        const parsed = parseEventText(raw.rawText);
+                        let parsed;
+                        if (isFacebook) {
+                            parsed = parseFacebookPost(raw.rawText);
+                            if (!parsed.dateRaw) {
+                                // console.log("Skipping FB post (no date):", parsed.title);
+                                continue;
+                            }
+                        } else {
+                            parsed = parseEventText(raw.rawText);
+                        }
                         let coords = { lat: 0, lng: 0 };
                         if (parsed.location) {
                             // Smart City Logic: Use detected city from text, fallback to target default
@@ -239,6 +273,41 @@ function parseEventText(text) {
     }
 
     return { title, location: venue, dateRaw, detectedCity };
+}
+
+function parseFacebookPost(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+    // Facebook posts are unstructured. We look for keywords.
+
+    // 1. Date Extraction (Regex for Lithuanian months)
+    // Matches: "Sausio 15", "Vasario 2 d.", "2025-12-15"
+    const dateRegex = /(?:(\d{1,2})\s+)?(sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio)(?:\s+(\d{1,2}))?(?:\s+d\.)?/i;
+
+    let dateRaw = "";
+
+    // Scan matching lines
+    for (const line of lines) {
+        const match = line.match(dateRegex);
+        if (match) {
+            // Found a date-like string
+            dateRaw = match[0];
+            // Add year if missing (assume next occurrence)
+            if (!dateRaw.match(/\d{4}/)) {
+                dateRaw += ` ${new Date().getFullYear()}`; // Naive assumption
+            }
+            break;
+        }
+    }
+
+    // 2. Title - Assume first line that isn't date/meta
+    let title = lines[0] || "Unknown Facebook Post";
+    if (title.length < 5 && lines.length > 1) title = lines[1]; // Skip short noise
+
+    // 3. Venue - Search for "at ..." or just assume "Facebook Event"
+    let venue = "Facebook Event"; // Default
+
+    return { title, location: venue, dateRaw, detectedCity: null };
 }
 
 async function geocodeAddress(address, defaultCity = "") {
