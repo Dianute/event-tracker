@@ -110,7 +110,7 @@ async function runScout() {
                     const found = [];
                     const items = document.querySelectorAll(sel);
                     items.forEach((item, index) => {
-                        if (index > 15) return;
+                        // if (index > 15) return; // Removed limit
                         const rawText = item.innerText;
                         // For Facebook, link is tricky. Often valid link is in a timestamp or the post itself.
                         // We try to find the first anchor.
@@ -134,6 +134,8 @@ async function runScout() {
                                 // console.log("Skipping FB post (no date found):", parsed.title.substring(0, 50) + "...");
                                 continue;
                             }
+                        } else if (target.url.includes('kakava.lt')) {
+                            parsed = parseKakavaEvent(raw.rawText);
                         } else {
                             parsed = parseEventText(raw.rawText);
                         }
@@ -274,6 +276,51 @@ function parseEventText(text) {
     }
 
     return { title, location: venue, dateRaw, detectedCity };
+}
+
+function parseKakavaEvent(text) {
+    let lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+    // Filter noise
+    // "Kaina nuo..." is usually the last line or close to it
+    lines = lines.filter(l => !l.startsWith('Kaina nuo') && !l.includes('Atšaukta') && !l.includes('Išparduota'));
+
+    if (lines.length === 0) return { title: "Unknown Kakava", location: "Unknown", dateRaw: "" };
+
+    // Structure: [Date Lines...] -> [Title] -> [Venue]
+
+    // 1. Extract Date
+    // Check if first lines look like date parts (Month Short + Day)
+    // Months: Lap, Sau, Vas, Kov, Bal, Geg, Bir, Lie, Rgp, Rgs, Spa, Gruod
+    const months = ['saus', 'vas', 'kov', 'bal', 'geg', 'bir', 'lie', 'rgp', 'rgs', 'spa', 'lap', 'gruo'];
+
+    let dateRaw = "";
+    let titleIndex = 0;
+
+    // Check line 0 for month
+    if (lines.length > 1 && months.some(m => lines[0].toLowerCase().includes(m)) && lines[1].match(/^\d+$/)) {
+        // Standard Date: "Lap" "19"
+        dateRaw = `${lines[0]} ${lines[1]}`;
+        titleIndex = 2;
+
+        // Check for range: "Lap" "19" "|" "Gruod" "31"
+        if (lines[2] === '|' && lines.length > 4) {
+            dateRaw += ` - ${lines[3]} ${lines[4]}`;
+            titleIndex = 5;
+        }
+    } else {
+        // No date found at top (e.g. Card 1/2) -> Default or Search?
+        // Let's assume lines[0] is Title then.
+        dateRaw = "";
+    }
+
+    // 2. Title
+    let title = lines[titleIndex] || "Unknown Title";
+
+    // 3. Venue
+    let venue = lines[titleIndex + 1] || "Unknown Venue";
+
+    return { title, location: venue, dateRaw, detectedCity: null };
 }
 
 function parseFacebookPost(text) {

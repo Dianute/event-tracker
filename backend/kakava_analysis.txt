@@ -1,0 +1,82 @@
+≡ƒò╡∩╕ÅΓÇìΓÖé∩╕Å Debugging Kakava.lt...
+≡ƒîì Visiting https://kakava.lt/renginiai-vilniuje...
+Γ£¿ Found 5 first cards.
+
+--- Card 1 ---
+RAW TEXT BLOCK:
+ ΓÇ₧Muzika dviemΓÇ£ ΓÇô unikali patirtis ir i┼ískirtin─ù dovana
+Naujosios operos studija, Vilnius
+Kaina nuo 201,70 Γé¼
+PARSED LINES: [
+  'ΓÇ₧Muzika dviemΓÇ£ ΓÇô unikali patirtis ir i┼ískirtin─ù dovana',
+  'Naujosios operos studija, Vilnius',
+  'Kaina nuo 201,70 Γé¼'
+]
+
+--- Card 2 ---
+RAW TEXT BLOCK:
+ LUMINA parkas | Vilnius | DOVAN┼▓ KUPONAS
+Vilniaus universiteto botanikos sodas, Vil...
+Kaina nuo 13,90 Γé¼
+PARSED LINES: [
+  'LUMINA parkas | Vilnius | DOVAN┼▓ KUPONAS',
+  'Vilniaus universiteto botanikos sodas, Vil...',
+  'Kaina nuo 13,90 Γé¼'
+]
+
+--- Card 3 ---
+RAW TEXT BLOCK:
+ Lap
+14
+|
+Sau
+31
+┼╜aidimas ΓÇ₧Pab─ùgimas i┼í vagonoΓÇ£
+Gele┼╛inkeli┼│ muziejaus B─ùgi┼│ parkas, Vilni...
+Kaina nuo 46,70 Γé¼
+PARSED LINES: [
+  'Lap',
+  '14',
+  '|',
+  'Sau',
+  '31',
+  '┼╜aidimas ΓÇ₧Pab─ùgimas i┼í vagonoΓÇ£',
+  'Gele┼╛inkeli┼│ muziejaus B─ùgi┼│ parkas, Vilni...',
+  'Kaina nuo 46,70 Γé¼'
+]
+
+--- Card 4 ---
+RAW TEXT BLOCK:
+ Lap
+19
+|
+Gruod
+31
+Tavo nuotykiai prasideda I Gele┼╛inkeli┼│ muziejus Vilniuje
+Gele┼╛inkelio stoties centriniai r┼½mai, Vil...
+Kaina nuo 8,70 Γé¼
+PARSED LINES: [
+  'Lap',
+  '19',
+  '|',
+  'Gruod',
+  '31',
+  'Tavo nuotykiai prasideda I Gele┼╛inkeli┼│ muziejus Vilniuje',
+  'Gele┼╛inkelio stoties centriniai r┼½mai, Vil...',
+  'Kaina nuo 8,70 Γé¼'
+]
+
+--- Card 5 ---
+RAW TEXT BLOCK:
+ Gruod
+13
+Spektaklis visai ┼íeimai | Kal─ùdos: beprotyb─ù dirbtuv─ùse
+Vilniaus Pilait─ùs gimnazija, Vilnius
+At┼íaukta
+PARSED LINES: [
+  'Gruod',
+  '13',
+  'Spektaklis visai ┼íeimai | Kal─ùdos: beprotyb─ù dirbtuv─ùse',
+  'Vilniaus Pilait─ùs gimnazija, Vilnius',
+  'At┼íaukta'
+]

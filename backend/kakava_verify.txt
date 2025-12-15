@@ -1,0 +1,72 @@
+≡ƒò╡∩╕ÅΓÇìΓÖé∩╕Å Scout Agent Starting (Run ID: 9a536b17-5f89-4485-a463-24f9867325a8)...
+ΓÜá∩╕Å Failed to log start: Request failed with status code 404
+≡ƒÄ» Single-Target Mode: https://kakava.lt/renginiai-vilniuje
+≡ƒîì Visiting: Custom Target (https://kakava.lt/renginiai-vilniuje)
+Γ£¿ Extracted 100 raw cards from Custom Target.
+   ΓÜá∩╕Å Geocode Failed: Naujosios operos studija, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ΓÜá∩╕Å Geocode Failed: Gele┼╛inkeli┼│ muziejaus B─ùgi┼│ parkas, Vilni... (using fallback)
+   ΓÜá∩╕Å Geocode Failed: Gele┼╛inkelio stoties centriniai r┼½mai, Vil... (using fallback)
+   ≡ƒôì Geocoded: Vilniaus Pilait─ùs gimnazija, Vilnius (No City) -> [54.7081348, 25.1808446]
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ΓÜá∩╕Å Geocode Failed: ELBLONGO KAMERINIS ORKESTRAS (Lenkija) Meno vadovas ir dirigentas MIRI... (using fallback)
+   ΓÜá∩╕Å Geocode Failed: VU Ma┼╛osios aulos kavin─ù, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ΓÜá∩╕Å Geocode Failed: SUSITIKIMAI SU LENKIJOS KINU #10 / KULEJ. DWIE STRONY MEDALU (using fallback)
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ΓÜá∩╕Å Geocode Failed: K2 Comedy Club, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ΓÜá∩╕Å Geocode Failed: Vilniaus lenk┼│ kult┼½ros namai (Teatro sal─ù... (using fallback)
+   ≡ƒôì Geocoded: Compensa koncert┼│ sal─ù, Vilnius (No City) -> [54.7115807, 25.2766353]
+   ≡ƒôì Geocoded: Lietuvos nacionalin─ù filharmonija, Vilnius (No City) -> [54.6762902, 25.2877636]
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ΓÜá∩╕Å Geocode Failed: DOMINO teatras | interaktyvi komedija SEX GURU (using fallback)
+   ≡ƒôì Geocoded: Jazz Cellar 11, Vilnius (No City) -> [54.6754967, 25.2889064]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ΓÜá∩╕Å Geocode Failed: Vilniaus lenk┼│ kult┼½ros namai (Koncert┼│ sa... (using fallback)
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ≡ƒôì Geocoded: Adomo Mickevi─ìiaus vie┼íoji biblioteka, Vil... (No City) -> [54.6802566, 25.2801825]
+   ΓÜá∩╕Å Geocode Failed: LVSO koncert┼│ sal─ù, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Jazz Cellar 11, Vilnius (No City) -> [54.6754967, 25.2889064]
+   ΓÜá∩╕Å Geocode Failed: Premjera! Dinozaurai ─îIA (using fallback)
+   ΓÜá∩╕Å Geocode Failed: Lietuvos teatro s─àjunga, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ΓÜá∩╕Å Geocode Failed: LVSO koncert┼│ sal─ù, Vilnius (using fallback)
+   ΓÜá∩╕Å Geocode Failed: Muzikinis spektaklis vaikams ΓÇ₧1000 Dovan┼│ΓÇ£ | GyviTeatre | Vilnius (using fallback)
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ≡ƒôì Geocoded: Jazz Cellar 11, Vilnius (No City) -> [54.6754967, 25.2889064]
+   ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ΓÜá∩╕Å Geocode Failed: Skambanti ┼áiaur─ù. VII Tarptautinio Jaschos Heifetzo konkurso nugal─ùtoj... (using fallback)
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ΓÜá∩╕Å Geocode Failed: SMALA, Vilnius (using fallback)
+   ≡ƒôì Geocoded: ┼áv. Jon┼│ ba┼╛ny─ìia, Vilnius (No City) -> [54.6826784, 25.2885570]
+   ≡ƒôì Geocoded: Jazz Cellar 11, Vilnius (No City) -> [54.6754967, 25.2889064]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: Lietuvos nacionalin─ù filharmonija, Vilnius (No City) -> [54.6762902, 25.2877636]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ΓÜá∩╕Å Geocode Failed: SMALA, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ≡ƒôì Geocoded: DOMINO teatras, Vilnius (No City) -> [54.6780719, 25.2553227]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus teatras ΓÇ₧L─ùl─ùΓÇ£, Vilnius (No City) -> [54.6769564, 25.2866495]
+   ≡ƒôì Geocoded: Vilniaus universiteto botanikos sodas, Vil... (No City) -> [54.7339838, 25.4014771]
+   ΓÜá∩╕Å Geocode Failed: DOMINO teatras | KAK─û MAK─û IR MAGI┼áKA KELION─û (using fallback)
+   ΓÜá∩╕Å Geocode Failed: Vie┼íbutis Best Western, Vilnius (using fallback)
+   ≡ƒôì Geocoded: Vilniaus Pilait─ùs gimnazija, Vilnius (No City) -> [54.7081348, 25.1808446]
+   ≡ƒôì Geocoded: Vilniaus senasis teatras, Vilnius (No City) -> [54.6810077, 25.2732761]
+   ΓÜá∩╕Å Geocode Failed: Kal─ùdos su ─îiurlionio kvartetu, Didier Laloy ir Adrienu Tybergheinu (using fallback)
+   ΓÜá∩╕Å Geocode Failed: STAGE LITE STUDIO, Vilnius (using fallback)
+   ΓÜá∩╕Å Geocode Failed: DOMINO teatras | premjera MAMA M┼¬S┼▓ LOVOJE (using fallback)
