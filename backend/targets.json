@@ -6,15 +6,51 @@
     "selector": "a[href*='/e/']"
   },
   {
-    "id": "c1fa0668-1568-4bed-ae18-8df0f2f96abd",
-    "name": "Bilietai.lt",
-    "url": "https://www.bilietai.lt/lit/renginiai/koncertai/",
+    "id": "bilietai-vilnius",
+    "name": "Bilietai.lt (Vilnius)",
+    "url": "https://www.bilietai.lt/lit/renginiai/koncertai/vilnius",
     "selector": ".event_short"
   },
   {
-    "id": "bd2fd580-f1bc-4582-8051-7f87580470ea",
-    "name": "Kakava.lt",
-    "url": "https://kakava.lt/renginiai/1/koncertai",
+    "id": "bilietai-kaunas",
+    "name": "Bilietai.lt (Kaunas)",
+    "url": "https://www.bilietai.lt/lit/renginiai/koncertai/kaunas",
+    "selector": ".event_short"
+  },
+  {
+    "id": "bilietai-klaipeda",
+    "name": "Bilietai.lt (Klaipėda)",
+    "url": "https://www.bilietai.lt/lit/renginiai/koncertai/klaipeda",
+    "selector": ".event_short"
+  },
+  {
+    "id": "bilietai-palanga",
+    "name": "Bilietai.lt (Palanga)",
+    "url": "https://www.bilietai.lt/lit/renginiai/koncertai/palanga",
+    "selector": ".event_short"
+  },
+  {
+    "id": "kakava-vilnius",
+    "name": "Kakava.lt (Vilnius)",
+    "url": "https://kakava.lt/renginiai-vilniuje",
+    "selector": "a.event-card"
+  },
+  {
+    "id": "kakava-kaunas",
+    "name": "Kakava.lt (Kaunas)",
+    "url": "https://kakava.lt/renginiai-kaune",
+    "selector": "a.event-card"
+  },
+  {
+    "id": "kakava-klaipeda",
+    "name": "Kakava.lt (Klaipėda)",
+    "url": "https://kakava.lt/renginiai-klaipedoje",
+    "selector": "a.event-card"
+  },
+  {
+    "id": "kakava-palanga",
+    "name": "Kakava.lt (Palanga)",
+    "url": "https://kakava.lt/renginiai-palangoje",
     "selector": "a.event-card"
   }
 ]
