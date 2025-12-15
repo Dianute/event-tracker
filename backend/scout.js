@@ -158,16 +158,22 @@ async function runScout() {
                             }
                         }
 
+                        // Calculate Real Start Time
+                        const startTime = parseLithuanianDate(parsed.dateRaw, parsed.timeRaw || "19:00");
+                        // End time = Start + 3 hours (approximation)
+                        const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
+
                         events.push({
                             title: parsed.title,
                             venue: parsed.location,
                             date: parsed.dateRaw,
                             link: raw.link,
-                            description: `Event from ${target.name}`,
+                            description: `Event from ${target.name}\n${parsed.location}\n${parsed.dateRaw} @ ${parsed.timeRaw || "19:00"}`,
                             type: "music",
                             lat: coords.lat,
                             lng: coords.lng,
-                            startTime: new Date().toISOString()
+                            startTime: startTime.toISOString(),
+                            endTime: endTime.toISOString()
                         });
 
                         await new Promise(r => setTimeout(r, 1100)); // Rate limit
@@ -275,7 +281,8 @@ function parseEventText(text) {
         }
     }
 
-    return { title, location: venue, dateRaw, detectedCity };
+    const timeRaw = extractTime(text);
+    return { title, location: venue, dateRaw, detectedCity, timeRaw };
 }
 
 function parseKakavaEvent(text) {
@@ -320,7 +327,8 @@ function parseKakavaEvent(text) {
     // 3. Venue
     let venue = lines[titleIndex + 1] || "Unknown Venue";
 
-    return { title, location: venue, dateRaw, detectedCity: null };
+    const timeRaw = extractTime(text);
+    return { title, location: venue, dateRaw, detectedCity, timeRaw };
 }
 
 function parseFacebookPost(text) {
@@ -367,7 +375,8 @@ function parseFacebookPost(text) {
     // 3. Venue - Search for "at ..." or just assume "Facebook Event"
     let venue = "Facebook Event"; // Default
 
-    return { title, location: venue, dateRaw, detectedCity: null };
+    const timeRaw = extractTime(text);
+    return { title, location: venue, dateRaw, detectedCity: null, timeRaw };
 }
 
 async function geocodeAddress(address, defaultCity = "") {
