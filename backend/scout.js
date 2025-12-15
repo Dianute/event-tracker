@@ -427,4 +427,72 @@ async function runSimulation() {
     }
 }
 
+
+function extractTime(text) {
+    const timeRegex = /([0-1]?[0-9]|2[0-3]):([0-5][0-9])/;
+    const match = text.match(timeRegex);
+    return match ? match[0] : null;
+}
+
+function parseLithuanianDate(dateStr, timeStr) {
+    if (!dateStr) return new Date(); // Fallback
+
+    const months = {
+        'sausio': 0, 'vasario': 1, 'kovo': 2, 'balandžio': 3, 'gegužės': 4, 'birželio': 5,
+        'liepos': 6, 'rugpjūčio': 7, 'rugsėjo': 8, 'spalio': 9, 'lapkričio': 10, 'gruodžio': 11,
+        'saus': 0, 'vas': 1, 'kov': 2, 'bal': 3, 'geg': 4, 'bir': 5,
+        'lie': 6, 'rgp': 7, 'rgs': 8, 'spa': 9, 'lap': 10, 'gruod': 11, 'gruo': 11
+    };
+
+    const now = new Date();
+    let year = now.getFullYear();
+    let month = now.getMonth();
+    let day = now.getDate();
+
+    // Try to find month and day
+    const lower = dateStr.toLowerCase();
+
+    // Check for month name
+    let foundMonth = false;
+    for (const [mName, mIdx] of Object.entries(months)) {
+        if (lower.includes(mName)) {
+            month = mIdx;
+            foundMonth = true;
+            break;
+        }
+    }
+
+    // Extract day (number)
+    const dayMatch = lower.match(/(\d+)/);
+    if (dayMatch) {
+        day = parseInt(dayMatch[1], 10);
+    }
+
+    // Time parsing
+    let hours = 19;
+    let minutes = 0;
+    if (timeStr) {
+        const parts = timeStr.split(':');
+        hours = parseInt(parts[0], 10);
+        minutes = parseInt(parts[1], 10);
+    }
+
+    let d = new Date(year, month, day, hours, minutes);
+
+    // Future date correction (e.g. scraping in Dec for Jan)
+    // If the resulting date is in the past (by more than a day), assume it's next year
+    // Exception: It might be today or yesterday
+    if (d.getTime() < now.getTime() - 86400000 && foundMonth) {
+        // If we found a month, and the date is in the past, likely next year
+        // But trigger only if the month is "smaller" than current month?
+        // e.g. We are in Dec (11), event is Jan (0). Date(2024, 0, 15) is in past.
+        // We want 2025.
+        if (month < now.getMonth()) {
+            d.setFullYear(year + 1);
+        }
+    }
+
+    return d;
+}
+
 runScout();
