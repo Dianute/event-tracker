@@ -7,5 +7,8 @@ CREATE TABLE IF NOT EXISTS events (
     lng REAL,
     startTime TEXT,
     endTime TEXT,
+    venue TEXT,
+    date TEXT,
+    link TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
