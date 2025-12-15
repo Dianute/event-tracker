@@ -131,7 +131,7 @@ async function runScout() {
                         if (isFacebook) {
                             parsed = parseFacebookPost(raw.rawText);
                             if (!parsed.dateRaw) {
-                                // console.log("Skipping FB post (no date):", parsed.title);
+                                // console.log("Skipping FB post (no date found):", parsed.title.substring(0, 50) + "...");
                                 continue;
                             }
                         } else {
@@ -286,6 +286,18 @@ function parseFacebookPost(text) {
     const dateRegex = /(?:(\d{1,2})\s+)?(sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio)(?:\s+(\d{1,2}))?(?:\s+d\.)?/i;
 
     let dateRaw = "";
+
+    // 0. Keyword Heuristics for special dates
+    const lower = text.toLowerCase();
+    if (lower.includes('naujuosius metus') || lower.includes('naujieji metai')) {
+        dateRaw = `${new Date().getFullYear()}-12-31`;
+    } else if (lower.includes('šiandien')) {
+        dateRaw = new Date().toISOString().split('T')[0];
+    } else if (lower.includes('rytoj')) {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        dateRaw = d.toISOString().split('T')[0];
+    }
 
     // Scan matching lines
     for (const line of lines) {

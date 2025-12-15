@@ -1,0 +1,1098 @@
+≡ƒò╡∩╕ÅΓÇìΓÖé∩╕Å Scout Agent Starting (Run ID: aa926528-85d6-4981-bdba-086a79297922)...
+ΓÜá∩╕Å Failed to log start: Request failed with status code 404
+≡ƒÄ» Single-Target Mode: https://www.facebook.com/tamstaclub/
+≡ƒîì Visiting: Custom Target (https://www.facebook.com/tamstaclub/)
+≡ƒò╡∩╕ÅΓÇìΓÖé∩╕Å Facebook detected. Hunting for posts with selector: div[role="article"]
+Γ£¿ Extracted 1 raw cards from Custom Target.
+------------------------------------------
+DEBUG FB RAW:
+ Tamsta Club
+1h
+┬á
+┬╖
+I┼ílyd─ùkime senuosius ir pasitikime naujuosius metus pakil─Ö ─» pauk┼í─ìio skryd─»! ┼áviesiai, b┼½ryje draug┼│, kartu su Baltuoju Kiru. 
+--ΓÇª See more
+1
+Like
+Comment
+------------------------------------------
+ΓÜá∩╕Å Skipping FB post (no date found): Tamsta Club...
+Γ¥î Fatal Error: Request failed with status code 404
+Γ£à Scout Mission Complete.
+
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+AxiosError: Request failed with status code 404
+    at settle (C:\Users\Algis\Desktop\Antigravity\event tracker\backend\node_modules\axios\dist\node\axios.cjs:2106:12)
+    at IncomingMessage.handleStreamEnd (C:\Users\Algis\Desktop\Antigravity\event tracker\backend\node_modules\axios\dist\node\axios.cjs:3491:11)
+    at IncomingMessage.emit (node:events:530:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at Axios.request (C:\Users\Algis\Desktop\Antigravity\event tracker\backend\node_modules\axios\dist\node\axios.cjs:4731:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async runScout (C:\Users\Algis\Desktop\Antigravity\event tracker\backend\scout.js:206:9) {
+  code: 'ERR_BAD_REQUEST',
+  config: {
+    transitional: {
+      silentJSONParsing: true,
+      forcedJSONParsing: true,
+      clarifyTimeoutError: false
+    },
+    adapter: [ 'xhr', 'http', 'fetch' ],
+    transformRequest: [ [Function: transformRequest] ],
+    transformResponse: [ [Function: transformResponse] ],
+    timeout: 0,
+    xsrfCookieName: 'XSRF-TOKEN',
+    xsrfHeaderName: 'X-XSRF-TOKEN',
+    maxContentLength: -1,
+    maxBodyLength: -1,
+    env: {
+      FormData: [Function: FormData] {
+        LINE_BREAK: '\r\n',
+        DEFAULT_CONTENT_TYPE: 'application/octet-stream'
+      },
+      Blob: [class Blob]
+    },
+    validateStatus: [Function: validateStatus],
+    headers: Object [AxiosHeaders] {
+      Accept: 'application/json, text/plain, */*',
+      'Content-Type': 'application/json',
+      'User-Agent': 'axios/1.13.2',
+      'Content-Length': '151',
+      'Accept-Encoding': 'gzip, compress, deflate, br'
+    },
+    method: 'post',
+    url: 'http://localhost:8080/scout/log',
+    data: '{"id":"aa926528-85d6-4981-bdba-086a79297922","status":"FAILED","logSummary":"Request failed with status code 404","endTime":"2025-12-15T12:50:12.343Z"}',
+    allowAbsoluteUrls: true
+  },
+  request: <ref *4> ClientRequest {
+    _events: [Object: null prototype] {
+      abort: [Function (anonymous)],
+      aborted: [Function (anonymous)],
+      connect: [Function (anonymous)],
+      error: [Function (anonymous)],
+      socket: [Function (anonymous)],
+      timeout: [Function (anonymous)],
+      finish: [Function: requestOnFinish]
+    },
+    _eventsCount: 7,
+    _maxListeners: undefined,
+    outputData: [],
+    outputSize: 0,
+    writable: true,
+    destroyed: true,
+    _last: false,
+    chunkedEncoding: false,
+    shouldKeepAlive: true,
+    maxRequestsOnConnectionReached: false,
+    _defaultKeepAlive: true,
+    useChunkedEncodingByDefault: true,
+    sendDate: false,
+    _removedConnection: false,
+    _removedContLen: false,
+    _removedTE: false,
+    strictContentLength: false,
+    _contentLength: 151,
+    _hasBody: true,
+    _trailer: '',
+    finished: true,
+    _headerSent: true,
+    _closed: true,
+    _header: 'POST /scout/log HTTP/1.1\r\n' +
+      'Accept: application/json, text/plain, */*\r\n' +
+      'Content-Type: application/json\r\n' +
+      'User-Agent: axios/1.13.2\r\n' +
+      'Content-Length: 151\r\n' +
+      'Accept-Encoding: gzip, compress, deflate, br\r\n' +
+      'Host: localhost:8080\r\n' +
+      'Connection: keep-alive\r\n' +
+      '\r\n',
+    _keepAliveTimeout: 0,
+    _onPendingData: [Function: nop],
+    agent: Agent {
+      _events: [Object: null prototype] {
+        free: [Function (anonymous)],
+        newListener: [Function: maybeEnableKeylog]
+      },
+      _eventsCount: 2,
+      _maxListeners: undefined,
+      defaultPort: 80,
+      protocol: 'http:',
+      options: [Object: null prototype] {
+        keepAlive: true,
+        scheduling: 'lifo',
+        timeout: 5000,
+        noDelay: true,
+        path: null
+      },
+      requests: [Object: null prototype] {},
+      sockets: [Object: null prototype] {},
+      freeSockets: [Object: null prototype] {
+        'localhost:8080:': [
+          Socket {
+            connecting: false,
+            _hadError: false,
+            _parent: null,
+            _host: 'localhost',
+            _closeAfterHandlingError: false,
+            _events: [Object],
+            _readableState: [ReadableState],
+            _writableState: [WritableState],
+            allowHalfOpen: false,
+            _maxListeners: undefined,
+            _eventsCount: 6,
+            _sockname: null,
+            _pendingData: null,
+            _pendingEncoding: '',
+            server: null,
+            _server: null,
+            timeout: 4000,
+            parser: null,
+            _httpMessage: null,
+            autoSelectFamilyAttemptedAddresses: [Array],
+            [Symbol(async_id_symbol)]: -1,
+            [Symbol(kHandle)]: [TCP],
+            [Symbol(lastWriteQueueSize)]: 0,
+            [Symbol(timeout)]: [Timeout],
+            [Symbol(kBuffer)]: null,
+            [Symbol(kBufferCb)]: null,
+            [Symbol(kBufferGen)]: null,
+            [Symbol(shapeMode)]: true,
+            [Symbol(kCapture)]: false,
+            [Symbol(kSetNoDelay)]: true,
+            [Symbol(kSetKeepAlive)]: true,
+            [Symbol(kSetKeepAliveInitialDelay)]: 1,
+            [Symbol(kBytesRead)]: 0,
+            [Symbol(kBytesWritten)]: 0
+          }
+        ]
+      },
+      keepAliveMsecs: 1000,
+      keepAlive: true,
+      maxSockets: Infinity,
+      maxFreeSockets: 256,
+      scheduling: 'lifo',
+      maxTotalSockets: Infinity,
+      totalSocketCount: 1,
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false
+    },
+    socketPath: undefined,
+    method: 'POST',
+    maxHeaderSize: undefined,
+    insecureHTTPParser: undefined,
+    joinDuplicateHeaders: undefined,
+    path: '/scout/log',
+    _ended: true,
+    res: IncomingMessage {
+      _events: {
+        close: undefined,
+        error: [Function: handleStreamError],
+        data: [Function: handleStreamData],
+        end: [ [Function: responseOnEnd], [Function: handleStreamEnd] ],
+        readable: undefined,
+        aborted: [Function: handlerStreamAborted]
+      },
+      _readableState: ReadableState {
+        highWaterMark: 16384,
+        buffer: [],
+        bufferIndex: 0,
+        length: 0,
+        pipes: [],
+        awaitDrainWriters: null,
+        [Symbol(kState)]: 194779004
+      },
+      _maxListeners: undefined,
+      socket: null,
+      httpVersionMajor: 1,
+      httpVersionMinor: 1,
+      httpVersion: '1.1',
+      complete: true,
+      rawHeaders: [
+        'X-Powered-By',
+        'Express',
+        'Access-Control-Allow-Origin',
+        '*',
+        'Content-Security-Policy',
+        "default-src 'none'",
+        'X-Content-Type-Options',
+        'nosniff',
+        'Content-Type',
+        'text/html; charset=utf-8',
+        'Content-Length',
+        '149',
+        'Date',
+        'Mon, 15 Dec 2025 12:50:12 GMT',
+        'Connection',
+        'keep-alive',
+        'Keep-Alive',
+        'timeout=5'
+      ],
+      rawTrailers: [],
+      joinDuplicateHeaders: undefined,
+      aborted: false,
+      upgrade: false,
+      url: '',
+      method: null,
+      statusCode: 404,
+      statusMessage: 'Not Found',
+      client: <ref *1> Socket {
+        connecting: false,
+        _hadError: false,
+        _parent: null,
+        _host: 'localhost',
+        _closeAfterHandlingError: false,
+        _events: {
+          close: [Function: onClose],
+          error: [Function: bound onceWrapper] {
+            listener: [Function: freeSocketErrorListener]
+          },
+          prefinish: undefined,
+          finish: undefined,
+          drain: undefined,
+          data: undefined,
+          end: [Function: onReadableStreamEnd],
+          readable: undefined,
+          connect: undefined,
+          free: [Function: onFree],
+          timeout: [ [Function: onTimeout], [Function (anonymous)] ],
+          agentRemove: [Function: onRemove]
+        },
+        _readableState: ReadableState {
+          highWaterMark: 16384,
+          buffer: [],
+          bufferIndex: 0,
+          length: 0,
+          pipes: [],
+          awaitDrainWriters: null,
+          [Symbol(kState)]: 60303620
+        },
+        _writableState: WritableState {
+          highWaterMark: 16384,
+          length: 0,
+          corked: 0,
+          onwrite: [Function: bound onwrite],
+          writelen: 0,
+          bufferedIndex: 0,
+          pendingcb: 0,
+          [Symbol(kState)]: 17563908,
+          [Symbol(kBufferedValue)]: null,
+          [Symbol(kWriteCbValue)]: null,
+          [Symbol(kAfterWriteTickInfoValue)]: null
+        },
+        allowHalfOpen: false,
+        _maxListeners: undefined,
+        _eventsCount: 6,
+        _sockname: null,
+        _pendingData: null,
+        _pendingEncoding: '',
+        server: null,
+        _server: null,
+        timeout: 4000,
+        parser: null,
+        _httpMessage: null,
+        autoSelectFamilyAttemptedAddresses: [ '::1:8080' ],
+        [Symbol(async_id_symbol)]: -1,
+        [Symbol(kHandle)]: <ref *2> TCP {
+          reading: true,
+          onconnection: null,
+          [Symbol(owner_symbol)]: [Circular *1],
+          [Symbol(resource_symbol)]: ReusedHandle { type: 40, handle: [Circular *2] }
+        },
+        [Symbol(lastWriteQueueSize)]: 0,
+        [Symbol(timeout)]: <ref *3> Timeout {
+          _idleTimeout: 4000,
+          _idlePrev: TimersList {
+            _idleNext: [Circular *3],
+            _idlePrev: [Circular *3],
+            expiry: 12027,
+            id: -9007199254740959,
+            msecs: 4000,
+            priorityQueuePosition: 1
+          },
+          _idleNext: TimersList {
+            _idleNext: [Circular *3],
+            _idlePrev: [Circular *3],
+            expiry: 12027,
+            id: -9007199254740959,
+            msecs: 4000,
+            priorityQueuePosition: 1
+          },
+          _idleStart: 8039,
+          _onTimeout: [Function: bound ],
+          _timerArgs: undefined,
+          _repeat: null,
+          _destroyed: false,
+          [Symbol(refed)]: false,
+          [Symbol(kHasPrimitive)]: false,
+          [Symbol(asyncId)]: 1484,
+          [Symbol(triggerId)]: 1482,
+          [Symbol(kAsyncContextFrame)]: undefined
+        },
+        [Symbol(kBuffer)]: null,
+        [Symbol(kBufferCb)]: null,
+        [Symbol(kBufferGen)]: null,
+        [Symbol(shapeMode)]: true,
+        [Symbol(kCapture)]: false,
+        [Symbol(kSetNoDelay)]: true,
+        [Symbol(kSetKeepAlive)]: true,
+        [Symbol(kSetKeepAliveInitialDelay)]: 1,
+        [Symbol(kBytesRead)]: 0,
+        [Symbol(kBytesWritten)]: 0
+      },
+      _consuming: false,
+      _dumped: false,
+      req: [Circular *4],
+      _eventsCount: 4,
+      responseUrl: 'http://localhost:8080/scout/log',
+      redirects: [],
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false,
+      [Symbol(kHeaders)]: {
+        'x-powered-by': 'Express',
+        'access-control-allow-origin': '*',
+        'content-security-policy': "default-src 'none'",
+        'x-content-type-options': 'nosniff',
+        'content-type': 'text/html; charset=utf-8',
+        'content-length': '149',
+        date: 'Mon, 15 Dec 2025 12:50:12 GMT',
+        connection: 'keep-alive',
+        'keep-alive': 'timeout=5'
+      },
+      [Symbol(kHeadersCount)]: 18,
+      [Symbol(kTrailers)]: null,
+      [Symbol(kTrailersCount)]: 0
+    },
+    aborted: false,
+    timeoutCb: null,
+    upgradeOrConnect: false,
+    parser: null,
+    maxHeadersCount: null,
+    reusedSocket: true,
+    host: 'localhost',
+    protocol: 'http:',
+    _redirectable: Writable {
+      _events: {
+        close: undefined,
+        error: [Function: handleRequestError],
+        prefinish: undefined,
+        finish: undefined,
+        drain: undefined,
+        response: [Function: handleResponse],
+        socket: [
+          [Function: handleRequestSocket],
+          [Function: destroyOnTimeout]
+        ],
+        abort: undefined
+      },
+      _writableState: WritableState {
+        highWaterMark: 16384,
+        length: 0,
+        corked: 0,
+        onwrite: [Function: bound onwrite],
+        writelen: 0,
+        bufferedIndex: 0,
+        pendingcb: 0,
+        [Symbol(kState)]: 17580812,
+        [Symbol(kBufferedValue)]: null
+      },
+      _maxListeners: undefined,
+      _options: {
+        maxRedirects: 21,
+        maxBodyLength: Infinity,
+        protocol: 'http:',
+        path: '/scout/log',
+        method: 'POST',
+        headers: [Object: null prototype] {
+          Accept: 'application/json, text/plain, */*',
+          'Content-Type': 'application/json',
+          'User-Agent': 'axios/1.13.2',
+          'Content-Length': '151',
+          'Accept-Encoding': 'gzip, compress, deflate, br'
+        },
+        agents: { http: undefined, https: undefined },
+        auth: undefined,
+        family: undefined,
+        beforeRedirect: [Function: dispatchBeforeRedirect],
+        beforeRedirects: { proxy: [Function: beforeRedirect] },
+        http2Options: undefined,
+        hostname: 'localhost',
+        port: '8080',
+        agent: undefined,
+        nativeProtocols: {
+          'http:': {
+            _connectionListener: [Function: connectionListener],
+            METHODS: [Array],
+            STATUS_CODES: [Object],
+            Agent: [Function],
+            ClientRequest: [Function: ClientRequest],
+            IncomingMessage: [Function: IncomingMessage],
+            OutgoingMessage: [Function: OutgoingMessage],
+            Server: [Function: Server],
+            ServerResponse: [Function: ServerResponse],
+            createServer: [Function: createServer],
+            validateHeaderName: [Function],
+            validateHeaderValue: [Function],
+            get: [Function: get],
+            request: [Function: request],
+            setMaxIdleHTTPParsers: [Function: setMaxIdleHTTPParsers],
+            maxHeaderSize: [Getter],
+            globalAgent: [Getter/Setter],
+            WebSocket: [Getter],
+            CloseEvent: [Getter],
+            MessageEvent: [Getter]
+          },
+          'https:': {
+            Agent: [Function: Agent],
+            globalAgent: [Agent],
+            Server: [Function: Server],
+            createServer: [Function: createServer],
+            get: [Function: get],
+            request: [Function: request]
+          }
+        },
+        pathname: '/scout/log'
+      },
+      _ended: true,
+      _ending: true,
+      _redirectCount: 0,
+      _redirects: [],
+      _requestBodyLength: 151,
+      _requestBodyBuffers: [],
+      _eventsCount: 3,
+      _onNativeResponse: [Function (anonymous)],
+      _currentRequest: [Circular *4],
+      _currentUrl: 'http://localhost:8080/scout/log',
+      _timeout: null,
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false
+    },
+    [Symbol(shapeMode)]: false,
+    [Symbol(kCapture)]: false,
+    [Symbol(kBytesWritten)]: 0,
+    [Symbol(kNeedDrain)]: false,
+    [Symbol(corked)]: 0,
+    [Symbol(kChunkedBuffer)]: [],
+    [Symbol(kChunkedLength)]: 0,
+    [Symbol(kSocket)]: <ref *1> Socket {
+      connecting: false,
+      _hadError: false,
+      _parent: null,
+      _host: 'localhost',
+      _closeAfterHandlingError: false,
+      _events: {
+        close: [Function: onClose],
+        error: [Function: bound onceWrapper] {
+          listener: [Function: freeSocketErrorListener]
+        },
+        prefinish: undefined,
+        finish: undefined,
+        drain: undefined,
+        data: undefined,
+        end: [Function: onReadableStreamEnd],
+        readable: undefined,
+        connect: undefined,
+        free: [Function: onFree],
+        timeout: [ [Function: onTimeout], [Function (anonymous)] ],
+        agentRemove: [Function: onRemove]
+      },
+      _readableState: ReadableState {
+        highWaterMark: 16384,
+        buffer: [],
+        bufferIndex: 0,
+        length: 0,
+        pipes: [],
+        awaitDrainWriters: null,
+        [Symbol(kState)]: 60303620
+      },
+      _writableState: WritableState {
+        highWaterMark: 16384,
+        length: 0,
+        corked: 0,
+        onwrite: [Function: bound onwrite],
+        writelen: 0,
+        bufferedIndex: 0,
+        pendingcb: 0,
+        [Symbol(kState)]: 17563908,
+        [Symbol(kBufferedValue)]: null,
+        [Symbol(kWriteCbValue)]: null,
+        [Symbol(kAfterWriteTickInfoValue)]: null
+      },
+      allowHalfOpen: false,
+      _maxListeners: undefined,
+      _eventsCount: 6,
+      _sockname: null,
+      _pendingData: null,
+      _pendingEncoding: '',
+      server: null,
+      _server: null,
+      timeout: 4000,
+      parser: null,
+      _httpMessage: null,
+      autoSelectFamilyAttemptedAddresses: [ '::1:8080' ],
+      [Symbol(async_id_symbol)]: -1,
+      [Symbol(kHandle)]: <ref *2> TCP {
+        reading: true,
+        onconnection: null,
+        [Symbol(owner_symbol)]: [Circular *1],
+        [Symbol(resource_symbol)]: ReusedHandle { type: 40, handle: [Circular *2] }
+      },
+      [Symbol(lastWriteQueueSize)]: 0,
+      [Symbol(timeout)]: <ref *3> Timeout {
+        _idleTimeout: 4000,
+        _idlePrev: TimersList {
+          _idleNext: [Circular *3],
+          _idlePrev: [Circular *3],
+          expiry: 12027,
+          id: -9007199254740959,
+          msecs: 4000,
+          priorityQueuePosition: 1
+        },
+        _idleNext: TimersList {
+          _idleNext: [Circular *3],
+          _idlePrev: [Circular *3],
+          expiry: 12027,
+          id: -9007199254740959,
+          msecs: 4000,
+          priorityQueuePosition: 1
+        },
+        _idleStart: 8039,
+        _onTimeout: [Function: bound ],
+        _timerArgs: undefined,
+        _repeat: null,
+        _destroyed: false,
+        [Symbol(refed)]: false,
+        [Symbol(kHasPrimitive)]: false,
+        [Symbol(asyncId)]: 1484,
+        [Symbol(triggerId)]: 1482,
+        [Symbol(kAsyncContextFrame)]: undefined
+      },
+      [Symbol(kBuffer)]: null,
+      [Symbol(kBufferCb)]: null,
+      [Symbol(kBufferGen)]: null,
+      [Symbol(shapeMode)]: true,
+      [Symbol(kCapture)]: false,
+      [Symbol(kSetNoDelay)]: true,
+      [Symbol(kSetKeepAlive)]: true,
+      [Symbol(kSetKeepAliveInitialDelay)]: 1,
+      [Symbol(kBytesRead)]: 0,
+      [Symbol(kBytesWritten)]: 0
+    },
+    [Symbol(kOutHeaders)]: [Object: null prototype] {
+      accept: [ 'Accept', 'application/json, text/plain, */*' ],
+      'content-type': [ 'Content-Type', 'application/json' ],
+      'user-agent': [ 'User-Agent', 'axios/1.13.2' ],
+      'content-length': [ 'Content-Length', '151' ],
+      'accept-encoding': [ 'Accept-Encoding', 'gzip, compress, deflate, br' ],
+      host: [ 'Host', 'localhost:8080' ]
+    },
+    [Symbol(errored)]: null,
+    [Symbol(kHighWaterMark)]: 16384,
+    [Symbol(kRejectNonStandardBodyWrites)]: false,
+    [Symbol(kUniqueHeaders)]: null
+  },
+  response: {
+    status: 404,
+    statusText: 'Not Found',
+    headers: Object [AxiosHeaders] {
+      'x-powered-by': 'Express',
+      'access-control-allow-origin': '*',
+      'content-security-policy': "default-src 'none'",
+      'x-content-type-options': 'nosniff',
+      'content-type': 'text/html; charset=utf-8',
+      'content-length': '149',
+      date: 'Mon, 15 Dec 2025 12:50:12 GMT',
+      connection: 'keep-alive',
+      'keep-alive': 'timeout=5'
+    },
+    config: {
+      transitional: {
+        silentJSONParsing: true,
+        forcedJSONParsing: true,
+        clarifyTimeoutError: false
+      },
+      adapter: [ 'xhr', 'http', 'fetch' ],
+      transformRequest: [ [Function: transformRequest] ],
+      transformResponse: [ [Function: transformResponse] ],
+      timeout: 0,
+      xsrfCookieName: 'XSRF-TOKEN',
+      xsrfHeaderName: 'X-XSRF-TOKEN',
+      maxContentLength: -1,
+      maxBodyLength: -1,
+      env: {
+        FormData: [Function: FormData] {
+          LINE_BREAK: '\r\n',
+          DEFAULT_CONTENT_TYPE: 'application/octet-stream'
+        },
+        Blob: [class Blob]
+      },
+      validateStatus: [Function: validateStatus],
+      headers: Object [AxiosHeaders] {
+        Accept: 'application/json, text/plain, */*',
+        'Content-Type': 'application/json',
+        'User-Agent': 'axios/1.13.2',
+        'Content-Length': '151',
+        'Accept-Encoding': 'gzip, compress, deflate, br'
+      },
+      method: 'post',
+      url: 'http://localhost:8080/scout/log',
+      data: '{"id":"aa926528-85d6-4981-bdba-086a79297922","status":"FAILED","logSummary":"Request failed with status code 404","endTime":"2025-12-15T12:50:12.343Z"}',
+      allowAbsoluteUrls: true
+    },
+    request: <ref *4> ClientRequest {
+      _events: [Object: null prototype] {
+        abort: [Function (anonymous)],
+        aborted: [Function (anonymous)],
+        connect: [Function (anonymous)],
+        error: [Function (anonymous)],
+        socket: [Function (anonymous)],
+        timeout: [Function (anonymous)],
+        finish: [Function: requestOnFinish]
+      },
+      _eventsCount: 7,
+      _maxListeners: undefined,
+      outputData: [],
+      outputSize: 0,
+      writable: true,
+      destroyed: true,
+      _last: false,
+      chunkedEncoding: false,
+      shouldKeepAlive: true,
+      maxRequestsOnConnectionReached: false,
+      _defaultKeepAlive: true,
+      useChunkedEncodingByDefault: true,
+      sendDate: false,
+      _removedConnection: false,
+      _removedContLen: false,
+      _removedTE: false,
+      strictContentLength: false,
+      _contentLength: 151,
+      _hasBody: true,
+      _trailer: '',
+      finished: true,
+      _headerSent: true,
+      _closed: true,
+      _header: 'POST /scout/log HTTP/1.1\r\n' +
+        'Accept: application/json, text/plain, */*\r\n' +
+        'Content-Type: application/json\r\n' +
+        'User-Agent: axios/1.13.2\r\n' +
+        'Content-Length: 151\r\n' +
+        'Accept-Encoding: gzip, compress, deflate, br\r\n' +
+        'Host: localhost:8080\r\n' +
+        'Connection: keep-alive\r\n' +
+        '\r\n',
+      _keepAliveTimeout: 0,
+      _onPendingData: [Function: nop],
+      agent: Agent {
+        _events: [Object: null prototype] {
+          free: [Function (anonymous)],
+          newListener: [Function: maybeEnableKeylog]
+        },
+        _eventsCount: 2,
+        _maxListeners: undefined,
+        defaultPort: 80,
+        protocol: 'http:',
+        options: [Object: null prototype] {
+          keepAlive: true,
+          scheduling: 'lifo',
+          timeout: 5000,
+          noDelay: true,
+          path: null
+        },
+        requests: [Object: null prototype] {},
+        sockets: [Object: null prototype] {},
+        freeSockets: [Object: null prototype] { 'localhost:8080:': [ [Socket] ] },
+        keepAliveMsecs: 1000,
+        keepAlive: true,
+        maxSockets: Infinity,
+        maxFreeSockets: 256,
+        scheduling: 'lifo',
+        maxTotalSockets: Infinity,
+        totalSocketCount: 1,
+        [Symbol(shapeMode)]: false,
+        [Symbol(kCapture)]: false
+      },
+      socketPath: undefined,
+      method: 'POST',
+      maxHeaderSize: undefined,
+      insecureHTTPParser: undefined,
+      joinDuplicateHeaders: undefined,
+      path: '/scout/log',
+      _ended: true,
+      res: IncomingMessage {
+        _events: {
+          close: undefined,
+          error: [Function: handleStreamError],
+          data: [Function: handleStreamData],
+          end: [ [Function: responseOnEnd], [Function: handleStreamEnd] ],
+          readable: undefined,
+          aborted: [Function: handlerStreamAborted]
+        },
+        _readableState: ReadableState {
+          highWaterMark: 16384,
+          buffer: [],
+          bufferIndex: 0,
+          length: 0,
+          pipes: [],
+          awaitDrainWriters: null,
+          [Symbol(kState)]: 194779004
+        },
+        _maxListeners: undefined,
+        socket: null,
+        httpVersionMajor: 1,
+        httpVersionMinor: 1,
+        httpVersion: '1.1',
+        complete: true,
+        rawHeaders: [
+          'X-Powered-By',
+          'Express',
+          'Access-Control-Allow-Origin',
+          '*',
+          'Content-Security-Policy',
+          "default-src 'none'",
+          'X-Content-Type-Options',
+          'nosniff',
+          'Content-Type',
+          'text/html; charset=utf-8',
+          'Content-Length',
+          '149',
+          'Date',
+          'Mon, 15 Dec 2025 12:50:12 GMT',
+          'Connection',
+          'keep-alive',
+          'Keep-Alive',
+          'timeout=5'
+        ],
+        rawTrailers: [],
+        joinDuplicateHeaders: undefined,
+        aborted: false,
+        upgrade: false,
+        url: '',
+        method: null,
+        statusCode: 404,
+        statusMessage: 'Not Found',
+        client: <ref *1> Socket {
+          connecting: false,
+          _hadError: false,
+          _parent: null,
+          _host: 'localhost',
+          _closeAfterHandlingError: false,
+          _events: {
+            close: [Function: onClose],
+            error: [Function],
+            prefinish: undefined,
+            finish: undefined,
+            drain: undefined,
+            data: undefined,
+            end: [Function: onReadableStreamEnd],
+            readable: undefined,
+            connect: undefined,
+            free: [Function: onFree],
+            timeout: [Array],
+            agentRemove: [Function: onRemove]
+          },
+          _readableState: ReadableState {
+            highWaterMark: 16384,
+            buffer: [],
+            bufferIndex: 0,
+            length: 0,
+            pipes: [],
+            awaitDrainWriters: null,
+            [Symbol(kState)]: 60303620
+          },
+          _writableState: WritableState {
+            highWaterMark: 16384,
+            length: 0,
+            corked: 0,
+            onwrite: [Function: bound onwrite],
+            writelen: 0,
+            bufferedIndex: 0,
+            pendingcb: 0,
+            [Symbol(kState)]: 17563908,
+            [Symbol(kBufferedValue)]: null,
+            [Symbol(kWriteCbValue)]: null,
+            [Symbol(kAfterWriteTickInfoValue)]: null
+          },
+          allowHalfOpen: false,
+          _maxListeners: undefined,
+          _eventsCount: 6,
+          _sockname: null,
+          _pendingData: null,
+          _pendingEncoding: '',
+          server: null,
+          _server: null,
+          timeout: 4000,
+          parser: null,
+          _httpMessage: null,
+          autoSelectFamilyAttemptedAddresses: [ '::1:8080' ],
+          [Symbol(async_id_symbol)]: -1,
+          [Symbol(kHandle)]: <ref *2> TCP {
+            reading: true,
+            onconnection: null,
+            [Symbol(owner_symbol)]: [Circular *1],
+            [Symbol(resource_symbol)]: [ReusedHandle]
+          },
+          [Symbol(lastWriteQueueSize)]: 0,
+          [Symbol(timeout)]: <ref *3> Timeout {
+            _idleTimeout: 4000,
+            _idlePrev: [TimersList],
+            _idleNext: [TimersList],
+            _idleStart: 8039,
+            _onTimeout: [Function: bound ],
+            _timerArgs: undefined,
+            _repeat: null,
+            _destroyed: false,
+            [Symbol(refed)]: false,
+            [Symbol(kHasPrimitive)]: false,
+            [Symbol(asyncId)]: 1484,
+            [Symbol(triggerId)]: 1482,
+            [Symbol(kAsyncContextFrame)]: undefined
+          },
+          [Symbol(kBuffer)]: null,
+          [Symbol(kBufferCb)]: null,
+          [Symbol(kBufferGen)]: null,
+          [Symbol(shapeMode)]: true,
+          [Symbol(kCapture)]: false,
+          [Symbol(kSetNoDelay)]: true,
+          [Symbol(kSetKeepAlive)]: true,
+          [Symbol(kSetKeepAliveInitialDelay)]: 1,
+          [Symbol(kBytesRead)]: 0,
+          [Symbol(kBytesWritten)]: 0
+        },
+        _consuming: false,
+        _dumped: false,
+        req: [Circular *4],
+        _eventsCount: 4,
+        responseUrl: 'http://localhost:8080/scout/log',
+        redirects: [],
+        [Symbol(shapeMode)]: true,
+        [Symbol(kCapture)]: false,
+        [Symbol(kHeaders)]: {
+          'x-powered-by': 'Express',
+          'access-control-allow-origin': '*',
+          'content-security-policy': "default-src 'none'",
+          'x-content-type-options': 'nosniff',
+          'content-type': 'text/html; charset=utf-8',
+          'content-length': '149',
+          date: 'Mon, 15 Dec 2025 12:50:12 GMT',
+          connection: 'keep-alive',
+          'keep-alive': 'timeout=5'
+        },
+        [Symbol(kHeadersCount)]: 18,
+        [Symbol(kTrailers)]: null,
+        [Symbol(kTrailersCount)]: 0
+      },
+      aborted: false,
+      timeoutCb: null,
+      upgradeOrConnect: false,
+      parser: null,
+      maxHeadersCount: null,
+      reusedSocket: true,
+      host: 'localhost',
+      protocol: 'http:',
+      _redirectable: Writable {
+        _events: {
+          close: undefined,
+          error: [Function: handleRequestError],
+          prefinish: undefined,
+          finish: undefined,
+          drain: undefined,
+          response: [Function: handleResponse],
+          socket: [
+            [Function: handleRequestSocket],
+            [Function: destroyOnTimeout]
+          ],
+          abort: undefined
+        },
+        _writableState: WritableState {
+          highWaterMark: 16384,
+          length: 0,
+          corked: 0,
+          onwrite: [Function: bound onwrite],
+          writelen: 0,
+          bufferedIndex: 0,
+          pendingcb: 0,
+          [Symbol(kState)]: 17580812,
+          [Symbol(kBufferedValue)]: null
+        },
+        _maxListeners: undefined,
+        _options: {
+          maxRedirects: 21,
+          maxBodyLength: Infinity,
+          protocol: 'http:',
+          path: '/scout/log',
+          method: 'POST',
+          headers: [Object: null prototype] {
+            Accept: 'application/json, text/plain, */*',
+            'Content-Type': 'application/json',
+            'User-Agent': 'axios/1.13.2',
+            'Content-Length': '151',
+            'Accept-Encoding': 'gzip, compress, deflate, br'
+          },
+          agents: { http: undefined, https: undefined },
+          auth: undefined,
+          family: undefined,
+          beforeRedirect: [Function: dispatchBeforeRedirect],
+          beforeRedirects: { proxy: [Function: beforeRedirect] },
+          http2Options: undefined,
+          hostname: 'localhost',
+          port: '8080',
+          agent: undefined,
+          nativeProtocols: { 'http:': [Object], 'https:': [Object] },
+          pathname: '/scout/log'
+        },
+        _ended: true,
+        _ending: true,
+        _redirectCount: 0,
+        _redirects: [],
+        _requestBodyLength: 151,
+        _requestBodyBuffers: [],
+        _eventsCount: 3,
+        _onNativeResponse: [Function (anonymous)],
+        _currentRequest: [Circular *4],
+        _currentUrl: 'http://localhost:8080/scout/log',
+        _timeout: null,
+        [Symbol(shapeMode)]: true,
+        [Symbol(kCapture)]: false
+      },
+      [Symbol(shapeMode)]: false,
+      [Symbol(kCapture)]: false,
+      [Symbol(kBytesWritten)]: 0,
+      [Symbol(kNeedDrain)]: false,
+      [Symbol(corked)]: 0,
+      [Symbol(kChunkedBuffer)]: [],
+      [Symbol(kChunkedLength)]: 0,
+      [Symbol(kSocket)]: <ref *1> Socket {
+        connecting: false,
+        _hadError: false,
+        _parent: null,
+        _host: 'localhost',
+        _closeAfterHandlingError: false,
+        _events: {
+          close: [Function: onClose],
+          error: [Function: bound onceWrapper] {
+            listener: [Function: freeSocketErrorListener]
+          },
+          prefinish: undefined,
+          finish: undefined,
+          drain: undefined,
+          data: undefined,
+          end: [Function: onReadableStreamEnd],
+          readable: undefined,
+          connect: undefined,
+          free: [Function: onFree],
+          timeout: [ [Function: onTimeout], [Function (anonymous)] ],
+          agentRemove: [Function: onRemove]
+        },
+        _readableState: ReadableState {
+          highWaterMark: 16384,
+          buffer: [],
+          bufferIndex: 0,
+          length: 0,
+          pipes: [],
+          awaitDrainWriters: null,
+          [Symbol(kState)]: 60303620
+        },
+        _writableState: WritableState {
+          highWaterMark: 16384,
+          length: 0,
+          corked: 0,
+          onwrite: [Function: bound onwrite],
+          writelen: 0,
+          bufferedIndex: 0,
+          pendingcb: 0,
+          [Symbol(kState)]: 17563908,
+          [Symbol(kBufferedValue)]: null,
+          [Symbol(kWriteCbValue)]: null,
+          [Symbol(kAfterWriteTickInfoValue)]: null
+        },
+        allowHalfOpen: false,
+        _maxListeners: undefined,
+        _eventsCount: 6,
+        _sockname: null,
+        _pendingData: null,
+        _pendingEncoding: '',
+        server: null,
+        _server: null,
+        timeout: 4000,
+        parser: null,
+        _httpMessage: null,
+        autoSelectFamilyAttemptedAddresses: [ '::1:8080' ],
+        [Symbol(async_id_symbol)]: -1,
+        [Symbol(kHandle)]: <ref *2> TCP {
+          reading: true,
+          onconnection: null,
+          [Symbol(owner_symbol)]: [Circular *1],
+          [Symbol(resource_symbol)]: ReusedHandle { type: 40, handle: [Circular *2] }
+        },
+        [Symbol(lastWriteQueueSize)]: 0,
+        [Symbol(timeout)]: <ref *3> Timeout {
+          _idleTimeout: 4000,
+          _idlePrev: TimersList {
+            _idleNext: [Circular *3],
+            _idlePrev: [Circular *3],
+            expiry: 12027,
+            id: -9007199254740959,
+            msecs: 4000,
+            priorityQueuePosition: 1
+          },
+          _idleNext: TimersList {
+            _idleNext: [Circular *3],
+            _idlePrev: [Circular *3],
+            expiry: 12027,
+            id: -9007199254740959,
+            msecs: 4000,
+            priorityQueuePosition: 1
+          },
+          _idleStart: 8039,
+          _onTimeout: [Function: bound ],
+          _timerArgs: undefined,
+          _repeat: null,
+          _destroyed: false,
+          [Symbol(refed)]: false,
+          [Symbol(kHasPrimitive)]: false,
+          [Symbol(asyncId)]: 1484,
+          [Symbol(triggerId)]: 1482,
+          [Symbol(kAsyncContextFrame)]: undefined
+        },
+        [Symbol(kBuffer)]: null,
+        [Symbol(kBufferCb)]: null,
+        [Symbol(kBufferGen)]: null,
+        [Symbol(shapeMode)]: true,
+        [Symbol(kCapture)]: false,
+        [Symbol(kSetNoDelay)]: true,
+        [Symbol(kSetKeepAlive)]: true,
+        [Symbol(kSetKeepAliveInitialDelay)]: 1,
+        [Symbol(kBytesRead)]: 0,
+        [Symbol(kBytesWritten)]: 0
+      },
+      [Symbol(kOutHeaders)]: [Object: null prototype] {
+        accept: [ 'Accept', 'application/json, text/plain, */*' ],
+        'content-type': [ 'Content-Type', 'application/json' ],
+        'user-agent': [ 'User-Agent', 'axios/1.13.2' ],
+        'content-length': [ 'Content-Length', '151' ],
+        'accept-encoding': [ 'Accept-Encoding', 'gzip, compress, deflate, br' ],
+        host: [ 'Host', 'localhost:8080' ]
+      },
+      [Symbol(errored)]: null,
+      [Symbol(kHighWaterMark)]: 16384,
+      [Symbol(kRejectNonStandardBodyWrites)]: false,
+      [Symbol(kUniqueHeaders)]: null
+    },
+    data: '<!DOCTYPE html>\n' +
+      '<html lang="en">\n' +
+      '<head>\n' +
+      '<meta charset="utf-8">\n' +
+      '<title>Error</title>\n' +
+      '</head>\n' +
+      '<body>\n' +
+      '<pre>Cannot POST /scout/log</pre>\n' +
+      '</body>\n' +
+      '</html>\n'
+  },
+  status: 404
+}
+
+Node.js v22.17.0
