@@ -142,23 +142,50 @@ async function runScout() {
 function parseEventText(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
 
-    // Find bottom anchor (Price/Status)
-    let bottomIndex = lines.length - 1;
-    const statusKeywords = ['Kaina', 'Išparduota', 'Atšaukta', 'Nemokamai'];
-
+    // 1. Identify Price/Status (Bottom line usually)
+    let priceIndex = -1;
+    const priceKeywords = ['€', 'Eur', 'Kaina', 'Išparduota', 'Nemokamai'];
     for (let i = lines.length - 1; i >= 0; i--) {
-        if (statusKeywords.some(kw => lines[i].includes(kw))) {
-            bottomIndex = i;
+        if (priceKeywords.some(kw => lines[i].includes(kw))) {
+            priceIndex = i;
             break;
         }
     }
 
-    const location = lines[bottomIndex - 1] || "Unknown Location";
-    const titleIndex = bottomIndex - 2;
-    const title = lines[titleIndex] || "Unknown Title"; // Fallback to line above location
-    const dateRaw = lines.slice(0, titleIndex).join(' ');
+    // Default to last line if no price found
+    if (priceIndex === -1) priceIndex = lines.length - 1;
 
-    return { title, location: location.split(',')[0], dateRaw }; // Take first part of location for better geocoding
+    // 2. Identify Structure based on Bilietai/Kakava patterns
+    // Bilietai Pattern: [Date Parts..., Venue, Title, Price]
+    // Kakava Pattern: [Title, Date, Venue, Price] (Often)
+
+    // Heuristic: Title is usually the longest line or emphatically styled (not detectable here)
+    // Heuristic: Venue is usually below Date and above Title (Bilietai) OR below Title (Kakava)
+
+    let title = "Unknown Title";
+    let venue = "Unknown Venue";
+    let dateRaw = "";
+
+    // If we have enough lines
+    if (lines.length >= 3) {
+        const candidate1 = lines[priceIndex - 1]; // Line above price
+        const candidate2 = lines[priceIndex - 2]; // Line above that
+
+        // Check if candidate 2 looks like a venue (simple heuristic)
+        // If candidate 1 is the Title, then candidate 2 might be Venue
+
+        title = candidate1;
+        venue = candidate2;
+
+        // Date is everything before the venue
+        dateRaw = lines.slice(0, priceIndex - 2).join(' ');
+    } else {
+        // Fallback for short cards
+        title = lines[0] || "Unknown";
+        dateRaw = lines.slice(1).join(' ');
+    }
+
+    return { title, location: venue, dateRaw };
 }
 
 async function geocodeAddress(address) {
