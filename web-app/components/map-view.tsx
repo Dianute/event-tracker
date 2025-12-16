@@ -199,7 +199,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
       L.DomEvent.disableClickPropagation(buttonRef.current);
       L.DomEvent.disableScrollPropagation(buttonRef.current);
     }
-  }, []);
+  }, [position]);
 
   useMapEvents({
     click(e) {
