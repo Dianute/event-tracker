@@ -122,7 +122,6 @@ export default function Home() {
       <EventModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
-        onClose={handleCloseModal}
         onSubmit={handleAddEvent}
         initialLocation={selectedLocation}
       />
