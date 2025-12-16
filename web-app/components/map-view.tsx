@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus } from 'lucide-react';
 // import ScoutControl from './scout-control'; // Removed
 
 // Custom Emoji Marker Helper
@@ -215,6 +215,25 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
               <Navigation size={20} className="text-blue-400" fill="currentColor" fillOpacity={0.2} />
             </button>
           </div>
+
+          {/* Add Event Button - Toggle Address Search */}
+          <div className="fixed bottom-36 right-6 z-[1000]">
+            <button
+              onClick={() => {
+                // Accessing parent state through a hack or just relying on the overlay? 
+                // Actually this button needs to communicate with MapView component state.
+                // Since LocationMarker is a child, we can't easily set state in parent MapView without a prop.
+                // But wait, the user asked for icons next to user location. 
+                // LocationMarker renders the Recenter button.
+                // I should move the Plus button to the parent MapView to access `isAddMode` state easily, 
+                // OR pass a callback. 
+                // Let's Put it in MapView instead of LocationMarker to keep state simple.
+                // Leaving this chunk empty effectively to NOT add it here, but I will add it in MapView return.
+              }}
+            >
+            </button>
+          </div>
+          {/* Note: I will implement the button in the main MapView return to handle state simply */}
         </>
       )}
 
@@ -238,6 +257,30 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance'); // Default to distance as requested
+
+  // Address Search State
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [addressQuery, setAddressQuery] = useState('');
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+
+  // Debounced Address Search
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (addressQuery.length > 2) {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}&limit=5`);
+          const data = await res.json();
+          setAddressSuggestions(data);
+        } catch (e) {
+          console.error("Address search failed", e);
+        }
+      } else {
+        setAddressSuggestions([]);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [addressQuery]);
 
   useEffect(() => {
     setMounted(true);
@@ -406,6 +449,47 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           onLocationFound={setUserLocation}
         />
       </MapContainer>
+
+      {/* Address Search Overlay (When Add Mode is Active) */}
+      {isAddMode && (
+        <div className="fixed top-20 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-96 z-[1100] flex flex-col gap-2">
+          <div className="bg-black/80 backdrop-blur-md p-2 rounded-xl border border-white/20 shadow-2xl flex items-center gap-2">
+            <span className="text-xl pl-2">📍</span>
+            <input
+              autoFocus
+              type="text"
+              placeholder="Enter address..."
+              className="bg-transparent border-none outline-none text-white w-full h-10"
+              value={addressQuery}
+              onChange={e => setAddressQuery(e.target.value)}
+            />
+            <button onClick={() => { setIsAddMode(false); setAddressQuery(''); }} className="p-2 text-gray-400 hover:text-white">✕</button>
+          </div>
+
+          {addressSuggestions.length > 0 && (
+            <div className="bg-black/90 backdrop-blur-md rounded-xl border border-white/10 shadow-xl overflow-hidden">
+              {addressSuggestions.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 hover:bg-white/10 text-white cursor-pointer border-b border-white/5 last:border-none text-sm flex items-center gap-2"
+                  onClick={() => {
+                    const lat = parseFloat(item.lat);
+                    const lng = parseFloat(item.lon);
+                    if (map) map.flyTo([lat, lng], 16);
+                    if (onMapClick) onMapClick(lat, lng); // Trigger "New Event" pin
+                    setIsAddMode(false);
+                    setAddressQuery('');
+                    setAddressSuggestions([]);
+                  }}
+                >
+                  <span>🏙️</span>
+                  <span>{item.display_name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Top Controls Container - Compact & Clean */}
       <div className="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4 pointer-events-none">
