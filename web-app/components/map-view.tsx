@@ -68,7 +68,7 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * c; // in metres
 }
 
-function EventCard({ event, userLocation }: { event: Event, userLocation: L.LatLng | null }) {
+function EventCard({ event, userLocation, onClick }: { event: Event, userLocation: L.LatLng | null, onClick: () => void }) {
   const [status, setStatus] = useState<{ label: string; color: string; progress?: number; timeText?: string }>({ label: '', color: 'gray' });
 
   useEffect(() => {
@@ -117,7 +117,10 @@ function EventCard({ event, userLocation }: { event: Event, userLocation: L.LatL
     : 'Locating...';
 
   return (
-    <div className="bg-black/60 backdrop-blur-md rounded-xl p-4 shadow-2xl mb-3 border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group">
+    <div
+      onClick={onClick}
+      className="bg-black/60 backdrop-blur-md rounded-xl p-4 shadow-2xl mb-3 border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer"
+    >
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-3">
           <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
@@ -227,6 +230,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [showScout, setShowScout] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
+  const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance'); // Default to distance as requested
 
@@ -288,6 +292,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         zoom={13}
         scrollWheelZoom={true}
         className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
+        ref={setMap}
       >
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -466,7 +471,15 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       <div className="fixed bottom-0 left-0 md:bottom-6 md:left-6 z-[1000] w-full md:w-80 max-h-[50vh] md:max-h-[60vh] overflow-y-auto pointer-events-none flex flex-col hide-scrollbar p-4 md:p-0 bg-gradient-to-t from-black/80 to-transparent md:bg-none">
         {filteredEvents.slice(0, 20).map(event => (
           <div key={event.id} className="pointer-events-auto">
-            <EventCard event={event} userLocation={userLocation} />
+            <EventCard
+              event={event}
+              userLocation={userLocation}
+              onClick={() => {
+                if (map) {
+                  map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                }
+              }}
+            />
           </div>
         ))}
       </div>
