@@ -91,8 +91,6 @@ async function runScout() {
 
                 // Detect if Facebook
                 const isFacebook = target.url.includes('facebook.com');
-                // Detect if Facebook
-                const isFacebook = target.url.includes('facebook.com');
                 let selector = target.selector;
 
                 // Auto-determine selector if missing
