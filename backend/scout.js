@@ -266,7 +266,8 @@ function parseEventText(text) {
     let venue = lines[lines.length - 1];
 
     // 2. Date is usually the 2ND TO LAST line
-    let dateRaw = lines.length > 1 ? lines[lines.length - 2] : "";
+    // let dateRaw = lines.length > 1 ? lines[lines.length - 2] : ""; // REMOVED
+
 
     // 3. Title is usually the FIRST line (after filtering noise)
     let title = lines[0];
