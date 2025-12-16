@@ -50,17 +50,25 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string }) => {
-    if (!selectedLocation) {
-      alert("Please click on the map to choose a location first!");
-      return;
-    }
+  const handlePlusClick = () => {
+    // Open modal without a specific map location (user will search for address)
+    setSelectedLocation(null);
+    setIsModalOpen(true);
+  };
 
+  const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string; lat?: number; lng?: number; venue?: string }) => {
     const newEvent = {
       ...data,
-      lat: selectedLocation.lat,
-      lng: selectedLocation.lng,
+      // Use data.lat/lng if provided (from address search), otherwise fall back to selectedLocation
+      lat: data.lat || selectedLocation?.lat,
+      lng: data.lng || selectedLocation?.lng,
+      venue: data.venue,
     };
+
+    if (!newEvent.lat || !newEvent.lng) {
+      alert("Location is missing!");
+      return;
+    }
 
     // Save to Backend
     fetch(`${API_URL}/events`, {
@@ -100,6 +108,7 @@ export default function Home() {
           newLocation={selectedLocation}
           onDeleteEvent={handleDeleteEvent}
           onRefresh={fetchEvents}
+          onAddEventClick={handlePlusClick}
         />
       </div>
 
@@ -113,7 +122,9 @@ export default function Home() {
       <EventModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        onClose={handleCloseModal}
         onSubmit={handleAddEvent}
+        initialLocation={selectedLocation}
       />
     </main>
   );

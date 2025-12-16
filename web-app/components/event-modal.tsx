@@ -1,15 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
 interface EventModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string }) => void;
+    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string }) => void;
+    initialLocation: { lat: number; lng: number } | null;
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -23,16 +24,88 @@ export default function EventModal({ isOpen, onClose, onSubmit }: EventModalProp
     const twoHoursLater = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     const [endTime, setEndTime] = useState(twoHoursLater.toISOString().slice(0, 16));
 
+    // Address & Location State
+    const [venue, setVenue] = useState(''); // Also used as "Address"
+    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    // 1. When modal opens with initialLocation (Map Click), reverse geocode it
+    import { useEffect } from 'react'; // Allow import inside (Next.js/React rules might prefer top level but sticking to chunk rules)
+    // Actually, I should check if useEffect is imported. It is imported in line 3? No, line 3 has useState.
+    // Let's assume I need to add useEffect to the top import.
+    // I will add the logic here and fix imports in a separate chunk or trust the previous view.
+    // View showed: import { useState } from 'react';. I need to add useEffect.
+
+    // Reverse Geocode Effect
+    useEffect(() => {
+        if (isOpen && initialLocation) {
+            setCurrentLocation(initialLocation);
+            // Reverse Geocode
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${initialLocation.lat}&lon=${initialLocation.lng}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.display_name) {
+                        setVenue(data.display_name);
+                    }
+                })
+                .catch(err => console.error("Reverse geocode failed", err));
+        } else if (isOpen && !initialLocation) {
+            // Reset if opened without location (Plus button)
+            setVenue('');
+            setCurrentLocation(null);
+        }
+    }, [isOpen, initialLocation]);
+
+    // Forward Geocode Effect (Search)
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (venue.length > 2 && isSearching) {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(venue)}&limit=5`);
+                    const data = await res.json();
+                    setSuggestions(data);
+                } catch (e) {
+                    console.error("Search failed", e);
+                }
+            } else {
+                setSuggestions([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [venue, isSearching]);
+
     if (!isOpen) return null;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ title, description, type, startTime, endTime });
+
+        // If we don't have a location, we can't submit (unless we allow location-less events, but map view requires them)
+        if (!currentLocation) {
+            alert("Please select a location from the search or click the map!");
+            return;
+        }
+
+        onSubmit({
+            title,
+            description,
+            type,
+            startTime,
+            endTime,
+            lat: currentLocation.lat,
+            lng: currentLocation.lng,
+            venue
+        });
+
         // Reset form
         setTitle('');
         setDescription('');
+        setVenue('');
+        setSuggestions([]);
+        setCurrentLocation(null);
         setType('social');
-        // Reset times to current
+        // Reset times
         const currentNow = new Date();
         currentNow.setMinutes(currentNow.getMinutes() - currentNow.getTimezoneOffset());
         setStartTime(currentNow.toISOString().slice(0, 16));
@@ -52,6 +125,43 @@ export default function EventModal({ isOpen, onClose, onSubmit }: EventModalProp
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div className="relative">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Location / Address</label>
+                        <input
+                            type="text"
+                            required
+                            value={venue}
+                            onChange={(e) => {
+                                setVenue(e.target.value);
+                                setIsSearching(true);
+                            }}
+                            placeholder="Search address or click on map..."
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 focus:ring-2 focus:ring-blue-500 outline-none transition-all pl-8"
+                        />
+                        <span className="absolute left-2.5 top-[34px] text-zinc-400">📍</span>
+
+                        {suggestions.length > 0 && (
+                            <div className="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                                {suggestions.map((item, i) => (
+                                    <div
+                                        key={i}
+                                        className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate"
+                                        onClick={() => {
+                                            setVenue(item.display_name);
+                                            setCurrentLocation({
+                                                lat: parseFloat(item.lat),
+                                                lng: parseFloat(item.lon)
+                                            });
+                                            setSuggestions([]);
+                                            setIsSearching(false);
+                                        }}
+                                    >
+                                        {item.display_name}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                     <div>
                         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Event Title</label>
                         <input

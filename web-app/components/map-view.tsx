@@ -50,6 +50,7 @@ interface MapViewProps {
   newLocation?: { lat: number; lng: number } | null;
   onDeleteEvent?: (id: string) => void;
   onRefresh?: () => void;
+  onAddEventClick?: () => void;
 }
 
 // Helper to calculate distance in meters
@@ -199,7 +200,11 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
 
           <div className="fixed bottom-24 right-6 z-[1000]">
             <button
-              onClick={() => position && map.flyTo(position, 15)}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (position) map.flyTo(position, 15);
+              }}
               className="bg-black/80 hover:bg-black text-white p-3 rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-sm"
               title="Go to my location"
             >
@@ -218,7 +223,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -227,28 +232,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
-
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [addressQuery, setAddressQuery] = useState('');
-  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (addressQuery.length > 2) {
-        try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}&limit=5`);
-          const data = await res.json();
-          setAddressSuggestions(data);
-        } catch (e) {
-          console.error("Address search failed", e);
-        }
-      } else {
-        setAddressSuggestions([]);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [addressQuery]);
 
   useEffect(() => {
     setMounted(true);
@@ -398,46 +381,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         />
       </MapContainer>
 
-      {/* Address Search Overlay */}
-      {isAddMode && (
-        <div className="fixed top-20 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-96 z-[1100] flex flex-col gap-2">
-          <div className="bg-black/80 backdrop-blur-md p-2 rounded-xl border border-white/20 shadow-2xl flex items-center gap-2">
-            <span className="text-xl pl-2">📍</span>
-            <input
-              autoFocus
-              type="text"
-              placeholder="Enter address..."
-              className="bg-transparent border-none outline-none text-white w-full h-10"
-              value={addressQuery}
-              onChange={e => setAddressQuery(e.target.value)}
-            />
-            <button onClick={() => { setIsAddMode(false); setAddressQuery(''); }} className="p-2 text-gray-400 hover:text-white">✕</button>
-          </div>
-
-          {addressSuggestions.length > 0 && (
-            <div className="bg-black/90 backdrop-blur-md rounded-xl border border-white/10 shadow-xl overflow-hidden">
-              {addressSuggestions.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="p-3 hover:bg-white/10 text-white cursor-pointer border-b border-white/5 last:border-none text-sm flex items-center gap-2"
-                  onClick={() => {
-                    const lat = parseFloat(item.lat);
-                    const lng = parseFloat(item.lon);
-                    if (map) map.flyTo([lat, lng], 16);
-                    if (onMapClick) onMapClick(lat, lng);
-                    setIsAddMode(false);
-                    setAddressQuery('');
-                    setAddressSuggestions([]);
-                  }}
-                >
-                  <span>🏙️</span>
-                  <span>{item.display_name}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Top Controls */}
       <div className="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4 pointer-events-none">
@@ -536,10 +479,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       {/* Add Button */}
       <div className="fixed bottom-40 right-6 z-[1000]">
         <button
-          onClick={() => setIsAddMode(!isAddMode)}
-          className={`p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group
-            ${isAddMode ? 'bg-red-500 hover:bg-red-600 text-white rotate-45' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
-          title="Add Event at Location"
+          onClick={onAddEventClick}
+          className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
+          title="Add New Event"
         >
           <Plus size={24} className="transition-transform duration-300" />
         </button>
