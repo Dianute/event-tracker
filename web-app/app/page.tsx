@@ -32,12 +32,17 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Load events from Backend on mount
-  useEffect(() => {
+  // Load events from Backend
+  const fetchEvents = () => {
     console.log("🔌 Connecting to Backend:", API_URL);
     fetch(`${API_URL}/events`)
       .then(res => res.json())
       .then(data => setEvents(data))
       .catch(err => console.error("Failed to fetch events:", err));
+  };
+
+  useEffect(() => {
+    fetchEvents();
   }, []);
 
   const handleMapClick = (lat: number, lng: number) => {
@@ -94,6 +99,7 @@ export default function Home() {
           onMapClick={handleMapClick}
           newLocation={selectedLocation}
           onDeleteEvent={handleDeleteEvent}
+          onRefresh={fetchEvents}
         />
       </div>
 

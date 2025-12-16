@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw } from 'lucide-react';
 // import ScoutControl from './scout-control'; // Removed
 
 // Custom Emoji Marker Helper
@@ -50,6 +50,7 @@ interface MapViewProps {
   onMapClick?: (lat: number, lng: number) => void;
   newLocation?: { lat: number; lng: number } | null;
   onDeleteEvent?: (id: string) => void;
+  onRefresh?: () => void;
 }
 
 // Helper to calculate distance in meters
@@ -117,22 +118,23 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
     : 'Locating...';
 
   return (
+  return (
     <div
       onClick={onClick}
-      className="bg-black/60 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer 
-      min-w-[85vw] md:min-w-0 md:w-full snap-center mr-4 md:mr-0 md:mb-3"
+      className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer 
+      min-w-[75vw] md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3"
     >
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-          <div>
-            <h4 className="font-bold text-white text-lg leading-tight group-hover:text-blue-200 transition-colors shadow-black drop-shadow-sm">{event.title}</h4>
-            <p className="text-xs text-blue-300 font-semibold flex items-center gap-1 mt-1">
-              <Navigation size={10} /> {distanceText}
+      <div className="flex justify-between items-start mb-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+          <div className="overflow-hidden">
+            <h4 className="font-bold text-white text-sm leading-tight truncate max-w-[160px] md:max-w-none group-hover:text-blue-200 transition-colors shadow-black drop-shadow-sm">{event.title}</h4>
+            <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1 mt-0.5">
+              <Navigation size={8} /> {distanceText}
             </p>
           </div>
         </div>
-        <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide border
+        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border whitespace-nowrap
                     ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
             status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
               status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
@@ -141,15 +143,16 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
       </div>
 
       {status.progress !== undefined && (
-        <div className="w-full bg-white/10 rounded-full h-1.5 mb-2 overflow-hidden">
-          <div className="bg-green-500 h-1.5 rounded-full transition-all duration-1000 shadow-[0_0_10px_#22c55e]" style={{ width: `${status.progress}%` }}></div>
+        <div className="w-full bg-white/10 rounded-full h-1 mt-1 mb-1 overflow-hidden">
+          <div className="bg-green-500 h-1 rounded-full transition-all duration-1000 shadow-[0_0_10px_#22c55e]" style={{ width: `${status.progress}%` }}></div>
         </div>
       )}
 
-      <div className="text-xs text-gray-400 font-mono">
+      <div className="text-[10px] text-gray-400 font-mono hidden md:block">
         {status.timeText}
       </div>
     </div>
+  );
   );
 }
 
@@ -225,7 +228,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   // const [showScout, setShowScout] = useState(false); // Removed
@@ -461,20 +464,31 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             {showHappeningNow ? '🟢' : '⚪'}
           </button>
 
+          {/* Refresh Button */}
+          <button
+            onClick={onRefresh}
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10`}
+            title="Refresh Events"
+          >
+            <RotateCw size={16} />
+          </button>
+
         </div>
       </div>
 
       {/* {showScout && <ScoutControl onClose={() => setShowScout(false)} />} */}
 
       {/* Live Event List Overlay (Bottom Left) */}
-      <div className="fixed bottom-4 left-0 right-0 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+      {/* Live Event List Overlay (Bottom) */}
+      <div className="fixed bottom-0 left-0 right-0 md:right-auto md:bottom-6 md:left-6 z-[1000] 
         flex flex-row md:flex-col 
         overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
         snap-x snap-mandatory 
         gap-0 md:gap-0 
-        px-4 md:px-0 md:w-80 
+        px-2 md:px-0 md:w-80 
+        py-2 md:py-0
         max-h-[50vh] md:max-h-[60vh] 
-        hide-scrollbar pointer-events-none pb-4 md:pb-0">
+        hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
         {filteredEvents.slice(0, 20).map(event => (
           <div key={event.id} className="pointer-events-auto">
             <EventCard
