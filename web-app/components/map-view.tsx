@@ -4,8 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import L from 'leaflet';
-import { Navigation } from 'lucide-react';
-import ScoutControl from './scout-control';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap } from 'lucide-react';
+// import ScoutControl from './scout-control'; // Removed
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string) => {
@@ -228,8 +228,9 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
 export default function MapView({ events, onMapClick, newLocation, onDeleteEvent }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
-  const [showScout, setShowScout] = useState(false);
+  // const [showScout, setShowScout] = useState(false); // Removed
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false); // New state for compact search
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
@@ -403,70 +404,67 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         />
       </MapContainer>
 
-      {/* Top Controls Container */}
-      <div className="fixed top-4 left-0 w-full z-[1000] flex flex-col items-center gap-3 px-4 pointer-events-none">
-        {/* Search Bar */}
-        <div className={`pointer-events-auto w-full max-w-md backdrop-blur-md rounded-2xl flex items-center px-4 py-2 ring-1 transition-all group focus-within:ring-opacity-100 
-            ${isCyber
-            ? 'bg-slate-900/80 ring-cyan-500/50 shadow-[0_0_20px_rgba(0,255,255,0.2)]'
-            : 'bg-black/60 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-white/10 focus-within:ring-blue-500/50'}`}>
-          <span className="text-xl mr-2 grayscale brightness-200">🔍</span>
-          <input
-            type="text"
-            placeholder="Find tacos, jazz, parties..."
-            className={`bg-transparent border-none outline-none placeholder-gray-400 w-full font-medium ${isCyber ? 'text-cyan-100' : 'text-white'}`}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white">×</button>
-          )}
-        </div>
+      {/* Top Controls Container - Compact & Clean */}
+      <div className="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4 pointer-events-none">
 
-        {/* Filter Row - Scrollable keys on mobile */}
-        <div className="flex gap-2 w-full max-w-md overflow-x-auto hide-scrollbar pointer-events-auto pb-2 justify-start md:justify-center">
-          {/* Sort Toggle */}
-          <button
-            onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap flex items-center gap-2 backdrop-blur-md flex-shrink-0
-              ${isCyber
-                ? 'bg-slate-900/80 text-cyan-400 border border-cyan-500/30 ring-1 ring-cyan-500/30'
-                : 'bg-black/60 text-white ring-1 ring-white/10'
-              }`}
-          >
-            {sortBy === 'time' ? '⏱️ Soonest' : '📍 Closest'}
-          </button>
+        <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
-          {/* Filter Button */}
-          <button
-            onClick={() => setShowHappeningNow(!showHappeningNow)}
-            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap flex items-center gap-2 flex-shrink-0 ${showHappeningNow
-              ? (isCyber ? 'bg-cyan-500 text-black ring-2 ring-cyan-300 shadow-[0_0_20px_#00ffff]' : 'bg-green-500 text-white ring-2 ring-green-300 shadow-[0_0_15px_#22c55e]')
-              : (isCyber ? 'bg-slate-900/80 text-cyan-400 border border-cyan-500/30' : 'bg-black/60 text-white ring-1 ring-white/10')
-              } backdrop-blur-md`}
-          >
-            {showHappeningNow ? (isCyber ? '⚡ Live' : '🟢 Live') : '⚪ All'}
-          </button>
+          {/* 1. Expandable Search */}
+          <div className={`flex items-center transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-64 px-2' : 'w-10 justify-center'}`}>
+            {isSearchOpen ? (
+              <div className="flex items-center w-full">
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search events..."
+                  className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onBlur={() => !searchQuery && setIsSearchOpen(false)}
+                />
+                {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white ml-1">×</button>}
+              </div>
+            ) : (
+              <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
+                <SearchIcon size={20} />
+              </button>
+            )}
+          </div>
 
-          {/* Scout Agent Button */}
-          <button
-            onClick={() => setShowScout(true)}
-            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap ring-1 backdrop-blur-md flex-shrink-0 ${isCyber ? 'bg-slate-900/80 text-yellow-400 border-yellow-500/50 ring-yellow-500/50' : 'bg-black/60 text-yellow-400 ring-white/10'}`}
-          >
-            🕵️‍♂️ Agent
-          </button>
+          <div className="w-px h-6 bg-white/20 mx-1"></div>
 
-          {/* Theme Toggle */}
+          {/* 2. Theme Toggle (Icon Only) */}
           <button
             onClick={() => setMapTheme(prev => prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark')}
-            className={`px-4 py-2 rounded-2xl shadow-lg font-bold text-sm transition-all transform hover:scale-105 whitespace-nowrap ring-1 backdrop-blur-md flex-shrink-0 ${isCyber ? 'bg-slate-900/80 text-pink-400 border-pink-500/50 ring-pink-500/50 shadow-[0_0_15px_rgba(255,0,255,0.3)]' : 'bg-black/60 text-white ring-white/10'}`}
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${isCyber ? 'text-pink-400 bg-pink-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+            title="Toggle Theme"
           >
-            {mapTheme === 'dark' ? '🌙' : mapTheme === 'light' ? '☀️' : '👾'}
+            {mapTheme === 'dark' ? <Moon size={18} /> : mapTheme === 'light' ? <Sun size={18} /> : <Zap size={18} />}
           </button>
+
+          <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+          {/* 3. Filters (Sort & Live) */}
+          <button
+            onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${sortBy === 'time' ? 'text-blue-400 bg-blue-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+            title={sortBy === 'time' ? 'Sorted by Time' : 'Sorted by Distance'}
+          >
+            {sortBy === 'time' ? '⏱️' : '📍'}
+          </button>
+
+          <button
+            onClick={() => setShowHappeningNow(!showHappeningNow)}
+            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${showHappeningNow ? 'text-green-400 bg-green-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+            title="Toggle Live Events"
+          >
+            {showHappeningNow ? '🟢' : '⚪'}
+          </button>
+
         </div>
       </div>
 
-      {showScout && <ScoutControl onClose={() => setShowScout(false)} />}
+      {/* {showScout && <ScoutControl onClose={() => setShowScout(false)} />} */}
 
       {/* Live Event List Overlay (Bottom Left) */}
       <div className="fixed bottom-4 left-0 right-0 md:right-auto md:bottom-6 md:left-6 z-[1000] 

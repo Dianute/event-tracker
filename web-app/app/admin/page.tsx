@@ -13,6 +13,7 @@ export default function AdminPage() {
     const [newTarget, setNewTarget] = useState({ name: "", url: "", city: "" });
 
     const fetchHistory = () => {
+        setLoading(true);
         fetch(`${API_URL}/scout/history`)
             .then(res => res.json())
             .then(data => {
@@ -24,7 +25,8 @@ export default function AdminPage() {
                     setStatus("IDLE");
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error(err))
+            .finally(() => setLoading(false));
     };
 
     const fetchTargets = () => {
@@ -210,6 +212,9 @@ export default function AdminPage() {
                     <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                         <span>Mission Log</span>
                         <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">{logs.length} entries</span>
+                        <button onClick={fetchHistory} className="ml-auto text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-white transition-colors">
+                            Refresh ↻
+                        </button>
                     </h2>
 
                     <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
