@@ -118,7 +118,6 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
     : 'Locating...';
 
   return (
-  return (
     <div
       onClick={onClick}
       className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer 
@@ -152,7 +151,6 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
         {status.timeText}
       </div>
     </div>
-  );
   );
 }
 
@@ -216,33 +214,19 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
             </button>
           </div>
 
-          {/* Add Event Button - Toggle Address Search */}
-          <div className="fixed bottom-36 right-6 z-[1000]">
-            <button
-              onClick={() => {
-                // Accessing parent state through a hack or just relying on the overlay? 
-                // Actually this button needs to communicate with MapView component state.
-                // Since LocationMarker is a child, we can't easily set state in parent MapView without a prop.
-                // But wait, the user asked for icons next to user location. 
-                // LocationMarker renders the Recenter button.
-                // I should move the Plus button to the parent MapView to access `isAddMode` state easily, 
-                // OR pass a callback. 
-                // Let's Put it in MapView instead of LocationMarker to keep state simple.
-                // Leaving this chunk empty effectively to NOT add it here, but I will add it in MapView return.
-              }}
-            >
-            </button>
-          </div>
-          {/* Note: I will implement the button in the main MapView return to handle state simply */}
-        </>
-      )}
+        </div>
+    </>
+  )
+}
 
-      {/* New Event Location Selection - Ghost Marker */}
-      {newLocation && (
-        <Marker position={[newLocation.lat, newLocation.lng]} icon={createEmojiIcon('📍')} opacity={0.8}>
-          <Popup className="custom-popup">New Event Location</Popup>
-        </Marker>
-      )}
+{/* New Event Location Selection - Ghost Marker */ }
+{
+  newLocation && (
+    <Marker position={[newLocation.lat, newLocation.lng]} icon={createEmojiIcon('📍')} opacity={0.8}>
+      <Popup className="custom-popup">New Event Location</Popup>
+    </Marker>
+  )
+}
     </>
   );
 }
@@ -348,7 +332,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           className={isCyber ? 'cyberpunk-tiles' : ''}
         />
 
-        {filteredEvents.map((event) => {
+        {Array.from(groupedEvents.entries()).map(([key, group]) => {
+          const event = group[0];
+          const isCluster = group.length > 1;
           const isPast = event.endTime && new Date(event.endTime) < now;
           const opacity = isPast ? 0.3 : 1;
           const grayscale = isPast ? 'grayscale(100%)' : 'none';
@@ -359,84 +345,47 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           let displayDate = event.date || '';
           if (event.startTime) {
             const start = new Date(event.startTime);
-            const timeStr = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const dateStr = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            displayDate = `${dateStr} • ${timeStr}`;
-          } else if (event.description) {
-            displayDate = event.description.split('\n')[1] || '';
+            displayDate = `${start.toLocaleDateString([], { month: 'short', day: 'numeric' })} • ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
           }
 
           const link = event.link || (event.description && event.description.split('\n')[2]?.startsWith('http') ? event.description.split('\n')[2] : '');
 
           return (
             <Marker
-              key={event.id}
+              key={key}
               position={[event.lat, event.lng]}
-              icon={getEventIcon(event.type)}
+              icon={isCluster ? L.divIcon({
+                className: 'cluster-marker',
+                html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
+                iconSize: [48, 48]
+              }) : getEventIcon(event.type)}
               opacity={opacity}
+              eventHandlers={{
+                click: () => {
+                  if (isCluster && map) map.flyTo([event.lat, event.lng], 16);
+                }
+              }}
             >
               <Popup className="custom-popup">
                 <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{event.type}</span>
+                  {group.map((evt, i) => (
+                    <div key={evt.id} className={`${i > 0 ? 'mt-4 pt-4 border-t border-gray-600' : ''}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
+                        </div>
+                      </div>
+
+                      <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{evt.title}</h3>
+
+                      {displayDate && <div className="text-xs text-gray-300 mb-2">📅 {displayDate}</div>}
+
+                      <div className="flex gap-2 mt-2">
+                        {(evt.link || link) && <a href={evt.link || link} target="_blank" className="bg-blue-600 text-white text-xs px-3 py-1 rounded">Tickets</a>}
+                      </div>
                     </div>
-                    {onDeleteEvent && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm('Delete this event?')) onDeleteEvent(event.id);
-                        }}
-                        className="text-gray-500 hover:text-red-500 transition-colors p-1"
-                        title="Delete Event"
-                      >
-                        🗑️
-                      </button>
-                    )}
-                  </div>
-
-                  <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{event.title}</h3>
-
-                  {/* Structured Info */}
-                  {location && (
-                    <div className="flex items-start gap-2 text-xs text-gray-300 mb-1">
-                      <span>📍</span>
-                      <span className="opacity-90">{location}</span>
-                    </div>
-                  )}
-                  {displayDate && (
-                    <div className="flex items-start gap-2 text-xs text-gray-300 mb-3">
-                      <span>📅</span>
-                      <span className="opacity-90">{displayDate}</span>
-                    </div>
-                  )}
-
-                  {!location && <p className="text-sm text-gray-300 m-0 mt-2 leading-relaxed">{event.description}</p>}
-
-                  <div className="flex gap-2 mt-3">
-                    {link && (
-                      <a
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`flex-1 text-center text-xs font-bold py-2 rounded-lg transition-all ${isCyber ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-[0_0_10px_#00ffff]' : 'bg-blue-600 hover:bg-blue-500 text-white'}`}
-                      >
-                        🌐 Tickets / Info
-                      </a>
-                    )}
-                    {/* Maps Button */}
-                    <a
-                      href={`https://www.google.com/maps/search/?api=1&query=${event.lat},${event.lng}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
-                      title="Open in Google Maps"
-                    >
-                      🗺️
-                    </a>
-                  </div>
-
+                  ))}
                 </div>
               </Popup>
             </Marker>
@@ -449,6 +398,47 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           onLocationFound={setUserLocation}
         />
       </MapContainer>
+
+      {/* Address Search Overlay (When Add Mode is Active) */}
+      {isAddMode && (
+        <div className="fixed top-20 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-96 z-[1100] flex flex-col gap-2">
+          <div className="bg-black/80 backdrop-blur-md p-2 rounded-xl border border-white/20 shadow-2xl flex items-center gap-2">
+            <span className="text-xl pl-2">📍</span>
+            <input
+              autoFocus
+              type="text"
+              placeholder="Enter address..."
+              className="bg-transparent border-none outline-none text-white w-full h-10"
+              value={addressQuery}
+              onChange={e => setAddressQuery(e.target.value)}
+            />
+            <button onClick={() => { setIsAddMode(false); setAddressQuery(''); }} className="p-2 text-gray-400 hover:text-white">✕</button>
+          </div>
+
+          {addressSuggestions.length > 0 && (
+            <div className="bg-black/90 backdrop-blur-md rounded-xl border border-white/10 shadow-xl overflow-hidden">
+              {addressSuggestions.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 hover:bg-white/10 text-white cursor-pointer border-b border-white/5 last:border-none text-sm flex items-center gap-2"
+                  onClick={() => {
+                    const lat = parseFloat(item.lat);
+                    const lng = parseFloat(item.lon);
+                    if (map) map.flyTo([lat, lng], 16);
+                    if (onMapClick) onMapClick(lat, lng); // Trigger "New Event" pin
+                    setIsAddMode(false);
+                    setAddressQuery('');
+                    setAddressSuggestions([]);
+                  }}
+                >
+                  <span>🏙️</span>
+                  <span>{item.display_name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Address Search Overlay (When Add Mode is Active) */}
       {isAddMode && (

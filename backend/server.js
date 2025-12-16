@@ -58,18 +58,28 @@ app.get('/events', (req, res) => {
 // POST /events - Create a new event
 app.post('/events', (req, res) => {
     const { title, description, type, lat, lng, startTime, endTime, venue, date, link } = req.body;
-    const id = uuidv4();
 
-    const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link];
-
-    db.run(query, params, function (err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+    // Check for duplicates (same LINK or same TITLE+DATE)
+    const checkSql = `SELECT id FROM events WHERE link = ? OR (title = ? AND startTime = ?)`;
+    db.get(checkSql, [link || 'N/A', title, startTime], (err, row) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (row) {
+            // Already exists, return existing
+            return res.json({ message: "Event already exists", id: row.id });
         }
-        res.json({
-            id, title, description, type, lat, lng, startTime, endTime, venue, date, link
+
+        const id = uuidv4();
+        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link];
+
+        db.run(query, params, function (err) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.json({
+                id, title, description, type, lat, lng, startTime, endTime, venue, date, link
+            });
         });
     });
 });
