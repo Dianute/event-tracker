@@ -31,7 +31,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation 
     const [isSearching, setIsSearching] = useState(false);
 
     // 1. When modal opens with initialLocation (Map Click), reverse geocode it
-    import { useEffect } from 'react'; // Allow import inside (Next.js/React rules might prefer top level but sticking to chunk rules)
     // Actually, I should check if useEffect is imported. It is imported in line 3? No, line 3 has useState.
     // Let's assume I need to add useEffect to the top import.
     // I will add the logic here and fix imports in a separate chunk or trust the previous view.
