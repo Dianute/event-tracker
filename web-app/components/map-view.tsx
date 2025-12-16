@@ -300,11 +300,20 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           const opacity = isPast ? 0.3 : 1;
           const grayscale = isPast ? 'grayscale(100%)' : 'none';
 
-          // Parse Description (Location / Date / Link)
-          const descLines = event.description ? event.description.split('\n') : [];
-          const location = descLines[0] || '';
-          const rawDate = descLines[1] || '';
-          const link = descLines[2] && descLines[2].startsWith('http') ? descLines[2] : '';
+          // Use structured data
+          const location = event.venue || (event.description ? event.description.split('\n')[0] : '');
+
+          let displayDate = event.date || '';
+          if (event.startTime) {
+            const start = new Date(event.startTime);
+            const timeStr = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateStr = start.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            displayDate = `${dateStr} • ${timeStr}`;
+          } else if (event.description) {
+            displayDate = event.description.split('\n')[1] || '';
+          }
+
+          const link = event.link || (event.description && event.description.split('\n')[2]?.startsWith('http') ? event.description.split('\n')[2] : '');
 
           return (
             <Marker
@@ -343,10 +352,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                       <span className="opacity-90">{location}</span>
                     </div>
                   )}
-                  {rawDate && (
+                  {displayDate && (
                     <div className="flex items-start gap-2 text-xs text-gray-300 mb-3">
                       <span>📅</span>
-                      <span className="opacity-90">{rawDate}</span>
+                      <span className="opacity-90">{displayDate}</span>
                     </div>
                   )}
 
