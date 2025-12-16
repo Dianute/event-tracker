@@ -14,12 +14,17 @@ const RUN_ID = crypto.randomUUID();
 async function runScout() {
     console.log(`🕵️‍♂️ Scout Agent Starting (Run ID: ${RUN_ID})...`);
 
+    // Helper for live updates
+    const updateLog = async (status, summary = "", eventsCount = null) => {
+        try {
+            const body = { id: RUN_ID, status, logSummary: summary };
+            if (eventsCount !== null) body.eventsFound = eventsCount;
+            await axios.post(`${API_URL}/scout/log`, body);
+        } catch (e) { console.error("⚠️ Log update failed:", e.message); }
+    };
+
     // Log Start
-    try {
-        await axios.post(`${API_URL}/scout/log`, { id: RUN_ID, status: 'RUNNING' });
-    } catch (e) {
-        console.error("⚠️ Failed to log start:", e.message);
-    }
+    await updateLog('RUNNING', 'Initializing Scout Agent...');
 
     // Check CLI arguments for single-target mode
     const args = process.argv.slice(2);
@@ -77,6 +82,8 @@ async function runScout() {
     try {
         for (const target of targets) {
             console.log(`🌍 Visiting: ${target.name} (${target.url})`);
+            await updateLog('RUNNING', `Scanning ${target.name}...`, totalEventsFound);
+
             const page = await browser.newPage();
             try {
                 await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
@@ -84,7 +91,16 @@ async function runScout() {
 
                 // Detect if Facebook
                 const isFacebook = target.url.includes('facebook.com');
-                let selector = target.selector || "a[href*='/e/']";
+                // Detect if Facebook
+                const isFacebook = target.url.includes('facebook.com');
+                let selector = target.selector;
+
+                // Auto-determine selector if missing
+                if (!selector) {
+                    if (target.url.includes('bilietai.lt')) selector = ".event_short";
+                    else if (target.url.includes('kakava.lt')) selector = "a.event-card";
+                    else selector = "a[href*='/e/']"; // BandsInTown default
+                }
 
                 if (isFacebook) {
                     // Facebook Strategy: Look for Posts
@@ -217,22 +233,21 @@ async function runScout() {
 
 
         // Log SUCCESS
+        await updateLog('SUCCESS', 'Mission Complete', totalEventsFound);
+        // Final update to set EndTime? The server updates existing rows, but explicitly sending endTime might be needed if server doesn't auto-set it on update.
+        // Actually, let's send a specific payload for completion
         await axios.post(`${API_URL}/scout/log`, {
             id: RUN_ID,
             status: 'SUCCESS',
             eventsFound: totalEventsFound,
+            logSummary: "All targets scanned.",
             endTime: new Date().toISOString()
         });
 
     } catch (err) {
         console.error(`❌ Fatal Error: ${err.message}`);
         // Log FAILURE
-        await axios.post(`${API_URL}/scout/log`, {
-            id: RUN_ID,
-            status: 'FAILED',
-            logSummary: err.message,
-            endTime: new Date().toISOString()
-        });
+        await updateLog('FAILED', err.message);
     } finally {
         await browser.close();
         console.log("✅ Scout Mission Complete.");
