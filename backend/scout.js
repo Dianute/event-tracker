@@ -271,14 +271,30 @@ function parseEventText(text) {
     // 3. Title is usually the FIRST line (after filtering noise)
     let title = lines[0];
 
-    // Validation Heuristics
-    // If Date line doesn't look like a date (e.g. doesn't have digits), maybe structure is different?
-    // But for now, this simple logic matches the observed Bilietai logs perfectly.
+    // Improved Date Extraction: Scan for month names
+    const dateRegex = /(?:(\d{1,2})\s+)?(saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo|sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio)/i;
+    let dateRaw = "";
 
-    // Cleanup Title (sometimes has extra spaces or pipes)
+    // Find line matching date regex
+    for (const line of lines) {
+        if (dateRegex.test(line)) {
+            dateRaw = line;
+            break;
+        }
+    }
+
+    // Fallback: if no date found, try strict formats YYYY-MM-DD
+    if (!dateRaw) {
+        const isoDate = lines.find(l => /\d{4}-\d{2}-\d{2}/.test(l));
+        if (isoDate) dateRaw = isoDate;
+    }
+
+    // If we still found nothing, revert to old heuristic (2nd to last) as last resort? 
+    // Actually, safer to leave empty than guess wrong venue line.
+
+    // Cleanup Title
     if (title && title.includes('|')) {
         // "Artist | Venue" -> sometimes title repeats venue
-        // Keep it all for now or split? Keep it.
     }
 
     // Smart City Detection (moved here from original parseEventText)
@@ -297,6 +313,15 @@ function parseEventText(text) {
         if (fullText.includes(city.toLowerCase())) {
             detectedCity = city;
             break; // Found primary city
+        }
+    }
+
+    // Attempt to refine venue if we found the date line
+    // If dateRaw is found, venue is likely the line AFTER it, or the last line.
+    if (dateRaw && lines.includes(dateRaw)) {
+        const dateIdx = lines.indexOf(dateRaw);
+        if (dateIdx < lines.length - 1) {
+            venue = lines[dateIdx + 1];
         }
     }
 
