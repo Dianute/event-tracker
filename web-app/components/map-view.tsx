@@ -119,7 +119,8 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
   return (
     <div
       onClick={onClick}
-      className="bg-black/60 backdrop-blur-md rounded-xl p-4 shadow-2xl mb-3 border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer"
+      className="bg-black/60 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer 
+      min-w-[85vw] md:min-w-0 md:w-full snap-center mr-4 md:mr-0 md:mb-3"
     >
       <div className="flex justify-between items-start mb-2">
         <div className="flex items-center gap-3">
@@ -468,7 +469,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       {showScout && <ScoutControl onClose={() => setShowScout(false)} />}
 
       {/* Live Event List Overlay (Bottom Left) */}
-      <div className="fixed bottom-0 left-0 md:bottom-6 md:left-6 z-[1000] w-full md:w-80 max-h-[50vh] md:max-h-[60vh] overflow-y-auto pointer-events-none flex flex-col hide-scrollbar p-4 md:p-0 bg-gradient-to-t from-black/80 to-transparent md:bg-none">
+      <div className="fixed bottom-4 left-0 right-0 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+        flex flex-row md:flex-col 
+        overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
+        snap-x snap-mandatory 
+        gap-0 md:gap-0 
+        px-4 md:px-0 md:w-80 
+        max-h-[50vh] md:max-h-[60vh] 
+        hide-scrollbar pointer-events-none pb-4 md:pb-0">
         {filteredEvents.slice(0, 20).map(event => (
           <div key={event.id} className="pointer-events-auto">
             <EventCard
