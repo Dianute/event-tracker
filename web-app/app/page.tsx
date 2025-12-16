@@ -24,6 +24,7 @@ interface Event {
   lng: number;
   startTime?: string;
   endTime?: string;
+  createdAt?: string;
 }
 
 export default function Home() {

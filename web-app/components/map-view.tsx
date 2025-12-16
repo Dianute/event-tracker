@@ -7,26 +7,32 @@ import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus } from 'lucide-react';
 
 // Custom Emoji Marker Helper
-const createEmojiIcon = (emoji: string) => {
+const createEmojiIcon = (emoji: string, isNew?: boolean) => {
+  const animationClass = isNew ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' : 'transform hover:scale-110';
+  const newBadge = isNew ? '<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg z-50 animate-pulse">NEW</div>' : '';
+
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div class="flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md text-2xl border-2 border-white transform hover:scale-110 transition-transform">${emoji}</div>`,
+    html: `<div class="relative flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md text-2xl border-2 border-white transition-transform ${animationClass}">
+            ${emoji}
+            ${newBadge}
+           </div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
     popupAnchor: [0, -20],
   });
 };
 
-const getEventIcon = (type: string) => {
+const getEventIcon = (type: string, isNew?: boolean) => {
   switch (type) {
-    case 'food': return createEmojiIcon('🍔');
-    case 'sports': return createEmojiIcon('⚽');
-    case 'music': return createEmojiIcon('🎵');
-    case 'arts': return createEmojiIcon('🎨');
-    case 'learning': return createEmojiIcon('📚');
+    case 'food': return createEmojiIcon('🍔', isNew);
+    case 'sports': return createEmojiIcon('⚽', isNew);
+    case 'music': return createEmojiIcon('🎵', isNew);
+    case 'arts': return createEmojiIcon('🎨', isNew);
+    case 'learning': return createEmojiIcon('📚', isNew);
     case 'social':
     default:
-      return createEmojiIcon('🍻');
+      return createEmojiIcon('🍻', isNew);
   }
 };
 
@@ -42,6 +48,7 @@ interface Event {
   venue?: string;
   date?: string;
   link?: string;
+  createdAt?: string;
 }
 
 interface MapViewProps {
