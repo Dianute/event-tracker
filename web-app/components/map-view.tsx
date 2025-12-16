@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus } from 'lucide-react';
 
@@ -186,7 +186,20 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
       map.off("locationfound", onLocation);
       map.stopLocate();
     };
+    return () => {
+      map.off("locationfound", onLocation);
+      map.stopLocate();
+    };
   }, [map, onLocationFound]);
+
+  const buttonRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (buttonRef.current) {
+      L.DomEvent.disableClickPropagation(buttonRef.current);
+      L.DomEvent.disableScrollPropagation(buttonRef.current);
+    }
+  }, []);
 
   useMapEvents({
     click(e) {
@@ -205,7 +218,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
           </Marker>
           <Circle center={position} radius={800} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }} />
 
-          <div className="fixed bottom-24 right-6 z-[1000]">
+          <div ref={buttonRef} className="fixed bottom-24 right-6 z-[1000]">
             <button
               onClick={(e) => {
                 e.stopPropagation();
