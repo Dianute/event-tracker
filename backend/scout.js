@@ -26,33 +26,34 @@ async function runScout() {
     // Log Start
     await updateLog('RUNNING', 'Initializing Scout Agent...');
 
-    // Check CLI arguments for single-target mode
+    // Read targets logic (moved up for logging)
+    let targets = [];
     const args = process.argv.slice(2);
     let customUrl = null;
     if (args.length > 0 && args[0].startsWith('--url=')) {
         customUrl = args[0].split('=')[1];
     }
 
-    // Read targets
-    let targets = [];
     if (customUrl) {
-        console.log(`🎯 Single-Target Mode: ${customUrl}`);
-        // Auto-detect selector
-        let selector = "a[href*='/e/']"; // Default
+        // ... custom logic ...
+        let selector = "a[href*='/e/']";
         if (customUrl.includes('bilietai.lt')) selector = ".event_short";
-        else if (customUrl.includes('kakava.lt')) selector = "a.event-card"; // Kakava specific
-        else if (customUrl.includes('bandsintown')) selector = "a[href*='/e/']";
-
+        else if (customUrl.includes('kakava.lt')) selector = "a.event-card";
+        else selector = "a[href*='/e/']";
         targets = [{ name: "Custom Target", url: customUrl, selector: selector }];
     } else {
         try {
             const data = fs.readFileSync(path.join(__dirname, 'targets.json'), 'utf8');
             targets = JSON.parse(data);
         } catch (e) {
-            console.log("⚠️ No targets.json found, using defaults.");
-            targets = [{ name: "Default", url: "https://www.bandsintown.com/c/klaipeda-lithuania", selector: "a[href*='/e/']" }];
+            targets = []; // Default handled below if empty
         }
     }
+
+    if (targets.length === 0) targets = [{ name: "Default", url: "https://www.bandsintown.com/c/klaipeda-lithuania", selector: "a[href*='/e/']" }];
+
+    const targetNames = targets.map(t => t.name).join(', ');
+    await updateLog('RUNNING', `Starting scan for ${targets.length} targets: ${targetNames}`);
 
     // Chrome Path Detection
     const chromePaths = [
@@ -218,6 +219,10 @@ async function runScout() {
                     }
                     totalEventsFound += events.length;
                     saveCache(); // Save intermittently
+                    await updateLog('RUNNING', `Found ${events.length} events at ${target.name}`, totalEventsFound);
+                } else {
+                    console.log(`⚠️ No events found at ${target.name} using selector: ${selector}`);
+                    await updateLog('RUNNING', `No events found at ${target.name} (Selector: ${selector})`, totalEventsFound);
                 }
 
             } catch (err) {
