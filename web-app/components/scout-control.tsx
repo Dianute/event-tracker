@@ -8,6 +8,8 @@ interface Target {
     selector?: string;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
 export default function ScoutControl({ onClose }: { onClose: () => void }) {
     const [targets, setTargets] = useState<Target[]>([]);
     const [newUrl, setNewUrl] = useState('');
@@ -16,7 +18,7 @@ export default function ScoutControl({ onClose }: { onClose: () => void }) {
     const [logs, setLogs] = useState<string[]>([]);
 
     useEffect(() => {
-        fetch('http://localhost:8080/targets')
+        fetch(`${API_URL}/targets`)
             .then(res => res.json())
             .then(setTargets)
             .catch(console.error);
@@ -26,7 +28,7 @@ export default function ScoutControl({ onClose }: { onClose: () => void }) {
         if (!newUrl) return;
         const target = { name: newName || 'New Site', url: newUrl, selector: "a[href*='/e/']" };
 
-        fetch('http://localhost:8080/targets', {
+        fetch(`${API_URL}/targets`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(target)
@@ -41,7 +43,7 @@ export default function ScoutControl({ onClose }: { onClose: () => void }) {
         setIsRunning(true);
         setLogs(prev => [...prev, "🚀 Launching Agent..."]);
 
-        fetch('http://localhost:8080/scout/run', { method: 'POST' })
+        fetch(`${API_URL}/scout/run`, { method: 'POST' })
             .then(res => res.json())
             .then(data => {
                 setLogs(prev => [...prev, "✅ Agent Started.", "Check console for details."]);
