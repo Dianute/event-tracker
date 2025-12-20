@@ -89,6 +89,7 @@ async function runScout() {
     try {
         for (const target of targets) {
             console.log(`🌍 Visiting: ${target.name} (${target.url})`);
+            let targetEventsFound = 0; // Track count for this specific target
             await updateLog('RUNNING', `Scanning ${target.name}...`, totalEventsFound);
 
             const page = await browser.newPage();
@@ -239,6 +240,7 @@ async function runScout() {
                                 await axios.post(`${API_URL}/events`, ev);
                             }
                             totalEventsFound += events.length;
+                            targetEventsFound += events.length;
                             await updateLog('RUNNING', `Found ${totalEventsFound} events so far at ${target.name}...`, totalEventsFound);
                             events.length = 0; // Clear array
                         }
@@ -262,6 +264,7 @@ async function runScout() {
                         await axios.post(`${API_URL}/events`, ev);
                     }
                     totalEventsFound += events.length;
+                    targetEventsFound += events.length;
                     saveCache(); // Save intermittently
                     await updateLog('RUNNING', `Found ${events.length} events at ${target.name}`, totalEventsFound);
 
@@ -274,10 +277,10 @@ async function runScout() {
                 if (target.id && !isDryRun) {
                     try {
                         await axios.patch(`${API_URL}/targets/${target.id}`, {
-                            lastEventsFound: totalEventsFound, // Use the running total for this run
+                            lastEventsFound: targetEventsFound, // Use the specific target count
                             lastScrapedAt: new Date().toISOString()
                         });
-                        console.log(`📝 Stats updated for ${target.name}: ${totalEventsFound} events.`);
+                        console.log(`📝 Stats updated for ${target.name}: ${targetEventsFound} events.`);
                     } catch (e) {
                         console.warn("Could not update target stats:", e.message);
                     }
