@@ -160,9 +160,8 @@ export default function AdminPage() {
                         <table className="w-full text-left text-sm">
                             <thead className="bg-gray-900/50 text-gray-400">
                                 <tr>
+                                    <th className="p-4">Name</th>
                                     <th className="p-4">City</th>
-                                    <th className="p-4">Last Scrape</th>
-                                    <th className="p-4">URL</th>
                                     <th className="p-4">Last Scrape</th>
                                     <th className="p-4">URL</th>
                                     <th className="p-4">Action</th>
@@ -185,26 +184,25 @@ export default function AdminPage() {
                                             ) : <span className="text-gray-600">-</span>}
                                         </td>
                                         <td className="p-4 text-gray-400 truncate max-w-[200px]" title={t.url}>{t.url}</td>
-                                        <td className="p-4">
-                                            <td className="p-4 flex gap-2">
-                                                <button
-                                                    onClick={() => handleTestTarget(t.url, t.id)}
-                                                    disabled={!!testingId}
-                                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold disabled:opacity-50"
-                                                >
-                                                    {testingId === t.id ? 'Testing...' : '▶ Test'}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteTarget(t.id)}
-                                                    className="text-red-400 hover:text-red-300 font-bold text-xs uppercase"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
+                                        <td className="p-4 flex gap-2">
+                                            <button
+                                                onClick={() => handleTestTarget(t.url, t.id)}
+                                                disabled={!!testingId}
+                                                className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold disabled:opacity-50"
+                                            >
+                                                {testingId === t.id ? 'Testing...' : '▶ Test'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteTarget(t.id)}
+                                                className="text-red-400 hover:text-red-300 font-bold text-xs uppercase"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                                 {targets.length === 0 && (
-                                    <tr><td colSpan={4} className="p-8 text-center text-gray-500">No targets configured.</td></tr>
+                                    <tr><td colSpan={5} className="p-8 text-center text-gray-500">No targets configured.</td></tr>
                                 )}
                             </tbody>
                         </table>
