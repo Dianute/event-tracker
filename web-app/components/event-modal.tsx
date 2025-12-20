@@ -136,7 +136,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {isReadOnly ? title : 'Create New Event'}
                         </h2>
                     </div>
-                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-gray-400 hover:text-white bg-transparent hover:bg-white/10 rounded-full transition-all">
+                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-transparent dark:hover:bg-white/10 rounded-full transition-all">
                         <X size={24} />
                     </button>
                 </div>
