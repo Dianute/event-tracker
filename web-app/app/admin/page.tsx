@@ -12,6 +12,7 @@ export default function AdminPage() {
     const [targets, setTargets] = useState<any[]>([]);
     const [newTarget, setNewTarget] = useState({ name: "", url: "", city: "" });
     const [previewEvent, setPreviewEvent] = useState<any | null>(null);
+    const [testError, setTestError] = useState<string | null>(null);
     const [testingId, setTestingId] = useState<string | null>(null);
 
     const fetchHistory = () => {
@@ -60,10 +61,10 @@ export default function AdminPage() {
                 if (data.success && data.preview) {
                     setPreviewEvent(data.preview);
                 } else {
-                    alert("Test failed: No events found or scraper error.\n" + (data.log || ""));
+                    setTestError(data.log || "Unknown error occurred during test.");
                 }
             })
-            .catch(err => alert("Test request failed"))
+            .catch(err => setTestError("Network request failed: " + err.message))
             .finally(() => setTestingId(null));
     };
 
@@ -302,6 +303,39 @@ export default function AdminPage() {
                         </table>
                     </div>
                 </section>
+                {/* Error Log Modal */}
+                {testError && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+                        <div className="bg-gray-800 p-6 rounded-xl max-w-2xl w-full border border-red-500/50 shadow-2xl flex flex-col max-h-[90vh]">
+                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-red-400">
+                                <span>⚠️ Test Failed</span>
+                            </h3>
+                            <p className="text-sm text-gray-400 mb-2">Copy this log to debug the issue:</p>
+                            <textarea
+                                readOnly
+                                value={testError}
+                                className="w-full h-64 bg-black/50 border border-gray-700 rounded p-4 font-mono text-xs text-red-200 mb-4 focus:outline-none focus:border-red-500 resize-none"
+                            />
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(testError);
+                                        alert("Copied to clipboard!");
+                                    }}
+                                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded font-bold transition-colors"
+                                >
+                                    Copy Log
+                                </button>
+                                <button
+                                    onClick={() => setTestError(null)}
+                                    className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded font-bold transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </main>
     );
