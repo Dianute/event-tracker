@@ -162,6 +162,35 @@ app.delete('/targets/:id', (req, res) => {
     });
 });
 
+// PATCH /targets/:id - Update target stats
+app.patch('/targets/:id', (req, res) => {
+    const { id } = req.params;
+    const updates = req.body;
+    const file = path.join(__dirname, 'targets.json');
+
+    fs.readFile(file, 'utf8', (err, data) => {
+        if (err) return res.status(500).json({ error: "Could not read targets" });
+
+        let targets = [];
+        try {
+            targets = JSON.parse(data);
+        } catch (e) {
+            return res.status(500).json({ error: "Targets file corrupted" });
+        }
+
+        const targetIndex = targets.findIndex(t => String(t.id) === String(id));
+        if (targetIndex === -1) return res.status(404).json({ error: "Target not found" });
+
+        // Update fields
+        targets[targetIndex] = { ...targets[targetIndex], ...updates };
+
+        fs.writeFile(file, JSON.stringify(targets, null, 2), (err) => {
+            if (err) return res.status(500).json({ error: "Failed to update target" });
+            res.json({ success: true });
+        });
+    });
+});
+
 // GET /scout/history - Get execution logs
 app.get('/scout/history', (req, res) => {
     db.all("SELECT * FROM scout_logs ORDER BY startTime DESC LIMIT 50", [], (err, rows) => {
