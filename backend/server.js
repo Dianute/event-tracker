@@ -109,9 +109,22 @@ app.post('/targets', (req, res) => {
     const newTarget = req.body; // { name, url, selector }
     const file = path.join(__dirname, 'targets.json');
 
+    // Ensure file exists (or create empty array)
+    if (!fs.existsSync(file)) {
+        fs.writeFileSync(file, '[]');
+    }
+
     fs.readFile(file, 'utf8', (err, data) => {
-        const targets = err ? [] : JSON.parse(data);
+        let targets = [];
+        try {
+            targets = data ? JSON.parse(data) : [];
+        } catch (e) {
+            console.error("Malformed targets.json, resetting.");
+            targets = [];
+        }
+
         targets.push({ id: uuidv4(), ...newTarget });
+
         fs.writeFile(file, JSON.stringify(targets, null, 2), (err) => {
             if (err) return res.status(500).json({ error: "Failed to write targets file" });
             res.json({ success: true });
