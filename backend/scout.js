@@ -144,6 +144,24 @@ async function runScout() {
                     return found;
                 }, selector, isFacebook);
 
+                // Smart Fallback for Kakava
+                if (rawEvents.length === 0 && target.url.includes('kakava.lt') && !selector.includes('renginys')) {
+                    console.log("⚠️ Standard selector failed for Kakava. Trying fallback: a[href*='/renginys/']");
+                    const fallbackEvents = await page.evaluate(() => {
+                        const found = [];
+                        const items = document.querySelectorAll("a[href*='/renginys/']");
+                        items.forEach((item) => {
+                            const rawText = item.innerText;
+                            if (rawText && rawText.length > 10) found.push({ rawText, link: item.href });
+                        });
+                        return found;
+                    });
+                    if (fallbackEvents.length > 0) {
+                        console.log(`✨ Fallback success! Found ${fallbackEvents.length} events.`);
+                        rawEvents.push(...fallbackEvents);
+                    }
+                }
+
                 console.log(`✨ Extracted ${rawEvents.length} raw cards from ${target.name}.`);
 
                 const events = [];
