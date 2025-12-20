@@ -14,8 +14,13 @@ const RUN_ID = crypto.randomUUID();
 async function runScout() {
     console.log(`🕵️‍♂️ Scout Agent Starting (Run ID: ${RUN_ID})...`);
 
+    // Parse Args First
+    const args = process.argv.slice(2);
+    const isDryRun = args.includes('--dry-run');
+
     // Helper for live updates
     const updateLog = async (status, summary = "", eventsCount = null) => {
+        if (isDryRun) return; // Silent mode for tests
         try {
             const body = { id: RUN_ID, status, logSummary: summary };
             if (eventsCount !== null) body.eventsFound = eventsCount;
@@ -28,9 +33,7 @@ async function runScout() {
 
     // Read targets logic (moved up for logging)
     let targets = [];
-    const args = process.argv.slice(2);
     let customUrl = null;
-    const isDryRun = args.includes('--dry-run');
 
     if (args.length > 0) {
         const urlArg = args.find(a => a.startsWith('--url='));
