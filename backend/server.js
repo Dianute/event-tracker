@@ -181,7 +181,44 @@ app.post('/scout/log', (req, res) => {
     });
 });
 
-// POST /scout/run - Run the Scout Agent
+// POST /scout/test - Test a specific URL (Dry Run)
+app.post('/scout/test', (req, res) => {
+    const { spawn } = require('child_process');
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: "URL required" });
+
+    // Spawn scout in dry run mode
+    const scoutProcess = spawn('node', ['scout.js', `--url=${url}`, '--dry-run'], {
+        stdio: ['ignore', 'pipe', 'pipe']
+    });
+
+    let output = '';
+    let previewData = null;
+
+    scoutProcess.stdout.on('data', (data) => {
+        const str = data.toString();
+        output += str;
+        // Check for preview
+        if (str.includes('PREVIEW_JSON:')) {
+            const match = str.match(/PREVIEW_JSON:(.*)/);
+            if (match && match[1]) {
+                try {
+                    previewData = JSON.parse(match[1]);
+                } catch (e) { console.error("Failed to parse preview JSON"); }
+            }
+        }
+    });
+
+    scoutProcess.on('close', (code) => {
+        if (previewData) {
+            res.json({ success: true, preview: previewData });
+        } else {
+            res.json({ success: false, log: output });
+        }
+    });
+});
+
+// POST /scout/run - Trigger the scout agent manually
 app.post('/scout/run', (req, res) => {
     const { spawn } = require('child_process');
     const { url } = req.body;

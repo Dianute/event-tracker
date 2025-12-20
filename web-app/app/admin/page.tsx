@@ -11,6 +11,8 @@ export default function AdminPage() {
     const [customUrl, setCustomUrl] = useState("");
     const [targets, setTargets] = useState<any[]>([]);
     const [newTarget, setNewTarget] = useState({ name: "", url: "", city: "" });
+    const [previewEvent, setPreviewEvent] = useState<any | null>(null);
+    const [testingId, setTestingId] = useState<string | null>(null);
 
     const fetchHistory = () => {
         setLoading(true);
@@ -44,6 +46,25 @@ export default function AdminPage() {
                 fetchTargets();
             })
             .catch(err => alert("Delete failed: " + err.message));
+    };
+
+    const handleTestTarget = (url: string, id: string) => {
+        setTestingId(id);
+        fetch(`${API_URL}/scout/test`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.preview) {
+                    setPreviewEvent(data.preview);
+                } else {
+                    alert("Test failed: No events found or scraper error.\n" + (data.log || ""));
+                }
+            })
+            .catch(err => alert("Test request failed"))
+            .finally(() => setTestingId(null));
     };
 
     const handleAddTarget = () => {
@@ -165,13 +186,21 @@ export default function AdminPage() {
                                         </td>
                                         <td className="p-4 text-gray-400 truncate max-w-[200px]" title={t.url}>{t.url}</td>
                                         <td className="p-4">
-                                            <button
-                                                onClick={() => handleDeleteTarget(t.id)}
-                                                className="text-red-400 hover:text-red-300 font-bold text-xs uppercase"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
+                                            <td className="p-4 flex gap-2">
+                                                <button
+                                                    onClick={() => handleTestTarget(t.url, t.id)}
+                                                    disabled={!!testingId}
+                                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold disabled:opacity-50"
+                                                >
+                                                    {testingId === t.id ? 'Testing...' : '▶ Test'}
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteTarget(t.id)}
+                                                    className="text-red-400 hover:text-red-300 font-bold text-xs uppercase"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </td>
                                     </tr>
                                 ))}
                                 {targets.length === 0 && (

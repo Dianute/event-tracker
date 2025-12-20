@@ -30,8 +30,11 @@ async function runScout() {
     let targets = [];
     const args = process.argv.slice(2);
     let customUrl = null;
-    if (args.length > 0 && args[0].startsWith('--url=')) {
-        customUrl = args[0].split('=')[1];
+    const isDryRun = args.includes('--dry-run');
+
+    if (args.length > 0) {
+        const urlArg = args.find(a => a.startsWith('--url='));
+        if (urlArg) customUrl = urlArg.split('=')[1];
     }
 
     if (customUrl) {
@@ -213,6 +216,12 @@ async function runScout() {
                 }
 
                 if (events.length > 0) {
+                    if (isDryRun) {
+                        console.log(`PREVIEW_JSON:${JSON.stringify(events[0])}`);
+                        await browser.close();
+                        process.exit(0);
+                    }
+
                     console.log(`✨ Parsed ${events.length} events. uploading...`);
                     for (const ev of events) {
                         await axios.post(`${API_URL}/events`, ev);
