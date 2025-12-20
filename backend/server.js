@@ -46,7 +46,7 @@ app.get('/', (req, res) => {
 
 // GET /events - Fetch all active events
 app.get('/events', (req, res) => {
-    db.all("SELECT * FROM events", [], (err, rows) => {
+    db.all("SELECT * FROM events WHERE endTime > datetime('now')", [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
