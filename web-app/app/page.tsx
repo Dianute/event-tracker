@@ -24,6 +24,9 @@ interface Event {
   lng: number;
   startTime?: string;
   endTime?: string;
+  venue?: string;
+  date?: string;
+  link?: string;
   createdAt?: string;
 }
 
@@ -31,6 +34,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
 
   // Load events from Backend on mount
   // Load events from Backend
@@ -49,11 +53,18 @@ export default function Home() {
   const handleMapClick = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
     setIsModalOpen(true);
+    setSelectedEvent(undefined); // Ensure we are cleaner
   };
 
   const handlePlusClick = () => {
     // Open modal without a specific map location (user will search for address)
     setSelectedLocation(null);
+    setIsModalOpen(true);
+    setSelectedEvent(undefined);
+  };
+
+  const handleEventSelect = (event: any) => {
+    setSelectedEvent(event);
     setIsModalOpen(true);
   };
 
@@ -88,6 +99,7 @@ export default function Home() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedLocation(null); // Clear selection if cancelled
+    setSelectedEvent(undefined);
   };
 
   const handleDeleteEvent = (id: string) => {
@@ -110,6 +122,7 @@ export default function Home() {
           onDeleteEvent={handleDeleteEvent}
           onRefresh={fetchEvents}
           onAddEventClick={handlePlusClick}
+          onEventSelect={handleEventSelect}
         />
       </div>
 
@@ -125,6 +138,7 @@ export default function Home() {
         onClose={handleCloseModal}
         onSubmit={handleAddEvent}
         initialLocation={selectedLocation}
+        event={selectedEvent}
       />
     </main>
   );

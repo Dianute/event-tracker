@@ -58,7 +58,10 @@ interface MapViewProps {
   onDeleteEvent?: (id: string) => void;
   onRefresh?: () => void;
   onAddEventClick?: () => void;
+  onEventSelect?: (event: Event) => void;
 }
+
+// ... (keep helpers)
 
 // Helper to calculate distance in meters
 function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -75,6 +78,8 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 
   return R * c; // in metres
 }
+
+
 
 function EventCard({ event, userLocation, onClick }: { event: Event, userLocation: L.LatLng | null, onClick: () => void }) {
   const [status, setStatus] = useState<{ label: string; color: string; progress?: number; timeText?: string }>({ label: '', color: 'gray' });
@@ -243,7 +248,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -353,43 +358,65 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               opacity={opacity}
               eventHandlers={{
                 click: () => {
-                  if (isCluster && map) map.flyTo([event.lat, event.lng], 16);
+                  if (isCluster && map) {
+                    map.flyTo([event.lat, event.lng], 16);
+                  } else if (!isCluster && onEventSelect) {
+                    onEventSelect(event);
+                  }
                 }
               }}
             >
-              <Popup className="custom-popup">
-                <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
-                  {group.map((evt, i) => (
-                    <div key={evt.id} className={`${i > 0 ? 'mt-4 pt-4 border-t border-gray-600' : ''}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
+              {isCluster && (
+                <Popup className="custom-popup">
+                  <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
+                    {group.map((evt, i) => (
+                      <div
+                        key={evt.id}
+                        className={`${i > 0 ? 'mt-4 pt-4 border-t border-gray-600' : ''} cursor-pointer hover:bg-white/5 p-2 rounded transition-colors`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onEventSelect) onEventSelect(evt);
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
+                          </div>
+                        </div>
+
+                        <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{evt.title}</h3>
+
+                        {displayDate && <div className="text-xs text-gray-300 mb-2">📅 {displayDate}</div>}
+
+                        <div className="flex gap-2 mt-2">
+                          {(evt.link || link) && (
+                            <a
+                              href={evt.link || link}
+                              target="_blank"
+                              onClick={e => e.stopPropagation()}
+                              className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-500"
+                            >
+                              Tickets
+                            </a>
+                          )}
+
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${evt.lat},${evt.lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
+                            title="Open in Google Maps"
+                          >
+                            🗺️
+                          </a>
                         </div>
                       </div>
-
-                      <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{evt.title}</h3>
-
-                      {displayDate && <div className="text-xs text-gray-300 mb-2">📅 {displayDate}</div>}
-
-                      <div className="flex gap-2 mt-2">
-                        {(evt.link || link) && <a href={evt.link || link} target="_blank" className="bg-blue-600 text-white text-xs px-3 py-1 rounded">Tickets</a>}
-
-                        {/* Maps Button */}
-                        <a
-                          href={`https://www.google.com/maps/search/?api=1&query=${evt.lat},${evt.lng}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
-                          title="Open in Google Maps"
-                        >
-                          🗺️
-                        </a>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Popup>
+                    ))}
+                  </div>
+                </Popup>
+              )}
             </Marker>
           );
         })}
@@ -490,6 +517,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 if (map) {
                   map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
                 }
+                if (onEventSelect) onEventSelect(event);
               }}
             />
           </div>
