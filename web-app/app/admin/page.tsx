@@ -139,8 +139,9 @@ export default function AdminPage() {
                         <table className="w-full text-left text-sm">
                             <thead className="bg-gray-900/50 text-gray-400">
                                 <tr>
-                                    <th className="p-4">Name</th>
                                     <th className="p-4">City</th>
+                                    <th className="p-4">Last Scrape</th>
+                                    <th className="p-4">URL</th>
                                     <th className="p-4">Last Scrape</th>
                                     <th className="p-4">URL</th>
                                     <th className="p-4">Action</th>
