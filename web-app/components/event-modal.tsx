@@ -6,7 +6,7 @@ import { X } from 'lucide-react';
 interface EventModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string }) => void;
+    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
     initialLocation: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing
 }
@@ -30,7 +30,9 @@ const formatDateRange = (startStr: string, endStr: string) => {
     return `${dateText} • ${startTimeText}`;
 };
 
-import { Calendar, MapPin, Tag, ExternalLink, Clock } from 'lucide-react';
+import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event }: EventModalProps) {
     const [title, setTitle] = useState('');
@@ -39,6 +41,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [venue, setVenue] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -54,12 +58,15 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 setStartTime(event.startTime || '');
                 setEndTime(event.endTime || '');
                 setVenue(event.venue || event.location || '');
+                setImageUrl(event.imageUrl || '');
                 setCurrentLocation({ lat: event.lat, lng: event.lng });
             } else {
                 // CREATE MODE (Reset)
                 setTitle('');
                 setDescription('');
                 setType('social');
+                setImageUrl('');
+                setIsUploading(false);
 
                 // Times
                 const now = new Date();
@@ -102,6 +109,33 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         return () => clearTimeout(delayDebounceFn);
     }, [venue, isSearching, event]);
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch(`${API_URL}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                setImageUrl(data.imageUrl);
+            } else {
+                alert("Upload failed");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Upload error");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     if (!isOpen) return null;
     const isReadOnly = !!event;
 
@@ -112,7 +146,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             alert("Please select a location from the search or click the map!");
             return;
         }
-        onSubmit({ title, description, type, startTime, endTime, lat: currentLocation.lat, lng: currentLocation.lng, venue });
+        onSubmit({ title, description, type, startTime, endTime, lat: currentLocation.lat, lng: currentLocation.lng, venue, imageUrl });
         onClose();
     };
 
@@ -120,7 +154,43 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
             <div className="w-full max-w-md bg-white dark:bg-[#121212] rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-white/10 flex flex-col max-h-[90vh]">
 
-                {/* Header Image / Color Bar could go here, for now just a clean header */}
+                {/* Header Image or Upload Area */}
+                {!isReadOnly ? (
+                    // Create Mode: Upload Area
+                    <div className="relative w-full h-40 bg-gray-100 dark:bg-white/5 border-b border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0 group cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-white/10">
+                        {imageUrl ? (
+                            <>
+                                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setImageUrl('');
+                                    }}
+                                    className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </>
+                        ) : (
+                            <label className="flex flex-col items-center gap-2 cursor-pointer w-full h-full justify-center">
+                                <div className={`p-3 rounded-full bg-white dark:bg-white/10 shadow-sm ${isUploading ? 'animate-pulse' : ''}`}>
+                                    <Camera size={24} className="text-gray-500 dark:text-gray-400" />
+                                </div>
+                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                    {isUploading ? 'Uploading...' : 'Add Cover Photo'}
+                                </span>
+                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                            </label>
+                        )}
+                    </div>
+                ) : imageUrl && (
+                    // View Mode: Display Image
+                    <div className="w-full h-48 bg-gray-100 dark:bg-zinc-900 border-b border-gray-200 dark:border-white/10 shrink-0">
+                        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                    </div>
+                )}
+
+
                 <div className="flex items-start justify-between p-6 pb-2">
                     <div className="flex-1 pr-4">
                         {isReadOnly && (
@@ -146,11 +216,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     <div className="p-6 pt-2 overflow-y-auto space-y-6">
 
                         {/* Time & Location */}
-                        <div className="space-y-3 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-100 dark:border-white/5">
+                        <div className="space-y-3 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
                             <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                                 <Calendar className="text-blue-500 shrink-0" size={20} />
                                 <div>
-                                    <p className="font-semibold text-sm">Date & Time</p>
+                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">Date & Time</p>
                                     <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRange(startTime, endTime)}</p>
                                 </div>
                             </div>
@@ -160,12 +230,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
                                 <MapPin className="text-red-500 shrink-0" size={20} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-sm truncate">{venue || 'Unknown Location'}</p>
+                                    <p className="font-semibold text-sm truncate text-gray-900 dark:text-white">{venue || 'Unknown Location'}</p>
                                     <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-0.5"
+                                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 mt-0.5"
                                     >
                                         Open in Maps <ExternalLink size={10} />
                                     </a>
@@ -178,7 +248,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                                 About Event
                             </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                                 {description || 'No description provided.'}
                             </p>
                         </div>
@@ -189,7 +259,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 href={event.link}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform active:scale-95 group"
+                                className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 transition-all transform active:scale-95 group"
                             >
                                 <span>Get Tickets / Info</span>
                                 <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -309,7 +379,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <button
                             type="submit"
-                            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:scale-[1.01] active:scale-[0.98] mt-2"
+                            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 transition-all transform hover:scale-[1.01] active:scale-[0.98] mt-2"
                         >
                             Create Event
                         </button>

@@ -10,14 +10,37 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 const DB_PATH = path.join(__dirname, 'events.db');
 
-// Middleware
+// Multer Setup for Image Uploads
+const multer = require('multer');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = path.join(__dirname, 'public', 'uploads');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        cb(null, `${uuidv4()}${ext}`);
+    }
+});
+const upload = multer({
+    storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) cb(null, true);
+        else cb(new Error('Only images are allowed'));
+    }
+});
+
 // Middleware
 app.use(cors({
-    origin: '*', // Allow all for now to rule out CORS issues
+    origin: '*',
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(bodyParser.json());
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // Database Setup
 const db = new sqlite3.Database(DB_PATH, (err) => {
@@ -55,9 +78,21 @@ app.get('/events', (req, res) => {
     });
 });
 
+// POST /upload - Handle Image Upload
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+    // Return the full URL to the image
+    const forwardedProto = req.get('x-forwarded-proto') || 'http';
+    const host = req.get('host');
+    const imageUrl = `${forwardedProto}://${host}/uploads/${req.file.filename}`;
+
+    res.json({ success: true, imageUrl });
+});
+
 // POST /events - Create a new event
 app.post('/events', (req, res) => {
-    const { title, description, type, lat, lng, startTime, endTime, venue, date, link } = req.body;
+    const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
     // Check for duplicates (same LINK or same TITLE+DATE)
     const checkSql = `SELECT id FROM events WHERE link = ? OR (title = ? AND startTime = ?)`;
@@ -69,16 +104,18 @@ app.post('/events', (req, res) => {
         }
 
         const id = uuidv4();
-        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link];
+        // Updated query to include imageUrl
+        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl];
 
         db.run(query, params, function (err) {
             if (err) {
+                // If error is about missing column, we might need migration (manual for now)
                 res.status(500).json({ error: err.message });
                 return;
             }
             res.json({
-                id, title, description, type, lat, lng, startTime, endTime, venue, date, link
+                id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl
             });
         });
     });

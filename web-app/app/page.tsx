@@ -27,6 +27,7 @@ interface Event {
   venue?: string;
   date?: string;
   link?: string;
+  imageUrl?: string;
   createdAt?: string;
 }
 
@@ -68,13 +69,14 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string; lat?: number; lng?: number; venue?: string }) => {
+  const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => {
     const newEvent = {
       ...data,
       // Use data.lat/lng if provided (from address search), otherwise fall back to selectedLocation
       lat: data.lat || selectedLocation?.lat,
       lng: data.lng || selectedLocation?.lng,
       venue: data.venue,
+      imageUrl: data.imageUrl,
     };
 
     if (!newEvent.lat || !newEvent.lng) {
