@@ -222,6 +222,10 @@ app.post('/scout/test', (req, res) => {
         }
     });
 
+    scoutProcess.stderr.on('data', (data) => {
+        output += `[STDERR] ${data.toString()}`;
+    });
+
     scoutProcess.on('close', (code) => {
         if (previewData) {
             res.json({ success: true, preview: previewData });
