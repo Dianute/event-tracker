@@ -210,6 +210,18 @@ async function runScout() {
                             process.exit(0);
                         }
 
+                        // BATCH_UPLOAD: If we have enough events, upload them now!
+                        // This gives the user immediate feedback instead of waiting for 100+ events.
+                        if (events.length >= 5) {
+                            console.log(`🚀 Batch upload: ${events.length} events...`);
+                            for (const ev of events) {
+                                await axios.post(`${API_URL}/events`, ev);
+                            }
+                            totalEventsFound += events.length;
+                            await updateLog('RUNNING', `Found ${totalEventsFound} events so far at ${target.name}...`, totalEventsFound);
+                            events.length = 0; // Clear array
+                        }
+
                         // Dynamic Rate Limit
                         if (!wasCached) {
                             await new Promise(r => setTimeout(r, 1100)); // Respect Nominatim Policy
@@ -222,8 +234,8 @@ async function runScout() {
                     }
                 }
 
+                // Final Flush (Remaining events)
                 if (events.length > 0) {
-
                     console.log(`✨ Parsed ${events.length} events. uploading...`);
                     for (const ev of events) {
                         await axios.post(`${API_URL}/events`, ev);
