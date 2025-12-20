@@ -220,6 +220,16 @@ async function runScout() {
                     totalEventsFound += events.length;
                     saveCache(); // Save intermittently
                     await updateLog('RUNNING', `Found ${events.length} events at ${target.name}`, totalEventsFound);
+
+                    // Report stats to server
+                    if (target.id) {
+                        try {
+                            await axios.patch(`${API_URL}/targets/${target.id}`, {
+                                lastEventsFound: events.length,
+                                lastScrapedAt: new Date().toISOString()
+                            });
+                        } catch (e) { console.warn("Could not update target stats:", e.message); }
+                    }
                 } else {
                     console.log(`⚠️ No events found at ${target.name} using selector: ${selector}`);
                     await updateLog('RUNNING', `No events found at ${target.name} (Selector: ${selector})`, totalEventsFound);

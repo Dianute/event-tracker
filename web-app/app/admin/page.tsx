@@ -141,6 +141,7 @@ export default function AdminPage() {
                                 <tr>
                                     <th className="p-4">Name</th>
                                     <th className="p-4">City</th>
+                                    <th className="p-4">Last Scrape</th>
                                     <th className="p-4">URL</th>
                                     <th className="p-4">Action</th>
                                 </tr>
@@ -150,6 +151,17 @@ export default function AdminPage() {
                                     <tr key={t.id} className="border-t border-gray-700 hover:bg-white/5">
                                         <td className="p-4 font-bold">{t.name}</td>
                                         <td className="p-4">{t.city || '-'}</td>
+                                        <td className="p-4">
+                                            {t.lastEventsFound !== undefined ? (
+                                                <div>
+                                                    <span className="font-bold text-cyan-300">{t.lastEventsFound} events</span>
+                                                    <br />
+                                                    <span className="text-xs text-gray-500">
+                                                        {t.lastScrapedAt ? new Date(t.lastScrapedAt).toLocaleString() : ''}
+                                                    </span>
+                                                </div>
+                                            ) : <span className="text-gray-600">-</span>}
+                                        </td>
                                         <td className="p-4 text-gray-400 truncate max-w-[200px]" title={t.url}>{t.url}</td>
                                         <td className="p-4">
                                             <button
