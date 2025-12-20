@@ -30,11 +30,9 @@ const formatDateRange = (startStr: string, endStr: string) => {
     return `${dateText} • ${startTimeText}`;
 };
 
-import { useTheme } from "next-themes";
-import { Calendar, MapPin, Tag, ExternalLink, Clock, Sun, Moon } from 'lucide-react';
+import { Calendar, MapPin, Tag, ExternalLink, Clock } from 'lucide-react';
 
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event }: EventModalProps) {
-    const { theme, setTheme } = useTheme();
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -138,18 +136,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {isReadOnly ? title : 'Create New Event'}
                         </h2>
                     </div>
-                    <div className="flex gap-2 -mt-2 -mr-2">
-                        <button
-                            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                            className="p-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all"
-                            title="Toggle Theme"
-                        >
-                            {theme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
-                        </button>
-                        <button onClick={onClose} className="p-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
-                            <X size={24} />
-                        </button>
-                    </div>
+                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
+                        <X size={24} />
+                    </button>
                 </div>
 
                 {isReadOnly ? (
