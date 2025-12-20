@@ -209,70 +209,73 @@ async function runScout() {
                             await browser.close();
                             process.exit(0);
                         }
-                        await new Promise(r => setTimeout(r, 1100)); // Respect Nominatim Policy
-                    } else {
-                        // Fast path!
-                    }
 
-                } catch (err) {
-                    console.warn("Skipping event:", err.message);
+                        // Dynamic Rate Limit
+                        if (!wasCached) {
+                            await new Promise(r => setTimeout(r, 1100)); // Respect Nominatim Policy
+                        } else {
+                            // Fast path!
+                        }
+
+                    } catch (err) {
+                        console.warn("Skipping event:", err.message);
+                    }
                 }
-            }
 
                 if (events.length > 0) {
 
-                console.log(`✨ Parsed ${events.length} events. uploading...`);
-                for (const ev of events) {
-                    await axios.post(`${API_URL}/events`, ev);
-                }
-                totalEventsFound += events.length;
-                saveCache(); // Save intermittently
-                await updateLog('RUNNING', `Found ${events.length} events at ${target.name}`, totalEventsFound);
+                    console.log(`✨ Parsed ${events.length} events. uploading...`);
+                    for (const ev of events) {
+                        await axios.post(`${API_URL}/events`, ev);
+                    }
+                    totalEventsFound += events.length;
+                    saveCache(); // Save intermittently
+                    await updateLog('RUNNING', `Found ${events.length} events at ${target.name}`, totalEventsFound);
 
-                // Report stats to server
-                if (target.id) {
-                    try {
-                        await axios.patch(`${API_URL}/targets/${target.id}`, {
-                            lastEventsFound: events.length,
-                            lastScrapedAt: new Date().toISOString()
-                        });
-                    } catch (e) { console.warn("Could not update target stats:", e.message); }
+                    // Report stats to server
+                    if (target.id) {
+                        try {
+                            await axios.patch(`${API_URL}/targets/${target.id}`, {
+                                lastEventsFound: events.length,
+                                lastScrapedAt: new Date().toISOString()
+                            });
+                        } catch (e) { console.warn("Could not update target stats:", e.message); }
+                    }
+                } else {
+                    console.log(`⚠️ No events found at ${target.name} using selector: ${selector}`);
+                    await updateLog('RUNNING', `No events found at ${target.name} (Selector: ${selector})`, totalEventsFound);
                 }
-            } else {
-                console.log(`⚠️ No events found at ${target.name} using selector: ${selector}`);
-                await updateLog('RUNNING', `No events found at ${target.name} (Selector: ${selector})`, totalEventsFound);
+
+            } catch (err) {
+                console.error(`❌ Error scraping ${target.name}: ${err.message}`);
+            } finally {
+                await page.close();
             }
-
-        } catch (err) {
-            console.error(`❌ Error scraping ${target.name}: ${err.message}`);
-        } finally {
-            await page.close();
         }
-    }
 
         saveCache(); // Final Save
 
 
-    // Log SUCCESS
-    await updateLog('SUCCESS', 'Mission Complete', totalEventsFound);
-    // Final update to set EndTime? The server updates existing rows, but explicitly sending endTime might be needed if server doesn't auto-set it on update.
-    // Actually, let's send a specific payload for completion
-    await axios.post(`${API_URL}/scout/log`, {
-        id: RUN_ID,
-        status: 'SUCCESS',
-        eventsFound: totalEventsFound,
-        logSummary: "All targets scanned.",
-        endTime: new Date().toISOString()
-    });
+        // Log SUCCESS
+        await updateLog('SUCCESS', 'Mission Complete', totalEventsFound);
+        // Final update to set EndTime? The server updates existing rows, but explicitly sending endTime might be needed if server doesn't auto-set it on update.
+        // Actually, let's send a specific payload for completion
+        await axios.post(`${API_URL}/scout/log`, {
+            id: RUN_ID,
+            status: 'SUCCESS',
+            eventsFound: totalEventsFound,
+            logSummary: "All targets scanned.",
+            endTime: new Date().toISOString()
+        });
 
-} catch (err) {
-    console.error(`❌ Fatal Error: ${err.message}`);
-    // Log FAILURE
-    await updateLog('FAILED', err.message);
-} finally {
-    await browser.close();
-    console.log("✅ Scout Mission Complete.");
-}
+    } catch (err) {
+        console.error(`❌ Fatal Error: ${err.message}`);
+        // Log FAILURE
+        await updateLog('FAILED', err.message);
+    } finally {
+        await browser.close();
+        console.log("✅ Scout Mission Complete.");
+    }
 }
 
 // --- Helpers ---
