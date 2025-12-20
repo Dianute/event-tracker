@@ -118,17 +118,17 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-white dark:bg-[#121212] rounded-3xl shadow-2xl overflow-hidden border border-white/10 flex flex-col max-h-[90vh]">
+            <div className="w-full max-w-md bg-white dark:bg-[#121212] rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-white/10 flex flex-col max-h-[90vh]">
 
                 {/* Header Image / Color Bar could go here, for now just a clean header */}
                 <div className="flex items-start justify-between p-6 pb-2">
                     <div className="flex-1 pr-4">
                         {isReadOnly && (
-                            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 border bg-opacity-10
-                                ${type === 'music' ? 'text-pink-500 bg-pink-500 border-pink-500/20' : 
-                                  type === 'food' ? 'text-orange-500 bg-orange-500 border-orange-500/20' : 
-                                  type === 'sports' ? 'text-green-500 bg-green-500 border-green-500/20' : 
-                                  'text-blue-500 bg-blue-500 border-blue-500/20'}">
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 border bg-opacity-10
+                                ${type === 'music' ? 'text-pink-600 bg-pink-100 border-pink-200 dark:text-pink-400 dark:bg-pink-500/10 dark:border-pink-500/20' :
+                                    type === 'food' ? 'text-orange-600 bg-orange-100 border-orange-200 dark:text-orange-400 dark:bg-orange-500/10 dark:border-orange-500/20' :
+                                        type === 'sports' ? 'text-green-600 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/10 dark:border-green-500/20' :
+                                            'text-blue-600 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20'}`}>
                                 <Tag size={10} /> {type}
                             </div>
                         )}
@@ -136,7 +136,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {isReadOnly ? title : 'Create New Event'}
                         </h2>
                     </div>
-                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-gray-400 hover:text-gray-600 dark:text-gray-400 dark:hover:text-white bg-gray-100 hover:bg-gray-200 dark:bg-transparent dark:hover:bg-white/10 rounded-full transition-all">
+                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
                         <X size={24} />
                     </button>
                 </div>
@@ -210,7 +210,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     setIsSearching(true);
                                 }}
                                 placeholder="Search address or click on map..."
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all pl-10 text-sm"
+                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all pl-10 text-sm text-zinc-900 dark:text-white placeholder-gray-400"
                             />
                             <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
 
@@ -219,7 +219,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     {suggestions.map((item, i) => (
                                         <div
                                             key={i}
-                                            className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate flex items-center gap-2"
+                                            className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate flex items-center gap-2 text-gray-700 dark:text-gray-200"
                                             onClick={() => {
                                                 setVenue(item.display_name);
                                                 setCurrentLocation({
@@ -245,7 +245,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 value={title}
                                 placeholder="Event Title"
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium"
+                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium text-zinc-900 dark:text-white placeholder-gray-400"
                             />
                         </div>
 
@@ -257,7 +257,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 placeholder="Describe the event..."
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm resize-none"
+                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm resize-none text-zinc-900 dark:text-white placeholder-gray-400"
                             />
                         </div>
 
@@ -270,7 +270,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         required
                                         value={startTime}
                                         onChange={(e) => setStartTime(e.target.value)}
-                                        className="w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-xs"
+                                        className="w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-xs text-zinc-900 dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -282,7 +282,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         required
                                         value={endTime}
                                         onChange={(e) => setEndTime(e.target.value)}
-                                        className="w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-xs"
+                                        className="w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-xs text-zinc-900 dark:text-white"
                                     />
                                 </div>
                             </div>
@@ -294,7 +294,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <select
                                     value={type}
                                     onChange={(e) => setType(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm appearance-none"
+                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm appearance-none text-zinc-900 dark:text-white"
                                 >
                                     <option value="social">Social / Hangout</option>
                                     <option value="food">Food & Drink</option>
