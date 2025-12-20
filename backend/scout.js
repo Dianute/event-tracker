@@ -411,6 +411,23 @@ function parseKakavaEvent(text) {
     // 3. Venue
     let venue = lines[titleIndex + 1] || "Unknown Venue";
 
+    // Smart City Detection
+    const LITHUANIAN_CITIES = [
+        "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys",
+        "Alytus", "Marijampolė", "Mažeikiai", "Jonava", "Utena",
+        "Kėdainiai", "Telšiai", "Visaginas", "Tauragė", "Ukmergė",
+        "Palanga", "Druskininkai", "Birštonas", "Trakai", "Neringa"
+    ];
+
+    let detectedCity = null;
+    const fullText = text.toLowerCase();
+    for (const city of LITHUANIAN_CITIES) {
+        if (fullText.includes(city.toLowerCase())) {
+            detectedCity = city;
+            break;
+        }
+    }
+
     const timeRaw = extractTime(text);
     return { title, location: venue, dateRaw, detectedCity, timeRaw };
 }
