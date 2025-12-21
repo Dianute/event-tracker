@@ -34,6 +34,18 @@ import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon 
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+// Helper: Convert UTC string to Local 'YYYY-MM-DDTHH:mm' for Input
+const toLocalISOString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    // Determine offset in ms
+    const offset = date.getTimezoneOffset() * 60000;
+    // Create new date adjusted by offset
+    const local = new Date(date.getTime() - offset);
+    // Return ISO string sliced (removing Z and seconds)
+    return local.toISOString().slice(0, 16);
+};
+
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -51,12 +63,13 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     useEffect(() => {
         if (isOpen) {
             if (event) {
-                // VIEW MODE
+                // VIEW MODE / EDIT MODE
                 setTitle(event.title);
                 setDescription(event.description);
                 setType(event.type);
-                setStartTime(event.startTime || '');
-                setEndTime(event.endTime || '');
+                // Convert UTC (DB) -> Local (Input)
+                setStartTime(toLocalISOString(event.startTime));
+                setEndTime(toLocalISOString(event.endTime));
                 setVenue(event.venue || event.location || '');
                 setImageUrl(event.imageUrl || '');
                 setCurrentLocation({ lat: event.lat, lng: event.lng });
@@ -146,7 +159,22 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             alert("Please select a location from the search or click the map!");
             return;
         }
-        onSubmit({ title, description, type, startTime, endTime, lat: currentLocation.lat, lng: currentLocation.lng, venue, imageUrl });
+
+        // Convert Local Input Time to UTC for Storage
+        const startUTC = new Date(startTime).toISOString();
+        const endUTC = new Date(endTime).toISOString();
+
+        onSubmit({
+            title,
+            description,
+            type,
+            startTime: startUTC,
+            endTime: endUTC,
+            lat: currentLocation.lat,
+            lng: currentLocation.lng,
+            venue,
+            imageUrl
+        });
         onClose();
     };
 
