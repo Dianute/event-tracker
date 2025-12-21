@@ -78,22 +78,16 @@ const isEventActive = (endTimeStr) => {
     let eventEnd;
 
     if (endTimeStr.endsWith('Z')) {
-        // UTC String
+        // UTC String - Standard
         eventEnd = new Date(endTimeStr);
     } else {
-        // Local String (likely Lithuania time). 
-        // If server is UTC, new Date('2023-01-01T15:00') = 15:00 UTC. 
-        // But user meant 15:00 UTC+2 (13:00 UTC).
-        // Since we can't easily guess, we will parse it as generic ISO.
-        // Heuristic: If it has no timezone, assume it's in the User's dominant timezone.
-        // Ideally, we should store everything in UTC.
-        // For now: Treat it as Local to the SERVER.
-        // If Server is UTC (Cloud), and Event is Local (LT), we have a shift.
-        // FIX: Force 'Z' if missing? No.
-
-        // Let's assume the string refers to the local clock time at the venue.
-        // We will construct a date object that represents that wall-clock time in the current machine's zone.
-        eventEnd = new Date(endTimeStr);
+        // Local String (e.g., "2024-12-21 19:00")
+        // Node.js (UTC env) parses this as "19:00 UTC".
+        // BUT it is actually "19:00 Local" (17:00 UTC).
+        // So the server sees it as 2 hours LATER than reality.
+        // We must compensate by subtracting 2 hours (or 3 for DST, but 2 is safer/close enough).
+        const parsed = new Date(endTimeStr);
+        eventEnd = new Date(parsed.getTime() - (2 * 60 * 60 * 1000)); // Subtract 2 hours
     }
 
     return eventEnd > cutoff;
