@@ -334,6 +334,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         center={[54.8985, 23.9036]}
         zoom={13}
         scrollWheelZoom={true}
+        zoomControl={false}
         className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
         ref={setMap}
       >
