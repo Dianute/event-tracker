@@ -49,6 +49,9 @@ export default function Home() {
 
   useEffect(() => {
     fetchEvents();
+    // Poll for updates every 60 seconds (to catch deleted events)
+    const interval = setInterval(fetchEvents, 60000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleMapClick = (lat: number, lng: number) => {
