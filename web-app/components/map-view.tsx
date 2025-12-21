@@ -93,112 +93,13 @@ const formatDistance = (meters: number) => {
   return `${Math.round(meters)} m`;
 };
 
-function EventCard({ event, userLocation, onClick }: { event: Event, userLocation: L.LatLng | null, onClick: () => void }) {
-  const [status, setStatus] = useState<{ label: string; color: string; progress?: number; timeText?: string }>({ label: '', color: 'gray' });
+// EventCard moved to @/components/event-card.tsx
+import EventCard from '@/components/event-card';
+// function EventCardOld...
 
-  useEffect(() => {
-    const updateStatus = () => {
-      if (!event.startTime || !event.endTime) return;
-      const now = new Date();
-      const start = new Date(event.startTime);
-      const end = new Date(event.endTime);
-      const duration = end.getTime() - start.getTime();
-      const elapsed = now.getTime() - start.getTime();
 
-      if (now < start) {
-        // Future
-        const diffMs = start.getTime() - now.getTime();
-        const diffMins = Math.ceil(diffMs / 60000);
 
-        if (diffMins < 60) {
-          // Starts soon (within 1 hour) -> Show Countdown Bar
-          // 60 mins away = 0% full. 0 mins away = 100% full.
-          const progressPercent = ((60 - diffMins) / 60) * 100;
-          setStatus({
-            label: 'Starts soon',
-            color: 'orange',
-            timeText: `Starts in ${diffMins} min`,
-            progress: progressPercent
-          });
-        } else {
-          setStatus({ label: 'Upcoming', color: 'blue', timeText: start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-        }
-      } else if (now >= start && now <= end) {
-        // Live -> Show Event Progress Bar
-        const progress = (elapsed / duration) * 100;
-        const elapsedMins = Math.floor(elapsed / 60000);
-        const totalMins = Math.floor(duration / 60000);
-        setStatus({
-          label: 'Live',
-          color: 'green',
-          progress,
-          timeText: `${elapsedMins}m / ${totalMins}m`
-        });
-      } else {
-        // Past
-        setStatus({ label: 'Ended', color: 'gray', timeText: 'Event ended' });
-      }
-    };
 
-    updateStatus();
-    const interval = setInterval(updateStatus, 60000);
-    return () => clearInterval(interval);
-  }, [event]);
-
-  const distanceText = userLocation
-    ? `${formatDistance(getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng))} away`
-    : 'Locating...';
-
-  return (
-    <div
-      onClick={onClick}
-      className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer 
-      min-w-[75vw] md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3 relative overflow-hidden"
-    >
-      {/* Status Badge - Absolute Top Right */}
-      <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10
-                    ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
-          status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
-            status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
-        {status.label}
-      </div>
-
-      <div className="flex items-start gap-3">
-        {/* Large Icon */}
-        <div className="shrink-0 pt-0.5">
-          <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type, false, status.label === 'Ended').options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-        </div>
-
-        {/* Content Column */}
-        <div className="flex-1 min-w-0 pr-12"> {/* pr-12 prevents title from hitting badge */}
-          <h4 className={`font-bold text-sm leading-snug line-clamp-2 transition-colors shadow-black drop-shadow-sm ${status.label === 'Ended' ? 'text-gray-500 line-through' : 'text-white group-hover:text-blue-200'}`}>
-            {event.title}
-          </h4>
-
-          <div className="flex items-center gap-3 mt-1.5">
-            <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1">
-              <Navigation size={10} /> {distanceText}
-            </p>
-            {status.timeText && (
-              <p className="text-[10px] text-gray-400 font-mono">
-                {status.timeText}
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {status.progress !== undefined && (
-        <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
-          <div
-            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
-            style={{ width: `${status.progress}%` }}
-          ></div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   onMapClick?: (lat: number, lng: number) => void,
