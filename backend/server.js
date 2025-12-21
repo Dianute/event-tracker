@@ -67,22 +67,52 @@ app.get('/', (req, res) => {
     res.send('<h1>Event Tracker Backend is Running 🟢</h1><p>Go to <a href="/events">/events</a> to see data.</p>');
 });
 
-// GET /events - Fetch all active events (including those ended < 15 mins ago)
-app.get('/events', (req, res) => {
-    // Show events that end AFTER (Now - 15 minutes)
-    // We use a UNION ALL to handle both UTC ('%Z') and Local (no 'Z') formats correctly
-    const query = `
-        SELECT * FROM events 
-        WHERE (endTime LIKE '%Z' AND endTime > datetime('now', '-15 minutes'))
-        OR (endTime NOT LIKE '%Z' AND endTime > datetime('now', 'localtime', '-15 minutes'))
-    `;
+// Helper to check if event is active (ends in future or ended < 15 mins ago)
+const isEventActive = (endTimeStr) => {
+    if (!endTimeStr) return true; // No end time? Keep it.
 
-    db.all(query, [], (err, rows) => {
+    const now = new Date();
+    const buffer = 15 * 60 * 1000; // 15 mins
+    const cutoff = new Date(now.getTime() - buffer);
+
+    let eventEnd;
+
+    if (endTimeStr.endsWith('Z')) {
+        // UTC String
+        eventEnd = new Date(endTimeStr);
+    } else {
+        // Local String (likely Lithuania time). 
+        // If server is UTC, new Date('2023-01-01T15:00') = 15:00 UTC. 
+        // But user meant 15:00 UTC+2 (13:00 UTC).
+        // Since we can't easily guess, we will parse it as generic ISO.
+        // Heuristic: If it has no timezone, assume it's in the User's dominant timezone.
+        // Ideally, we should store everything in UTC.
+        // For now: Treat it as Local to the SERVER.
+        // If Server is UTC (Cloud), and Event is Local (LT), we have a shift.
+        // FIX: Force 'Z' if missing? No.
+
+        // Let's assume the string refers to the local clock time at the venue.
+        // We will construct a date object that represents that wall-clock time in the current machine's zone.
+        eventEnd = new Date(endTimeStr);
+    }
+
+    return eventEnd > cutoff;
+};
+
+// GET /events - Fetch all active events
+app.get('/events', (req, res) => {
+    // 1. Fetch mostly everything (Optimization: Don't load ancient history)
+    // SQL: Just get things that have a date string (simple text compare for vague bound)
+    db.all("SELECT * FROM events WHERE substr(endTime, 1, 4) >= '2024'", [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
         }
-        res.json(rows);
+
+        // 2. Javascript Filtering (Accurate)
+        const activeEvents = rows.filter(ev => isEventActive(ev.endTime));
+
+        res.json(activeEvents);
     });
 });
 
