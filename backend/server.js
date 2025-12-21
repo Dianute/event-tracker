@@ -255,7 +255,8 @@ const migrateTargets = () => {
 // (We can call this in the DB connection callback above, but let's just trigger it safely here 
 // assuming DB connects fast, or better: call inside the `db.serialize` block if we reorganised code. 
 // For now, a timeout or just ensuring it runs after schema init is fine.)
-setTimeout(migrateTargets, 2000);
+// DISABLED per user request (Prevents defaults from reappearing if DB is wiped)
+// setTimeout(migrateTargets, 2000);
 
 // GET /scout/history - Get execution logs
 app.get('/scout/history', (req, res) => {
