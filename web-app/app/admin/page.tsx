@@ -202,6 +202,19 @@ export default function AdminPage() {
                         >
                             {status === 'RUNNING' ? 'Scout Deployed...' : customUrl ? '🚀 Scout URL' : '🚀 Launch All'}
                         </button>
+
+                        <button
+                            onClick={() => {
+                                if (!confirm("Clean up old events?")) return;
+                                fetch(`${API_URL}/cleanup`)
+                                    .then(res => res.json())
+                                    .then(data => alert(data.message))
+                                    .catch(err => alert("Cleanup Failed"));
+                            }}
+                            className="px-6 py-3 h-[46px] bg-red-600 hover:bg-red-500 rounded-lg font-bold transition-all shadow-red-500/20 shadow-lg whitespace-nowrap flex items-center gap-2"
+                        >
+                            🧹 Force Cleanup
+                        </button>
                     </div>
                 </section>
 
