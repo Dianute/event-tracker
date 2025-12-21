@@ -378,10 +378,10 @@ cron.schedule('0 */6 * * *', () => {
 
 // Schedule Auto-Cleanup every hour
 // Deletes events ended > 1 hour ago
-cron.schedule('0 * * * *', () => {
+// Cleanup Function
+const runCleanup = () => {
     console.log("🧹 Running Auto-Cleanup Task...");
-
-    // 1. Find candidates
+    // 1. Find candidates (EndTime < Now - 1 hour)
     db.all("SELECT id, imageUrl FROM events WHERE endTime < datetime('now', '-1 hour')", [], (err, rows) => {
         if (err) {
             console.error("Cleanup Query Failed:", err);
@@ -412,11 +412,17 @@ cron.schedule('0 * * * *', () => {
             // Delete Record
             db.run("DELETE FROM events WHERE id = ?", [row.id], (err) => {
                 if (err) console.error(`Failed to delete event ${row.id}`, err);
-                else console.log(`Cleaned up event ${row.id}`);
+                // else console.log(`Cleaned up event ${row.id}`); // Silence individual logs
             });
         });
     });
-});
+};
+
+// Schedule Auto-Cleanup every 10 minutes
+cron.schedule('*/10 * * * *', runCleanup);
+
+// Run cleanup immediately on startup
+setTimeout(runCleanup, 5000); // Wait 5s for DB connection
 
 // Start Server
 app.listen(PORT, () => {
