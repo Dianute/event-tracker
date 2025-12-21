@@ -70,8 +70,14 @@ app.get('/', (req, res) => {
 // GET /events - Fetch all active events (including those ended < 15 mins ago)
 app.get('/events', (req, res) => {
     // Show events that end AFTER (Now - 15 minutes)
-    // i.e., effective visibility end = true end + 15 mins
-    db.all("SELECT * FROM events WHERE endTime > datetime('now', '-15 minutes')", [], (err, rows) => {
+    // We use a UNION ALL to handle both UTC ('%Z') and Local (no 'Z') formats correctly
+    const query = `
+        SELECT * FROM events 
+        WHERE (endTime LIKE '%Z' AND endTime > datetime('now', '-15 minutes'))
+        OR (endTime NOT LIKE '%Z' AND endTime > datetime('now', 'localtime', '-15 minutes'))
+    `;
+
+    db.all(query, [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
