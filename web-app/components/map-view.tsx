@@ -8,7 +8,9 @@ import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus } from
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
-  const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' : 'transform hover:scale-110';
+  const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' :
+    isFinished ? 'animate-sand-drift' : 'transform hover:scale-110';
+
   const newBadge = isNew && !isFinished ? '<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg z-50 animate-pulse">NEW</div>' : '';
   const finishedStyle = isFinished ? 'grayscale opacity-70' : '';
 

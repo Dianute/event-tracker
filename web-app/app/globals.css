@@ -30,3 +30,26 @@ body {
 .cyberpunk-tiles {
   filter: invert(100%) hue-rotate(180deg) brightness(150%) contrast(150%) saturate(300%);
 }
+
+@keyframes sand-drift {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.7;
+    filter: blur(0px) grayscale(100%);
+  }
+
+  50% {
+    opacity: 0.4;
+    filter: blur(1px) grayscale(100%);
+  }
+
+  100% {
+    transform: translateX(10px) translateY(-5px) scale(0.9);
+    opacity: 0.2;
+    filter: blur(2px) grayscale(100%);
+  }
+}
+
+.animate-sand-drift {
+  animation: sand-drift 4s ease-in-out infinite alternate;
+}

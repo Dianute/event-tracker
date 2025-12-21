@@ -417,6 +417,13 @@ cron.schedule('* * * * *', runCleanup);
 // Run cleanup immediately on startup
 setTimeout(runCleanup, 5000); // Wait 5s for DB connection
 
+// Manual Cleanup Endpoint (for debugging)
+app.get('/cleanup', (req, res) => {
+    console.log("⚠️ Manual Cleanup Triggered via API");
+    runCleanup();
+    res.json({ success: true, message: "Cleanup task started manually." });
+});
+
 // Start Server
 app.listen(PORT, () => {
     console.log(`Backend Server running on http://localhost:${PORT}`);

@@ -20,13 +20,27 @@ db.serialize(() => {
                 console.log(`   EndTime: ${r.endTime}`);
             });
 
-            // Check Query Match (Current vs Proposed)
+            // Check Query Match (Current Production Logic)
             console.log("----------------");
-            db.all("SELECT id FROM events WHERE endTime < datetime('now', '-15 minutes')", (err, rows) => {
-                console.log(`QUERY (UTC) would delete: ${rows.length} events`);
+
+            // Query 1: UTC Candidates
+            db.all("SELECT id, endTime FROM events WHERE endTime LIKE '%Z' AND endTime < datetime('now', '-15 minutes')", (err, rows) => {
+                if (err) console.error(err);
+                console.log(`QUERY 1 (UTC) matches: ${rows.length} events`);
+                rows.forEach(r => console.log(`   [UTC Match] ${r.endTime}`));
             });
-            db.all("SELECT id FROM events WHERE endTime < datetime('now', 'localtime', '-15 minutes')", (err, rows) => {
-                console.log(`QUERY (Local) would delete: ${rows.length} events`);
+
+            // Query 2: Local Candidates
+            db.all("SELECT id, endTime FROM events WHERE endTime NOT LIKE '%Z' AND endTime < datetime('now', 'localtime', '-15 minutes')", (err, rows) => {
+                if (err) console.error(err);
+                console.log(`QUERY 2 (Local) matches: ${rows.length} events`);
+                rows.forEach(r => console.log(`   [Local Match] ${r.endTime}`));
+            });
+
+            // Debug: Show SQLite's idea of time
+            db.get("SELECT datetime('now') as utc, datetime('now', 'localtime') as local, datetime('now', '-15 minutes') as utc_minus_15, datetime('now', 'localtime', '-15 minutes') as local_minus_15", (err, row) => {
+                console.log("--- SQLite Time ---");
+                console.log(row);
             });
         });
     });
