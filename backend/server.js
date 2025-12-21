@@ -258,6 +258,35 @@ const migrateTargets = () => {
 // DISABLED per user request (Prevents defaults from reappearing if DB is wiped)
 // setTimeout(migrateTargets, 2000);
 
+// --- BACKUP / RESTORE ---
+
+// GET /targets/export - Download targets as JSON
+app.get('/targets/export', (req, res) => {
+    db.all("SELECT * FROM targets", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename=targets_backup.json');
+        res.json(rows);
+    });
+});
+
+// POST /targets/import - Restore targets from JSON
+app.post('/targets/import', express.json(), (req, res) => {
+    const targets = req.body;
+    if (!Array.isArray(targets)) return res.status(400).json({ error: "Invalid format. Expected array." });
+
+    const stmt = db.prepare("INSERT OR REPLACE INTO targets (id, name, url, city, selector, lastEventsFound, lastScrapedAt) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
+    db.serialize(() => {
+        targets.forEach(t => {
+            const tid = t.id || uuidv4();
+            stmt.run(tid, t.name, t.url, t.city || null, t.selector || null, t.lastEventsFound || 0, t.lastScrapedAt || null);
+        });
+        stmt.finalize();
+        res.json({ success: true, count: targets.length });
+    });
+});
+
 // GET /scout/history - Get execution logs
 app.get('/scout/history', (req, res) => {
     db.all("SELECT * FROM scout_logs ORDER BY startTime DESC LIMIT 50", [], (err, rows) => {

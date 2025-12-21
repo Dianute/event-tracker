@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { Download, Upload } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -120,6 +121,56 @@ export default function AdminPage() {
                     <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-cyan-500">
                         Scout Command Center 🕵️‍♂️
                     </h1>
+                    <div className="flex gap-4 mb-6">
+                        {/* Export Button */}
+                        <button
+                            onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `${API_URL}/targets/export`;
+                                link.download = 'targets_backup.json';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-md text-sm font-bold"
+                        >
+                            <Download size={18} /> Backup Targets (JSON)
+                        </button>
+
+                        {/* Import Button */}
+                        <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md cursor-pointer text-sm font-bold">
+                            <Upload size={18} /> Restore Targets
+                            <input
+                                type="file"
+                                accept=".json"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onload = async (ev) => {
+                                        try {
+                                            const json = JSON.parse(ev.target?.result as string);
+                                            const res = await fetch(`${API_URL}/targets/import`, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(json)
+                                            });
+                                            if (res.ok) {
+                                                alert("Targets restored successfully!");
+                                                fetchTargets(); // Refresh list
+                                            } else {
+                                                alert("Failed to restore targets.");
+                                            }
+                                        } catch (err) {
+                                            alert("Invalid JSON file.");
+                                        }
+                                    };
+                                    reader.readAsText(file);
+                                }}
+                            />
+                        </label>
+                    </div>
                     <div className="flex items-center gap-4">
                         <div className={`px-3 py-1 rounded-full text-xs font-bold ${status === 'RUNNING' ? 'bg-yellow-500/20 text-yellow-500 animate-pulse' : 'bg-green-500/20 text-green-500'}`}>
                             {status}
