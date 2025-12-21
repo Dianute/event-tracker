@@ -148,28 +148,4 @@ export default function Home() {
   );
 }
 
-import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
 
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
-
-  return (
-    <button
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="p-3 bg-white dark:bg-black/50 backdrop-blur-md rounded-full shadow-lg border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-200 hover:scale-105 transition-transform"
-      aria-label="Toggle Theme"
-    >
-      {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-    </button>
-  );
-}

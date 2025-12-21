@@ -348,15 +348,17 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           }
           const link = event.link || (event.description && event.description.split('\n')[2]?.startsWith('http') ? event.description.split('\n')[2] : '');
 
+          const markerIcon = isCluster ? L.divIcon({
+            className: 'cluster-marker',
+            html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
+            iconSize: [48, 48]
+          }) : getEventIcon(event.type, false, !!isPast);
+
           return (
             <Marker
               key={key}
               position={[event.lat, event.lng]}
-              icon={isCluster ? L.divIcon({
-                className: 'cluster-marker',
-                html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
-                iconSize: [48, 48]
-              }) : getEventIcon(event.type, false, isPast)}
+              icon={markerIcon}
               opacity={opacity}
               eventHandlers={{
                 click: () => {
