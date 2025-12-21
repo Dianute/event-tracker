@@ -377,7 +377,7 @@ cron.schedule('0 */6 * * *', () => {
 const runCleanup = () => {
     console.log("🧹 Running Auto-Cleanup Task...");
     // 1. Find candidates (EndTime < Now - 1 hour)
-    db.all("SELECT id, imageUrl FROM events WHERE endTime < datetime('now', '-1 hour')", [], (err, rows) => {
+    db.all("SELECT id, imageUrl FROM events WHERE endTime < datetime('now', '-15 minutes')", [], (err, rows) => {
         if (err) {
             console.error("Cleanup Query Failed:", err);
             return;
