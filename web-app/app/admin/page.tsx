@@ -303,6 +303,61 @@ export default function AdminPage() {
                         </table>
                     </div>
                 </section>
+                {/* Preview Event Modal */}
+                {previewEvent && (
+                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+                        <div className="bg-gray-800 p-6 rounded-xl max-w-lg w-full border border-cyan-500/50 shadow-2xl animate-in zoom-in-95 duration-200">
+                            <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-cyan-400">
+                                <span>🎉 Target Successfully Parsed!</span>
+                            </h3>
+                            <div className="space-y-4 mb-6">
+                                <div>
+                                    <label className="text-xs font-bold text-gray-500 uppercase">Title</label>
+                                    <p className="font-bold text-white text-lg">{previewEvent.title}</p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Start Time</label>
+                                        <p className="text-sm text-gray-300">{new Date(previewEvent.startTime).toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Venue</label>
+                                        <p className="text-sm text-gray-300">{previewEvent.venue || previewEvent.location}</p>
+                                    </div>
+                                </div>
+                                {previewEvent.lat && (
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Coordinates</label>
+                                        <p className="text-sm text-gray-300 flex items-center gap-2">
+                                            {previewEvent.lat.toFixed(6)}, {previewEvent.lng.toFixed(6)}
+                                            <a
+                                                href={`https://www.google.com/maps?q=${previewEvent.lat},${previewEvent.lng}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-cyan-500 hover:underline"
+                                            >
+                                                (View Map)
+                                            </a>
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="bg-black/40 rounded p-3 mb-4">
+                                <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Raw Data</label>
+                                <pre className="text-[10px] text-gray-400 overflow-x-auto">
+                                    {JSON.stringify(previewEvent, null, 2)}
+                                </pre>
+                            </div>
+                            <button
+                                onClick={() => setPreviewEvent(null)}
+                                className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded font-bold transition-colors shadow-lg shadow-cyan-500/20"
+                            >
+                                Close Preview
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Error Log Modal */}
                 {testError && (
                     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
