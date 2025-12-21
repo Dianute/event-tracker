@@ -135,10 +135,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Global Theme Toggle */}
-      <div className="fixed top-6 right-6 z-[1000]">
-        <ThemeToggle />
-      </div>
+
 
       <EventModal
         isOpen={isModalOpen}
