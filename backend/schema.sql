@@ -22,3 +22,13 @@ CREATE TABLE IF NOT EXISTS scout_logs (
     eventsFound INTEGER DEFAULT 0,
     logSummary TEXT
 );
+
+CREATE TABLE IF NOT EXISTS targets (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    city TEXT,
+    selector TEXT,
+    lastEventsFound INTEGER DEFAULT 0,
+    lastScrapedAt DATETIME
+);

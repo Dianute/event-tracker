@@ -167,100 +167,95 @@ app.delete('/events/:id', (req, res) => {
     });
 });
 
+// TARGETS API (DB-Based)
+
 // GET /targets - Get all scout targets
 app.get('/targets', (req, res) => {
-    fs.readFile(path.join(__dirname, 'targets.json'), 'utf8', (err, data) => {
-        if (err) return res.json([]);
-        res.json(JSON.parse(data));
+    db.all("SELECT * FROM targets", [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(rows);
     });
 });
 
 // POST /targets - Add new target
 app.post('/targets', (req, res) => {
-    const newTarget = req.body; // { name, url, selector }
-    const file = path.join(__dirname, 'targets.json');
-
-    // Ensure file exists (or create empty array)
-    if (!fs.existsSync(file)) {
-        fs.writeFileSync(file, '[]');
-    }
-
-    fs.readFile(file, 'utf8', (err, data) => {
-        let targets = [];
-        try {
-            targets = data ? JSON.parse(data) : [];
-        } catch (e) {
-            console.error("Malformed targets.json, resetting.");
-            targets = [];
-        }
-
-        targets.push({ id: uuidv4(), ...newTarget });
-
-        fs.writeFile(file, JSON.stringify(targets, null, 2), (err) => {
-            if (err) return res.status(500).json({ error: "Failed to write targets file" });
-            res.json({ success: true });
-        });
+    const { name, url, city, selector } = req.body;
+    const id = uuidv4();
+    const sql = "INSERT INTO targets (id, name, url, city, selector) VALUES (?, ?, ?, ?, ?)";
+    db.run(sql, [id, name, url, city, selector || null], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true, id });
     });
 });
 
 // DELETE /targets/:id - Remove a target
 app.delete('/targets/:id', (req, res) => {
     const { id } = req.params;
-    const file = path.join(__dirname, 'targets.json');
-
-    fs.readFile(file, 'utf8', (err, data) => {
-        if (err) return res.status(500).json({ error: "Could not read targets" });
-
-        let targets = JSON.parse(data);
-        const initialLength = targets.length;
-
-        // Loose comparison to handle string/number mismatches
-        const targetId = String(id);
-        targets = targets.filter(t => String(t.id) !== targetId);
-
-        if (targets.length === initialLength) {
-            return res.status(404).json({
-                error: "Target not found",
-                received: targetId,
-                available: targets.map(t => t.id)
-            });
-        }
-
-        fs.writeFile(file, JSON.stringify(targets, null, 2), (err) => {
-            if (err) return res.status(500).json({ error: "Failed to write targets file" });
-            res.json({ success: true });
-        });
+    db.run("DELETE FROM targets WHERE id = ?", [id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ error: "Target not found" });
+        res.json({ success: true });
     });
 });
 
 // PATCH /targets/:id - Update target stats
 app.patch('/targets/:id', (req, res) => {
     const { id } = req.params;
-    const updates = req.body;
-    const file = path.join(__dirname, 'targets.json');
+    const updates = req.body; // Expects { lastEventsFound, lastScrapedAt }
 
-    fs.readFile(file, 'utf8', (err, data) => {
-        if (err) return res.status(500).json({ error: "Could not read targets" });
+    // Dynamic query builder
+    const fields = Object.keys(updates).map(k => `${k} = ?`).join(', ');
+    const values = Object.values(updates);
 
-        let targets = [];
-        try {
-            targets = JSON.parse(data);
-        } catch (e) {
-            return res.status(500).json({ error: "Targets file corrupted" });
-        }
+    if (!fields) return res.json({ success: true }); // No updates
 
-        const targetIndex = targets.findIndex(t => String(t.id) === String(id));
-        if (targetIndex === -1) return res.status(404).json({ error: "Target not found" });
-
-        // Update fields
-        targets[targetIndex] = { ...targets[targetIndex], ...updates };
-
-        fs.writeFile(file, JSON.stringify(targets, null, 2), (err) => {
-            if (err) return res.status(500).json({ error: "Failed to update target" });
-            res.json({ success: true });
-        });
+    const sql = `UPDATE targets SET ${fields} WHERE id = ?`;
+    db.run(sql, [...values, id], function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ success: true });
     });
 });
+
+// INITIAL MIGRATION (JSON -> DB)
+const migrateTargets = () => {
+    // Check if DB targets are empty
+    db.get("SELECT COUNT(*) as count FROM targets", (err, row) => {
+        if (err) return console.error("Migration Check Error:", err);
+
+        if (row.count === 0) {
+            const jsonPath = path.join(__dirname, 'targets.json');
+            if (fs.existsSync(jsonPath)) {
+                console.log("📦 Migrating targets.json to SQLite...");
+                try {
+                    const data = fs.readFileSync(jsonPath, 'utf8');
+                    const targets = JSON.parse(data);
+
+                    const stmt = db.prepare("INSERT INTO targets (id, name, url, city, selector, lastEventsFound, lastScrapedAt) VALUES (?, ?, ?, ?, ?, ?, ?)");
+
+                    targets.forEach(t => {
+                        // Use existing ID if present, else gen new
+                        const tid = t.id || uuidv4();
+                        stmt.run(tid, t.name, t.url, t.city || null, t.selector || null, t.lastEventsFound || 0, t.lastScrapedAt || null);
+                    });
+
+                    stmt.finalize();
+                    console.log(`✅ Migrated ${targets.length} targets to DB.`);
+
+                    // Optional: Rename json file to avoid confusion?
+                    // fs.renameSync(jsonPath, jsonPath + '.bak');
+                } catch (e) {
+                    console.error("Migration Failed:", e);
+                }
+            }
+        }
+    });
+};
+
+// Hook into DB Startup
+// (We can call this in the DB connection callback above, but let's just trigger it safely here 
+// assuming DB connects fast, or better: call inside the `db.serialize` block if we reorganised code. 
+// For now, a timeout or just ensuring it runs after schema init is fine.)
+setTimeout(migrateTargets, 2000);
 
 // GET /scout/history - Get execution logs
 app.get('/scout/history', (req, res) => {

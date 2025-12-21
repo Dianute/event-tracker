@@ -49,10 +49,13 @@ async function runScout() {
         targets = [{ name: "Custom Target", url: customUrl, selector: selector }];
     } else {
         try {
-            const data = fs.readFileSync(path.join(__dirname, 'targets.json'), 'utf8');
-            targets = JSON.parse(data);
+            // Fetch targets from API (DB) instead of local file
+            console.log(`🌐 Fetching targets from ${API_URL}/targets...`);
+            const res = await axios.get(`${API_URL}/targets`);
+            targets = res.data;
         } catch (e) {
-            targets = []; // Default handled below if empty
+            console.error("Failed to fetch targets from API:", e.message);
+            targets = [];
         }
     }
 
