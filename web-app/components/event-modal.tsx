@@ -408,7 +408,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Details</label>
                             <textarea
-                                required
                                 value={description}
                                 placeholder="Describe the event..."
                                 onChange={(e) => setDescription(e.target.value)}
