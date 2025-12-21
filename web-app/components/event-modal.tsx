@@ -446,26 +446,26 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Category</label>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="flex flex-wrap gap-2">
                                 {[
-                                    { id: 'social', label: 'Social / Hangout', emoji: '🍻' },
-                                    { id: 'food', label: 'Food & Drink', emoji: '🍔' },
-                                    { id: 'music', label: 'Live Music / Party', emoji: '🎵' },
-                                    { id: 'arts', label: 'Arts & Culture', emoji: '🎨' },
-                                    { id: 'learning', label: 'Class / Workshop', emoji: '📚' },
-                                    { id: 'sports', label: 'Sports / Activity', emoji: '⚽' }
+                                    { id: 'social', label: 'Social', emoji: '🍻' },
+                                    { id: 'food', label: 'Food', emoji: '🍔' },
+                                    { id: 'music', label: 'Music', emoji: '🎵' },
+                                    { id: 'arts', label: 'Arts', emoji: '🎨' },
+                                    { id: 'learning', label: 'Learn', emoji: '📚' },
+                                    { id: 'sports', label: 'Sport', emoji: '⚽' }
                                 ].map((cat) => (
                                     <button
                                         key={cat.id}
                                         type="button"
                                         onClick={() => setType(cat.id)}
-                                        className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all
                                             ${type === cat.id
-                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20 scale-[1.02]'
-                                                : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                                                ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20 transform scale-105'
+                                                : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20'
                                             }`}
                                     >
-                                        <span className="text-lg">{cat.emoji}</span>
+                                        <span className="text-sm">{cat.emoji}</span>
                                         <span>{cat.label}</span>
                                     </button>
                                 ))}
