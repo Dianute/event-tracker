@@ -184,9 +184,31 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         )}
                     </div>
                 ) : imageUrl && (
-                    // View Mode: Display Image
-                    <div className="w-full h-48 bg-gray-100 dark:bg-zinc-900 border-b border-gray-200 dark:border-white/10 shrink-0">
-                        <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+                    // View Mode: Display Image (Instagram/Story Style)
+                    <div className="relative w-full bg-black shrink-0 group overflow-hidden">
+                        {/* Blurred Background for Fill */}
+                        <div
+                            className="absolute inset-0 opacity-50 blur-2xl scale-110 transition-opacity duration-700"
+                            style={{
+                                backgroundImage: `url(${imageUrl})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                            }}
+                        />
+
+                        {/* Main Image - Contain to show full content */}
+                        <div className="relative w-full min-h-[300px] max-h-[60vh] flex items-center justify-center bg-transparent backdrop-blur-sm/20">
+                            <img
+                                src={imageUrl}
+                                alt={title}
+                                className="w-auto h-auto max-w-full max-h-[60vh] object-contain shadow-2xl drop-shadow-2xl"
+                            />
+                        </div>
+
+                        {/* Expand Button (Optional, visual cue) */}
+                        <div className="absolute bottom-2 right-2 bg-black/40 backdrop-blur-md p-1.5 rounded-full text-white/70 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ImageIcon size={14} />
+                        </div>
                     </div>
                 )}
 
