@@ -446,20 +446,29 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Category</label>
-                            <div className="relative">
-                                <select
-                                    value={type}
-                                    onChange={(e) => setType(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm appearance-none text-zinc-900 dark:text-white"
-                                >
-                                    <option value="social">Social / Hangout</option>
-                                    <option value="food">Food & Drink</option>
-                                    <option value="music">Live Music / Party</option>
-                                    <option value="arts">Arts & Culture</option>
-                                    <option value="learning">Class / Workshop</option>
-                                    <option value="sports">Sports / Activity</option>
-                                </select>
-                                <Tag className="absolute right-4 top-3.5 text-gray-400 pointer-events-none" size={16} />
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    { id: 'social', label: 'Social / Hangout', emoji: '🍻' },
+                                    { id: 'food', label: 'Food & Drink', emoji: '🍔' },
+                                    { id: 'music', label: 'Live Music / Party', emoji: '🎵' },
+                                    { id: 'arts', label: 'Arts & Culture', emoji: '🎨' },
+                                    { id: 'learning', label: 'Class / Workshop', emoji: '📚' },
+                                    { id: 'sports', label: 'Sports / Activity', emoji: '⚽' }
+                                ].map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        type="button"
+                                        onClick={() => setType(cat.id)}
+                                        className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold transition-all
+                                            ${type === cat.id
+                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20 scale-[1.02]'
+                                                : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10'
+                                            }`}
+                                    >
+                                        <span className="text-lg">{cat.emoji}</span>
+                                        <span>{cat.label}</span>
+                                    </button>
+                                ))}
                             </div>
                         </div>
 
