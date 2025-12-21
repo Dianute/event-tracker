@@ -404,36 +404,23 @@ cron.schedule('0 */6 * * *', () => {
 // Schedule Auto-Cleanup every hour
 // Deletes events ended > 1 hour ago
 // Cleanup Function
-// Schedule Auto-Cleanup every hour
-// Deletes events ended > 1 hour ago
-// Cleanup Function
 const runCleanup = () => {
     console.log("🧹 Running Auto-Cleanup Task...");
 
     // Query 1: Clean UTC events (ending in 'Z')
-    db.all("SELECT id, imageUrl, title, endTime FROM events WHERE endTime LIKE '%Z' AND endTime < datetime('now', '-15 minutes')", [], (err, rowsUTC) => {
+    db.all("SELECT id, imageUrl FROM events WHERE endTime LIKE '%Z' AND endTime < datetime('now', '-15 minutes')", [], (err, rowsUTC) => {
         if (!err && rowsUTC.length > 0) processCleanup(rowsUTC, "UTC");
-        else if (err) console.error("Cleanup UTC Error:", err);
     });
 
     // Query 2: Clean Local events (NOT ending in 'Z') using 'localtime' modifier
-    db.all("SELECT id, imageUrl, title, endTime FROM events WHERE endTime NOT LIKE '%Z' AND endTime < datetime('now', 'localtime', '-15 minutes')", [], (err, rowsLocal) => {
+    db.all("SELECT id, imageUrl FROM events WHERE endTime NOT LIKE '%Z' AND endTime < datetime('now', 'localtime', '-15 minutes')", [], (err, rowsLocal) => {
         if (!err && rowsLocal.length > 0) processCleanup(rowsLocal, "Local");
-        else if (err) console.error("Cleanup Local Error:", err);
     });
 };
-
-// GET /cleanup - Manual Trigger
-app.get('/cleanup', (req, res) => {
-    runCleanup();
-    res.json({ success: true, message: "Cleanup triggered manually. Check server logs." });
-});
 
 const processCleanup = (rows, type) => {
     console.log(`[${type}] Found ${rows.length} expired events to delete.`);
     rows.forEach(row => {
-        console.log(`Deleting [${type}]: ${row.title} (Ended: ${row.endTime})`);
-
         // Delete Image
         if (row.imageUrl) {
             try {
@@ -451,12 +438,6 @@ const processCleanup = (rows, type) => {
         db.run("DELETE FROM events WHERE id = ?", [row.id], (err) => {
             if (err) console.error(`Failed to delete event ${row.id}`, err);
         });
-    });
-};
-// Delete Record
-db.run("DELETE FROM events WHERE id = ?", [row.id], (err) => {
-    if (err) console.error(`Failed to delete event ${row.id}`, err);
-});
     });
 };
 
