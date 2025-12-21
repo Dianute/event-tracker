@@ -376,45 +376,43 @@ cron.schedule('0 */6 * * *', () => {
 // Cleanup Function
 const runCleanup = () => {
     console.log("🧹 Running Auto-Cleanup Task...");
-    // 1. Find candidates (EndTime < Now - 1 hour)
-    db.all("SELECT id, imageUrl FROM events WHERE endTime < datetime('now', '-15 minutes')", [], (err, rows) => {
-        if (err) {
-            console.error("Cleanup Query Failed:", err);
-            return;
+
+    // Query 1: Clean UTC events (ending in 'Z')
+    db.all("SELECT id, imageUrl FROM events WHERE endTime LIKE '%Z' AND endTime < datetime('now', '-15 minutes')", [], (err, rowsUTC) => {
+        if (!err && rowsUTC.length > 0) processCleanup(rowsUTC, "UTC");
+    });
+
+    // Query 2: Clean Local events (NOT ending in 'Z') using 'localtime' modifier
+    db.all("SELECT id, imageUrl FROM events WHERE endTime NOT LIKE '%Z' AND endTime < datetime('now', 'localtime', '-15 minutes')", [], (err, rowsLocal) => {
+        if (!err && rowsLocal.length > 0) processCleanup(rowsLocal, "Local");
+    });
+};
+
+const processCleanup = (rows, type) => {
+    console.log(`[${type}] Found ${rows.length} expired events to delete.`);
+    rows.forEach(row => {
+        // Delete Image
+        if (row.imageUrl) {
+            try {
+                const urlParts = row.imageUrl.split('/uploads/');
+                if (urlParts.length > 1) {
+                    const filename = urlParts[1];
+                    const filePath = path.join(__dirname, 'public', 'uploads', filename);
+                    fs.unlink(filePath, (e) => {
+                        if (e && e.code !== 'ENOENT') console.error(`Failed to delete img ${filename}:`, e);
+                    });
+                }
+            } catch (e) { console.error("Img cleanup error:", e); }
         }
-
-        if (rows.length === 0) {
-            console.log("No events to clean up.");
-            return;
-        }
-
-        console.log(`Found ${rows.length} expired events to delete.`);
-
-        rows.forEach(row => {
-            // Delete Image
-            if (row.imageUrl) {
-                try {
-                    const urlParts = row.imageUrl.split('/uploads/');
-                    if (urlParts.length > 1) {
-                        const filename = urlParts[1];
-                        const filePath = path.join(__dirname, 'public', 'uploads', filename);
-                        fs.unlink(filePath, (e) => {
-                            if (e && e.code !== 'ENOENT') console.error(`Failed to delete img ${filename}:`, e);
-                        });
-                    }
-                } catch (e) { console.error("Img cleanup error:", e); }
-            }
-            // Delete Record
-            db.run("DELETE FROM events WHERE id = ?", [row.id], (err) => {
-                if (err) console.error(`Failed to delete event ${row.id}`, err);
-                // else console.log(`Cleaned up event ${row.id}`); // Silence individual logs
-            });
+        // Delete Record
+        db.run("DELETE FROM events WHERE id = ?", [row.id], (err) => {
+            if (err) console.error(`Failed to delete event ${row.id}`, err);
         });
     });
 };
 
-// Schedule Auto-Cleanup every 10 minutes
-cron.schedule('*/10 * * * *', runCleanup);
+// Schedule: Run every MINUTE to be responsive
+cron.schedule('* * * * *', runCleanup);
 
 // Run cleanup immediately on startup
 setTimeout(runCleanup, 5000); // Wait 5s for DB connection

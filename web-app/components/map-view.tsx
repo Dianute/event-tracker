@@ -83,6 +83,14 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
 
 
 
+// Helper to format distance text (km if > 1000m)
+const formatDistance = (meters: number) => {
+  if (meters >= 1000) {
+    return `${(meters / 1000).toFixed(1)} km`;
+  }
+  return `${Math.round(meters)} m`;
+};
+
 function EventCard({ event, userLocation, onClick }: { event: Event, userLocation: L.LatLng | null, onClick: () => void }) {
   const [status, setStatus] = useState<{ label: string; color: string; progress?: number; timeText?: string }>({ label: '', color: 'gray' });
 
@@ -127,7 +135,7 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
   }, [event]);
 
   const distanceText = userLocation
-    ? `${Math.round(getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng))}m away`
+    ? `${formatDistance(getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng))} away`
     : 'Locating...';
 
   return (
