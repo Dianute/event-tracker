@@ -172,15 +172,51 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 </button>
                             </>
                         ) : (
-                            <label className="flex flex-col items-center gap-2 cursor-pointer w-full h-full justify-center">
-                                <div className={`p-3 rounded-full bg-white dark:bg-white/10 shadow-sm ${isUploading ? 'animate-pulse' : ''}`}>
-                                    <Camera size={24} className="text-gray-500 dark:text-gray-400" />
+                            <div className="flex flex-col items-center gap-3 w-full h-full justify-center">
+                                <div className="flex gap-4">
+                                    {/* Camera Button - Direct Launch */}
+                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/cam">
+                                        <div className="p-3.5 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30 group-hover/cam:scale-110 transition-transform">
+                                            <Camera size={24} />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest group-hover/cam:text-blue-600 transition-colors">
+                                            Camera
+                                        </span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            capture="environment"
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                            disabled={isUploading}
+                                        />
+                                    </label>
+
+                                    {/* Gallery Button - File Picker */}
+                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/gal">
+                                        <div className="p-3.5 rounded-full bg-white dark:bg-white/10 shadow-sm border border-gray-100 dark:border-white/5 group-hover/gal:scale-110 transition-transform">
+                                            <ImageIcon size={24} className="text-gray-500 dark:text-gray-400" />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest group-hover/gal:text-gray-800 dark:group-hover/gal:text-white transition-colors">
+                                            Gallery
+                                        </span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleImageUpload}
+                                            disabled={isUploading}
+                                        />
+                                    </label>
                                 </div>
-                                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                                    {isUploading ? 'Uploading...' : 'Add Cover Photo'}
-                                </span>
-                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
-                            </label>
+
+                                {isUploading && (
+                                    <span className="text-xs font-bold text-blue-500 animate-pulse mt-1">
+                                        Uploading...
+                                    </span>
+                                )}
+                            </div>
+
                         )}
                     </div>
                 ) : imageUrl && (
