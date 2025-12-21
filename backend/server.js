@@ -67,9 +67,11 @@ app.get('/', (req, res) => {
     res.send('<h1>Event Tracker Backend is Running 🟢</h1><p>Go to <a href="/events">/events</a> to see data.</p>');
 });
 
-// GET /events - Fetch all active events
+// GET /events - Fetch all active events (including those ended < 15 mins ago)
 app.get('/events', (req, res) => {
-    db.all("SELECT * FROM events WHERE endTime > datetime('now')", [], (err, rows) => {
+    // Show events that end AFTER (Now - 15 minutes)
+    // i.e., effective visibility end = true end + 15 mins
+    db.all("SELECT * FROM events WHERE endTime > datetime('now', '-15 minutes')", [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
@@ -124,12 +126,44 @@ app.post('/events', (req, res) => {
 // DELETE /events/:id - Delete an event
 app.delete('/events/:id', (req, res) => {
     const { id } = req.params;
-    db.run("DELETE FROM events WHERE id = ?", id, function (err) {
+
+    // First get the event to check for image
+    db.get("SELECT imageUrl FROM events WHERE id = ?", [id], (err, row) => {
         if (err) {
-            res.status(500).json({ error: err.message });
-            return;
+            console.error("Error fetching event for deletion:", err);
+            // Continue to delete anyway? Or fail? Let's fail safe.
+            return res.status(500).json({ error: err.message });
         }
-        res.json({ message: "Deleted", changes: this.changes });
+
+        if (row && row.imageUrl) {
+            try {
+                // Extract filename from URL (e.g. http://host/uploads/uuid.jpg -> uuid.jpg)
+                const urlParts = row.imageUrl.split('/uploads/');
+                if (urlParts.length > 1) {
+                    const filename = urlParts[1];
+                    const filePath = path.join(__dirname, 'public', 'uploads', filename);
+
+                    fs.unlink(filePath, (unlinkErr) => {
+                        if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+                            console.error(`Failed to delete image ${filename}:`, unlinkErr);
+                        } else {
+                            console.log(`Deleted image: ${filename}`);
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Error processing image deletion:", e);
+            }
+        }
+
+        // Proceed to delete event
+        db.run("DELETE FROM events WHERE id = ?", id, function (err) {
+            if (err) {
+                res.status(500).json({ error: err.message });
+                return;
+            }
+            res.json({ message: "Deleted", changes: this.changes });
+        });
     });
 });
 
@@ -340,6 +374,48 @@ cron.schedule('0 */6 * * *', () => {
 
     scout.stdout.on('data', (data) => console.log(`[Auto-Scout]: ${data}`));
     scout.stderr.on('data', (data) => console.error(`[Auto-Scout Error]: ${data}`));
+});
+
+// Schedule Auto-Cleanup every hour
+// Deletes events ended > 1 hour ago
+cron.schedule('0 * * * *', () => {
+    console.log("🧹 Running Auto-Cleanup Task...");
+
+    // 1. Find candidates
+    db.all("SELECT id, imageUrl FROM events WHERE endTime < datetime('now', '-1 hour')", [], (err, rows) => {
+        if (err) {
+            console.error("Cleanup Query Failed:", err);
+            return;
+        }
+
+        if (rows.length === 0) {
+            console.log("No events to clean up.");
+            return;
+        }
+
+        console.log(`Found ${rows.length} expired events to delete.`);
+
+        rows.forEach(row => {
+            // Delete Image
+            if (row.imageUrl) {
+                try {
+                    const urlParts = row.imageUrl.split('/uploads/');
+                    if (urlParts.length > 1) {
+                        const filename = urlParts[1];
+                        const filePath = path.join(__dirname, 'public', 'uploads', filename);
+                        fs.unlink(filePath, (e) => {
+                            if (e && e.code !== 'ENOENT') console.error(`Failed to delete img ${filename}:`, e);
+                        });
+                    }
+                } catch (e) { console.error("Img cleanup error:", e); }
+            }
+            // Delete Record
+            db.run("DELETE FROM events WHERE id = ?", [row.id], (err) => {
+                if (err) console.error(`Failed to delete event ${row.id}`, err);
+                else console.log(`Cleaned up event ${row.id}`);
+            });
+        });
+    });
 });
 
 // Start Server

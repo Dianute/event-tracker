@@ -7,15 +7,17 @@ import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus } from 'lucide-react';
 
 // Custom Emoji Marker Helper
-const createEmojiIcon = (emoji: string, isNew?: boolean) => {
-  const animationClass = isNew ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' : 'transform hover:scale-110';
-  const newBadge = isNew ? '<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg z-50 animate-pulse">NEW</div>' : '';
+const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
+  const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' : 'transform hover:scale-110';
+  const newBadge = isNew && !isFinished ? '<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg z-50 animate-pulse">NEW</div>' : '';
+  const finishedStyle = isFinished ? 'grayscale opacity-70' : '';
 
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div class="relative flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md text-2xl border-2 border-white transition-transform ${animationClass}">
+    html: `<div class="relative flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md text-2xl border-2 border-white transition-transform ${animationClass} ${finishedStyle}">
             ${emoji}
             ${newBadge}
+            ${isFinished ? '<div class="absolute -top-2 -right-2 bg-gray-600 text-[8px] text-white px-1 rounded shadow">ENDED</div>' : ''}
            </div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
@@ -23,16 +25,16 @@ const createEmojiIcon = (emoji: string, isNew?: boolean) => {
   });
 };
 
-const getEventIcon = (type: string, isNew?: boolean) => {
+const getEventIcon = (type: string, isNew?: boolean, isFinished?: boolean) => {
   switch (type) {
-    case 'food': return createEmojiIcon('🍔', isNew);
-    case 'sports': return createEmojiIcon('⚽', isNew);
-    case 'music': return createEmojiIcon('🎵', isNew);
-    case 'arts': return createEmojiIcon('🎨', isNew);
-    case 'learning': return createEmojiIcon('📚', isNew);
+    case 'food': return createEmojiIcon('🍔', isNew, isFinished);
+    case 'sports': return createEmojiIcon('⚽', isNew, isFinished);
+    case 'music': return createEmojiIcon('🎵', isNew, isFinished);
+    case 'arts': return createEmojiIcon('🎨', isNew, isFinished);
+    case 'learning': return createEmojiIcon('📚', isNew, isFinished);
     case 'social':
     default:
-      return createEmojiIcon('🍻', isNew);
+      return createEmojiIcon('🍻', isNew, isFinished);
   }
 };
 
@@ -136,9 +138,9 @@ function EventCard({ event, userLocation, onClick }: { event: Event, userLocatio
     >
       <div className="flex justify-between items-start mb-1">
         <div className="flex items-center gap-2">
-          <span className="text-xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+          <span className="text-xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">{(getEventIcon(event.type, false, status.label === 'Ended').options.html as string)?.match(/>(.*?)</)?.[1]}</span>
           <div className="overflow-hidden">
-            <h4 className="font-bold text-white text-sm leading-tight truncate max-w-[160px] md:max-w-none group-hover:text-blue-200 transition-colors shadow-black drop-shadow-sm">{event.title}</h4>
+            <h4 className={`font-bold text-sm leading-tight truncate max-w-[160px] md:max-w-none transition-colors shadow-black drop-shadow-sm ${status.label === 'Ended' ? 'text-gray-500 line-through' : 'text-white group-hover:text-blue-200'}`}>{event.title}</h4>
             <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1 mt-0.5">
               <Navigation size={8} /> {distanceText}
             </p>
@@ -354,7 +356,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 className: 'cluster-marker',
                 html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
                 iconSize: [48, 48]
-              }) : getEventIcon(event.type)}
+              }) : getEventIcon(event.type, false, isPast)}
               opacity={opacity}
               eventHandlers={{
                 click: () => {
@@ -380,7 +382,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+                            <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type, false, evt.endTime ? new Date(evt.endTime) < now : false).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
                             <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
                           </div>
                         </div>
