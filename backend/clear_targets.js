@@ -5,26 +5,15 @@ const dbPath = path.join(__dirname, 'events.db');
 const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
-    console.log('Opening database...');
+    console.log('Opening database to clear targets...');
 
-    // 1. Count targets before
-    db.get("SELECT COUNT(*) as count FROM targets", (err, row) => {
+    db.run("DELETE FROM targets", function (err) {
         if (err) {
-            console.error(err);
-            return;
+            console.error("Error clearing targets:", err);
+        } else {
+            // this.changes contains the number of rows modified
+            console.log(`✅ Success! Removed ${this.changes} targets from the database.`);
         }
-        console.log(`Current target count: ${row.count}`);
-
-        // 2. Delete all targets
-        db.run("DELETE FROM targets", (err) => {
-            if (err) {
-                console.error("Error clearing targets:", err);
-            } else {
-                console.log("✅ All targets have been removed from the database.");
-            }
-
-            // 3. Close
-            db.close();
-        });
+        db.close();
     });
 });
