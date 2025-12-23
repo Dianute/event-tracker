@@ -389,10 +389,28 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         <div
                                             key={i}
                                             className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate flex items-center gap-2 text-gray-700 dark:text-gray-200"
-                                            onClick={() => {
-                                                // Shorten address to first 3 parts (Venue, Street, City) for cleaner UI
-                                                const shortAddress = item.display_name.split(',').slice(0, 3).join(',');
-                                                setVenue(shortAddress);
+                                            onClick={async () => {
+                                                if (item.osm_id === 'current-loc') {
+                                                    // "Use My Location" - Fetch actual address
+                                                    setVenue("Locating...");
+                                                    try {
+                                                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}`);
+                                                        const data = await res.json();
+                                                        if (data && data.display_name) {
+                                                            const shortAddress = data.display_name.split(',').slice(0, 3).join(',');
+                                                            setVenue(shortAddress);
+                                                        } else {
+                                                            setVenue(`${item.lat}, ${item.lon}`);
+                                                        }
+                                                    } catch (err) {
+                                                        setVenue(`${item.lat}, ${item.lon}`);
+                                                    }
+                                                } else {
+                                                    // Standard Search Result
+                                                    const shortAddress = item.display_name.split(',').slice(0, 3).join(',');
+                                                    setVenue(shortAddress);
+                                                }
+
                                                 setCurrentLocation({
                                                     lat: parseFloat(item.lat),
                                                     lng: parseFloat(item.lon)
