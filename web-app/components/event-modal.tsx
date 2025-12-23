@@ -299,15 +299,15 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                 {isReadOnly ? (
                     // --- VIEW MODE (Split Layout) ---
-                    <div className="flex flex-col h-full bg-white dark:bg-zinc-900">
+                    <div className="flex flex-col h-[85vh] md:h-auto bg-white dark:bg-zinc-900">
 
-                        {/* 1. Image Area (Top 40-45%) */}
-                        <div className="relative h-[45vh] w-full shrink-0 bg-black">
+                        {/* 1. Image Area (Top 40%) */}
+                        <div className="relative h-[40%] w-full shrink-0 bg-black">
                             {imageUrl ? (
                                 <img
                                     src={imageUrl}
                                     alt={title}
-                                    className="w-full h-full object-contain bg-black/50 backdrop-blur-xl"
+                                    className="w-full h-full object-cover"
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-blue-900 via-purple-900 to-black flex items-center justify-center">
@@ -328,43 +328,42 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             </div>
                         </div>
 
-                        {/* 2. Info Area (Bottom - Scrollable) */}
-                        <div className="flex-1 flex flex-col p-6 overflow-hidden">
+                        {/* 2. Info Area (Bottom 60% - Scrollable) */}
+                        <div className="h-[60%] flex flex-col p-6 overflow-hidden">
 
                             <div className="overflow-y-auto pr-2 -mr-2 flex-1 space-y-4 hide-scrollbar">
                                 {/* Title */}
                                 <h2 className="text-2xl font-black leading-tight text-gray-900 dark:text-white">
                                     {title}
-                                </h2>
 
-                                {/* Meta Grid */}
-                                <div className="grid grid-cols-1 gap-3">
-                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                        <Clock className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                                        <div>
-                                            <p className="text-xs font-bold uppercase text-gray-400">When</p>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDateRange(startTime, endTime)}</p>
+                                    {/* Meta Grid */}
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                            <Clock className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                                            <div>
+                                                <p className="text-xs font-bold uppercase text-gray-400">When</p>
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDateRange(startTime, endTime)}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                            <MapPin className="text-red-500 shrink-0 mt-0.5" size={18} />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-xs font-bold uppercase text-gray-400">Where</p>
+                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{venue || 'Unknown Location'}</p>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                        <MapPin className="text-red-500 shrink-0 mt-0.5" size={18} />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold uppercase text-gray-400">Where</p>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{venue || 'Unknown Location'}</p>
+                                    {/* Description */}
+                                    {description && (
+                                        <div className="pt-2">
+                                            <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">About</h3>
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                                {description}
+                                            </p>
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* Description */}
-                                {description && (
-                                    <div className="pt-2">
-                                        <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">About</h3>
-                                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                            {description}
-                                        </p>
-                                    </div>
-                                )}
+                                    )}
                             </div>
 
                             {/* Sticky Actions */}
