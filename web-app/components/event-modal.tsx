@@ -390,7 +390,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             key={i}
                                             className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate flex items-center gap-2 text-gray-700 dark:text-gray-200"
                                             onClick={() => {
-                                                setVenue(item.display_name);
+                                                // Shorten address to first 3 parts (Venue, Street, City) for cleaner UI
+                                                const shortAddress = item.display_name.split(',').slice(0, 3).join(',');
+                                                setVenue(shortAddress);
                                                 setCurrentLocation({
                                                     lat: parseFloat(item.lat),
                                                     lng: parseFloat(item.lon)
