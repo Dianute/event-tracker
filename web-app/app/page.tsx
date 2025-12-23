@@ -60,9 +60,9 @@ export default function Home() {
     setSelectedEvent(undefined); // Ensure we are cleaner
   };
 
-  const handlePlusClick = () => {
-    // Open modal without a specific map location (user will search for address)
-    setSelectedLocation(null);
+  const handlePlusClick = (location?: { lat: number; lng: number }) => {
+    // Open modal. If location provided (e.g. user location), use it.
+    setSelectedLocation(location || null);
     setIsModalOpen(true);
     setSelectedEvent(undefined);
   };
