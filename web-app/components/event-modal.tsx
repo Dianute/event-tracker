@@ -250,25 +250,18 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 ) : null}
 
 
-                <div className="flex items-start justify-between p-6 pb-2">
-                    <div className="flex-1 pr-4">
-                        {isReadOnly && (
-                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 border bg-opacity-10
-                                ${type === 'music' ? 'text-pink-600 bg-pink-100 border-pink-200 dark:text-pink-400 dark:bg-pink-500/10 dark:border-pink-500/20' :
-                                    type === 'food' ? 'text-orange-600 bg-orange-100 border-orange-200 dark:text-orange-400 dark:bg-orange-500/10 dark:border-orange-500/20' :
-                                        type === 'sports' ? 'text-green-600 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/10 dark:border-green-500/20' :
-                                            'text-blue-600 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20'}`}>
-                                <Tag size={10} /> {type}
-                            </div>
-                        )}
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                            {isReadOnly ? title : 'Create New Event'}
-                        </h2>
+                {!isReadOnly && (
+                    <div className="flex items-start justify-between p-6 pb-2">
+                        <div className="flex-1 pr-4">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                                Create New Event
+                            </h2>
+                        </div>
+                        <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
+                            <X size={24} />
+                        </button>
                     </div>
-                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
-                        <X size={24} />
-                    </button>
-                </div>
+                )}
 
                 {isReadOnly ? (
                     // --- VIEW MODE (Split Layout) ---
