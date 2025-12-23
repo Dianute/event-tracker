@@ -491,15 +491,30 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
       {/* Full List View Overlay */}
       {showList && (
-        <div className="fixed inset-0 z-[2000] bg-[#121212] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className={`fixed inset-0 z-[2000] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
+          ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
           <div className="max-w-md mx-auto space-y-3">
-            <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#121212] z-10 py-2 border-b border-white/10">
-              <h2 className="text-xl font-bold text-white">All Events ({displayList.length})</h2>
+            <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
+               ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
+
+              <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                All Events ({displayList.length})
+              </h2>
+
               <div className="flex gap-2">
-                <button onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')} className="text-xs font-bold text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-full uppercase">
+                <button
+                  onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
+                      ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
+                      mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
+                        'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
+                >
                   {sortBy === 'time' ? 'Time' : 'Dist'}
                 </button>
-                <button onClick={() => setShowList(false)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10">
+                <button
+                  onClick={() => setShowList(false)}
+                  className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
                   <Plus size={24} className="rotate-45" />
                 </button>
               </div>
@@ -521,7 +536,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             ))}
 
             {displayList.length === 0 && (
-              <div className="text-center text-gray-500 mt-20">No events found matching your filters.</div>
+              <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found matching your filters.</div>
             )}
           </div>
         </div>
