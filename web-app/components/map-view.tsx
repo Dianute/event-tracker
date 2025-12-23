@@ -373,16 +373,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
 
       {/* Top Controls */}
-      <div className="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4 pointer-events-none">
+      <div className="fixed top-4 left-0 right-0 z-[3000] flex justify-center px-4 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
           {/* List Toggle */}
           <button
             onClick={() => setShowList(!showList)}
             className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
-            title="List View"
+            title={showList ? "Close List" : "List View"}
           >
-            <List size={20} />
+            {showList ? <Plus size={24} className="rotate-45" /> : <List size={20} />}
           </button>
 
           <div className="w-px h-6 bg-white/20 mx-1"></div>
