@@ -160,17 +160,17 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 </div>
 
                 {status.timeText && (
-                    <div className={`absolute bottom-2 right-2 text-[10px] font-mono font-bold ${status.color === 'green' ? 'text-green-400' : 'text-gray-400'}`}>
+                    <div className={`w-full flex justify-end mt-2 mb-1 text-[10px] font-mono font-bold ${status.color === 'green' ? 'text-green-400' : 'text-gray-400'}`}>
                         {status.timeText}
                     </div>
                 )}
 
                 {status.progress !== undefined && (
-                    <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
+                    <div className="w-full bg-white/10 rounded-full h-0.5 overflow-hidden">
                         <div
-                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
+                            className={`h-full transition-all duration-1000 ease-out ${status.color === 'green' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-orange-500'}`}
                             style={{ width: `${status.progress}%` }}
-                        ></div>
+                        />
                     </div>
                 )}
             </div>
