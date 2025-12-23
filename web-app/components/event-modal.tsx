@@ -391,15 +391,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate flex items-center gap-2 text-gray-700 dark:text-gray-200"
                                             onClick={async () => {
                                                 if (item.osm_id === 'current-loc') {
-                                                    // "Use My Location" - Fetch actual address
+                                                    // "Use My Location" - Fetch actual address with details
                                                     setVenue("Locating...");
                                                     try {
-                                                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}`);
+                                                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}&addressdetails=1`);
                                                         const data = await res.json();
-                                                        if (data && data.display_name) {
-                                                            // Keep more context (City/Town) - increased to 5 parts
-                                                            const shortAddress = data.display_name.split(',').slice(0, 5).join(',');
-                                                            setVenue(shortAddress);
+                                                        if (data && data.address) {
+                                                            // Construct specific format: "Road, City, Country" (and ZIP if available?)
+                                                            // User asked for: "Main St, Kaunas, Lithuania"
+                                                            const parts = [];
+                                                            if (data.address.road) parts.push(data.address.road);
+                                                            if (data.address.city || data.address.town || data.address.village) parts.push(data.address.city || data.address.town || data.address.village);
+                                                            // if (data.address.postcode) parts.push(data.address.postcode); // User debated ZIP, keeping it clean for now unless requested
+                                                            if (data.address.country) parts.push(data.address.country);
+
+                                                            setVenue(parts.join(', '));
                                                         } else {
                                                             setVenue(`${item.lat}, ${item.lon}`);
                                                         }
@@ -407,7 +413,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                         setVenue(`${item.lat}, ${item.lon}`);
                                                     }
                                                 } else {
-                                                    // Standard Search Result
+                                                    // Standard Search Result - Shorten to 5 parts to ensure City/Country is included
                                                     const shortAddress = item.display_name.split(',').slice(0, 5).join(',');
                                                     setVenue(shortAddress);
                                                 }
