@@ -36,7 +36,6 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
-  const [theme, setTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
 
   // Load events from Backend on mount
   // Load events from Backend
@@ -129,8 +128,6 @@ export default function Home() {
           onRefresh={fetchEvents}
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
-          theme={theme}
-          onThemeChange={setTheme}
         />
       </div>
 
@@ -149,7 +146,6 @@ export default function Home() {
         onSubmit={handleAddEvent}
         initialLocation={selectedLocation}
         event={selectedEvent}
-        theme={theme}
       />
     </main>
   );

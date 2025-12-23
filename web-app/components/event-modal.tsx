@@ -9,7 +9,6 @@ interface EventModalProps {
     onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
     initialLocation: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing
-    theme?: 'dark' | 'light' | 'cyberpunk';
 }
 
 // Custom helper to format date range
@@ -47,26 +46,141 @@ const toLocalISOString = (dateStr: string) => {
     return local.toISOString().slice(0, 16);
 };
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event, theme = 'dark' }: EventModalProps) {
-    // ... (state hooks)
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event }: EventModalProps) {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [type, setType] = useState('social');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
+    const [venue, setVenue] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
-    // ... (styles)
-    const overlayClass = "fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200";
+    // Effect to reset or populate form
+    useEffect(() => {
+        if (isOpen) {
+            if (event) {
+                // VIEW MODE / EDIT MODE
+                setTitle(event.title);
+                setDescription(event.description);
+                setType(event.type);
+                // Convert UTC (DB) -> Local (Input)
+                setStartTime(toLocalISOString(event.startTime));
+                setEndTime(toLocalISOString(event.endTime));
+                setVenue(event.venue || event.location || '');
+                setImageUrl(event.imageUrl || '');
+                setCurrentLocation({ lat: event.lat, lng: event.lng });
+            } else {
+                // CREATE MODE (Reset)
+                setTitle('');
+                setDescription('');
+                setType('social');
+                setImageUrl('');
+                setIsUploading(false);
 
-    // Dynamic Modal Styles
-    const modalBg = theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.15)]'
-        : theme === 'light' ? 'bg-white border-zinc-200 shadow-xl'
-            : 'bg-[#121212] border-white/10 shadow-2xl';
+                // Times
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                setStartTime(now.toISOString().slice(0, 16));
+                setEndTime(new Date(now.getTime() + 2 * 60 * 60 * 1000).toISOString().slice(0, 16));
 
-    const textMain = theme === 'cyberpunk' ? 'text-cyan-100' : theme === 'light' ? 'text-gray-900' : 'text-white';
-    const textSub = theme === 'cyberpunk' ? 'text-cyan-400' : theme === 'light' ? 'text-gray-500' : 'text-gray-400';
-    const inputBg = theme === 'cyberpunk' ? 'bg-[#0a0a1a] border-cyan-900/50 focus:border-cyan-400 text-cyan-200'
-        : theme === 'light' ? 'bg-gray-50 border-gray-200 focus:border-blue-500 text-gray-900'
-            : 'bg-white/5 border-white/10 focus:border-blue-500 text-white';
+                if (initialLocation) {
+                    setCurrentLocation(initialLocation);
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${initialLocation.lat}&lon=${initialLocation.lng}`)
+                        .then(res => res.json())
+                        .then(data => { if (data.display_name) setVenue(data.display_name); })
+                        .catch(err => console.error("Reverse geocode failed", err));
+                } else {
+                    setVenue('');
+                    setCurrentLocation(null);
+                }
+            }
+        }
+    }, [isOpen, event, initialLocation]);
+
+    // Forward Geocode Effect
+    useEffect(() => {
+        if (event) return;
+
+        const delayDebounceFn = setTimeout(async () => {
+            if (venue.length > 2 && isSearching) {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(venue)}&limit=5`);
+                    const data = await res.json();
+                    setSuggestions(data);
+                } catch (e) {
+                    console.error("Search failed", e);
+                }
+            } else {
+                setSuggestions([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [venue, isSearching, event]);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const res = await fetch(`${API_URL}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                setImageUrl(data.imageUrl);
+            } else {
+                alert("Upload failed");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            alert("Upload error");
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    if (!isOpen) return null;
+    const isReadOnly = !!event;
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (isReadOnly) return;
+        if (!currentLocation) {
+            alert("Please select a location from the search or click the map!");
+            return;
+        }
+
+        // Convert Local Input Time to UTC for Storage
+        const startUTC = new Date(startTime).toISOString();
+        const endUTC = new Date(endTime).toISOString();
+
+        onSubmit({
+            title,
+            description,
+            type,
+            startTime: startUTC,
+            endTime: endUTC,
+            lat: currentLocation.lat,
+            lng: currentLocation.lng,
+            venue,
+            imageUrl
+        });
+        onClose();
+    };
 
     return (
-        <div className={overlayClass}>
-            <div className={`w-full max-w-md rounded-3xl overflow-hidden border flex flex-col max-h-[90vh] transition-all duration-300 ${modalBg} ${textMain}`}>
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+            <div className="w-full max-w-md bg-white dark:bg-[#121212] rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-white/10 flex flex-col max-h-[90vh]">
 
                 {/* Header Image or Upload Area */}
                 {!isReadOnly ? (
