@@ -545,7 +545,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       {/* Add Button */}
       <div className="fixed bottom-40 right-6 z-[1000]">
         <button
-          onClick={() => onAddEventClick(userLocation)}
+          onClick={() => {
+            const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
+            if (onAddEventClick) onAddEventClick(loc);
+          }}
           className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
           title="Add New Event"
         >
