@@ -491,7 +491,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
       {/* Full List View Overlay */}
       {showList && (
-        <div className="fixed inset-0 z-[900] bg-[#121212] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed inset-0 z-[2000] bg-[#121212] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div className="max-w-md mx-auto space-y-3">
             <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#121212] z-10 py-2 border-b border-white/10">
               <h2 className="text-xl font-bold text-white">All Events ({displayList.length})</h2>
