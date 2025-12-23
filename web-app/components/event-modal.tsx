@@ -9,6 +9,7 @@ interface EventModalProps {
     onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
     initialLocation: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing
+    theme?: 'dark' | 'light' | 'cyberpunk';
 }
 
 // Custom helper to format date range
@@ -46,7 +47,7 @@ const toLocalISOString = (dateStr: string) => {
     return local.toISOString().slice(0, 16);
 };
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event, theme = 'dark' }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -179,8 +180,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     };
 
     return (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-white dark:bg-[#121212] rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-white/10 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200 overflow-y-auto">
+            <div className={`w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border flex flex-col my-auto relative ${bgClass}`}>
 
                 {/* Header Image or Upload Area */}
                 {!isReadOnly ? (
