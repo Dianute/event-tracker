@@ -104,13 +104,12 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
             } else if (now >= start && now <= end) {
                 // Live -> Show Event Progress Bar
                 const progress = (elapsed / duration) * 100;
-                const elapsedMins = Math.floor(elapsed / 60000);
-                const totalMins = Math.floor(duration / 60000);
+                const remainingMins = Math.ceil((end.getTime() - now.getTime()) / 60000);
                 setStatus({
                     label: 'Live',
                     color: 'green',
                     progress,
-                    timeText: `${elapsedMins}m / ${totalMins}m`
+                    timeText: `${remainingMins}m left`
                 });
             } else {
                 // Past

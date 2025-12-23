@@ -229,6 +229,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   const groupedEvents = new Map<string, Event[]>();
   Array.from(uniqueEvents.values()).forEach(e => {
+    // Safety check for invalid coordinates
+    if (typeof e.lat !== 'number' || typeof e.lng !== 'number') return;
+
     const locKey = `${e.lat.toFixed(4)},${e.lng.toFixed(4)}`;
     if (!groupedEvents.has(locKey)) groupedEvents.set(locKey, []);
     groupedEvents.get(locKey)?.push(e);
