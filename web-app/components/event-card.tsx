@@ -151,12 +151,12 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                             {event.title}
                         </h4>
 
-                        <div className="flex items-center gap-3 mt-1.5">
+                        <div className="flex items-center justify-between mt-1.5">
                             <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1">
                                 <Navigation size={10} /> {distanceText}
                             </p>
                             {status.timeText && (
-                                <p className="text-[10px] text-gray-400 font-mono">
+                                <p className={`text-[10px] font-mono font-bold ${status.color === 'green' ? 'text-green-400' : 'text-gray-400'}`}>
                                     {status.timeText}
                                 </p>
                             )}
