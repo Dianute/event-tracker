@@ -456,11 +456,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         snap-x snap-mandatory 
         gap-0 md:gap-0 
         px-2 md:px-0 md:w-80 
-        py-2 md:py-0
+        py-3 md:py-0
         max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
         {displayList.slice(0, 20).map(event => (
-          <div key={event.id} className="pointer-events-auto min-w-[85vw] md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+          <div key={event.id} className="pointer-events-auto min-w-[85vw] h-28 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
             <EventCard
               event={event}
               userLocation={userLocation}
@@ -476,11 +476,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Mobile List Toggle Button (Right Side) */}
-      {/* Mobile List Toggle Button (Right Side) */}
-      <div className="fixed bottom-0 right-0 w-14 h-full md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-4 items-center">
+      <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
         <button
           onClick={() => setShowList(true)}
-          className="pointer-events-auto w-10 h-24 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
+          className="pointer-events-auto w-10 h-28 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
           title="Open List"
         >
           <List size={28} />
@@ -491,11 +490,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       {showList && (
         <div className="fixed inset-0 z-[900] bg-[#121212] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div className="max-w-md mx-auto space-y-3">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#121212] z-10 py-2 border-b border-white/10">
               <h2 className="text-xl font-bold text-white">All Events ({displayList.length})</h2>
-              <button onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')} className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full uppercase">
-                Sorted by {sortBy}
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')} className="text-xs font-bold text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-full uppercase">
+                  {sortBy === 'time' ? 'Time' : 'Dist'}
+                </button>
+                <button onClick={() => setShowList(false)} className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10">
+                  <Plus size={24} className="rotate-45" />
+                </button>
+              </div>
             </div>
 
             {displayList.map(event => (
