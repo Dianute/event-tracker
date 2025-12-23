@@ -298,66 +298,82 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 </div>
 
                 {isReadOnly ? (
-                    // --- VIEW MODE (Story Style) ---
-                    <div className="relative h-full flex flex-col text-white">
+                    // --- VIEW MODE (Split Layout) ---
+                    <div className="flex flex-col h-full bg-white dark:bg-zinc-900">
 
-                        {/* 1. Full Size Image / Background */}
-                        <div className="absolute inset-0 z-0">
+                        {/* 1. Image Area (Top 40-45%) */}
+                        <div className="relative h-[45vh] w-full shrink-0 bg-black">
                             {imageUrl ? (
                                 <img
                                     src={imageUrl}
                                     alt={title}
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain bg-black/50 backdrop-blur-xl"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-blue-900 via-purple-900 to-black"></div>
+                                <div className="w-full h-full bg-gradient-to-br from-blue-900 via-purple-900 to-black flex items-center justify-center">
+                                    <span className="text-4xl">✨</span>
+                                </div>
                             )}
-                            {/* Gradient Overlay for Text Readability */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
-                        </div>
 
-                        {/* 2. Top Controls (Close Btn) */}
-                        <div className="relative z-10 p-4 flex justify-between items-start">
-                            <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest text-white/90 shadow-lg">
+                            {/* Close Button (Absolute) */}
+                            <button
+                                onClick={onClose}
+                                className="absolute top-4 right-4 z-50 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 backdrop-blur border border-white/10"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest text-white shadow-lg">
                                 {type}
                             </div>
-                            {/* Close button handled by parent, but we can add secondary actions here if needed */}
                         </div>
 
-                        {/* 3. Content (Bottom Aligned) */}
-                        <div className="relative z-10 mt-auto p-6 space-y-4 pb-8">
+                        {/* 2. Info Area (Bottom - Scrollable) */}
+                        <div className="flex-1 flex flex-col p-6 overflow-hidden">
 
-                            {/* Title */}
-                            <h2 className="text-3xl font-black leading-tight shadow-black drop-shadow-md">
-                                {title}
-                            </h2>
+                            <div className="overflow-y-auto pr-2 -mr-2 flex-1 space-y-4 hide-scrollbar">
+                                {/* Title */}
+                                <h2 className="text-2xl font-black leading-tight text-gray-900 dark:text-white">
+                                    {title}
+                                </h2>
 
-                            {/* Meta Info Row */}
-                            <div className="flex flex-wrap gap-4 text-sm font-medium text-white/90">
-                                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
-                                    <Clock size={16} className="text-blue-400" />
-                                    <span>{formatDateRange(startTime, endTime)}</span>
+                                {/* Meta Grid */}
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                        <Clock className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                                        <div>
+                                            <p className="text-xs font-bold uppercase text-gray-400">When</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDateRange(startTime, endTime)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                        <MapPin className="text-red-500 shrink-0 mt-0.5" size={18} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold uppercase text-gray-400">Where</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{venue || 'Unknown Location'}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 max-w-[200px]">
-                                    <MapPin size={16} className="text-red-400 shrink-0" />
-                                    <span className="truncate">{venue || 'Unknown Location'}</span>
-                                </div>
+
+                                {/* Description */}
+                                {description && (
+                                    <div className="pt-2">
+                                        <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">About</h3>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                            {description}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Description (Scrollable if long, but compact) */}
-                            {description && (
-                                <div className="max-h-32 overflow-y-auto pr-2 text-sm text-gray-200 leading-relaxed opacity-90 hide-scrollbar">
-                                    {description}
-                                </div>
-                            )}
-
-                            {/* Actions */}
-                            <div className="grid grid-cols-2 gap-3 pt-2">
+                            {/* Sticky Actions */}
+                            <div className="grid grid-cols-2 gap-3 pt-4 mt-auto border-t border-gray-100 dark:border-white/5">
                                 <a
                                     href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl font-bold transition-all active:scale-95"
+                                    className="flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white rounded-xl font-bold transition-all active:scale-95"
                                 >
                                     <MapPin size={18} /> Directions
                                 </a>
@@ -367,12 +383,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         href={event.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all active:scale-95"
+                                        className="flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95"
                                     >
                                         Tickets <ExternalLink size={18} />
                                     </a>
                                 ) : (
-                                    <button disabled className="flex items-center justify-center gap-2 py-3.5 bg-gray-700/50 text-gray-400 rounded-xl font-bold cursor-not-allowed">
+                                    <button disabled className="flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-white/5 text-gray-400 rounded-xl font-bold cursor-not-allowed">
                                         No Link
                                     </button>
                                 )}
