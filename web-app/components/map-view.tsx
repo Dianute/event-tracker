@@ -61,7 +61,7 @@ interface MapViewProps {
   newLocation?: { lat: number; lng: number } | null;
   onDeleteEvent?: (id: string) => void;
   onRefresh?: () => void;
-  onAddEventClick?: () => void;
+  onAddEventClick?: (location?: { lat: number; lng: number }) => void;
   onEventSelect?: (event: Event) => void;
 }
 
