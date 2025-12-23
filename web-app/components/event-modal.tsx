@@ -299,37 +299,38 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                             <div className="overflow-y-auto pr-2 -mr-2 flex-1 space-y-4 hide-scrollbar">
                                 {/* Title */}
-                                <h2 className="text-2xl font-black leading-tight text-gray-900 dark:text-white">
+                                <h2 className="text-2xl font-black leading-tight text-gray-900 dark:text-white mb-4">
                                     {title}
+                                </h2>
 
-                                    {/* Meta Grid */}
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                            <Clock className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                                            <div>
-                                                <p className="text-xs font-bold uppercase text-gray-400">When</p>
-                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDateRange(startTime, endTime)}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                            <MapPin className="text-red-500 shrink-0 mt-0.5" size={18} />
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-xs font-bold uppercase text-gray-400">Where</p>
-                                                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{venue || 'Unknown Location'}</p>
-                                            </div>
+                                {/* Meta Grid */}
+                                <div className="grid grid-cols-1 gap-3">
+                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                        <Clock className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                                        <div>
+                                            <p className="text-xs font-bold uppercase text-gray-400">When</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDateRange(startTime, endTime)}</p>
                                         </div>
                                     </div>
 
-                                    {/* Description */}
-                                    {description && (
-                                        <div className="pt-2">
-                                            <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">About</h3>
-                                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                                {description}
-                                            </p>
+                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                                        <MapPin className="text-red-500 shrink-0 mt-0.5" size={18} />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold uppercase text-gray-400">Where</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{venue || 'Unknown Location'}</p>
                                         </div>
-                                    )}
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                {description && (
+                                    <div className="pt-2">
+                                        <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">About</h3>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                            {description}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Sticky Actions */}
