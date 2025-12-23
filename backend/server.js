@@ -12,20 +12,13 @@ const DB_PATH = path.join(__dirname, 'events.db');
 
 // Multer Setup for Image Uploads
 const multer = require('multer');
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = path.join(__dirname, 'public', 'uploads');
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname);
-        cb(null, `${uuidv4()}${ext}`);
-    }
-});
+const sharp = require('sharp');
+// Use Memory Storage for Sharp processing
+const storage = multer.memoryStorage();
+
 const upload = multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit (processed down)
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) cb(null, true);
         else cb(new Error('Only images are allowed'));
@@ -111,15 +104,32 @@ app.get('/events', (req, res) => {
 });
 
 // POST /upload - Handle Image Upload
-app.post('/upload', upload.single('image'), (req, res) => {
+app.post('/upload', upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
-    // Return the full URL to the image
-    const forwardedProto = req.get('x-forwarded-proto') || 'http';
-    const host = req.get('host');
-    const imageUrl = `${forwardedProto}://${host}/uploads/${req.file.filename}`;
+    try {
+        const filename = `${uuidv4()}.webp`;
+        const outputPath = path.join(__dirname, 'public', 'uploads', filename);
 
-    res.json({ success: true, imageUrl });
+        // Ensure dir exists
+        const dir = path.dirname(outputPath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        // Compress: Resize to max 1200px width, Convert to WebP, 80% Quality
+        await sharp(req.file.buffer)
+            .resize({ width: 1200, withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toFile(outputPath);
+
+        const forwardedProto = req.get('x-forwarded-proto') || 'http';
+        const host = req.get('host');
+        const imageUrl = `${forwardedProto}://${host}/uploads/${filename}`;
+
+        res.json({ success: true, imageUrl });
+    } catch (err) {
+        console.error("Image processing failed:", err);
+        res.status(500).json({ error: "Image processing failed" });
+    }
 });
 
 // POST /events - Create a new event
