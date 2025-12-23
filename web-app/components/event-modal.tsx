@@ -397,7 +397,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}`);
                                                         const data = await res.json();
                                                         if (data && data.display_name) {
-                                                            const shortAddress = data.display_name.split(',').slice(0, 3).join(',');
+                                                            // Keep more context (City/Town) - increased to 5 parts
+                                                            const shortAddress = data.display_name.split(',').slice(0, 5).join(',');
                                                             setVenue(shortAddress);
                                                         } else {
                                                             setVenue(`${item.lat}, ${item.lon}`);
@@ -407,7 +408,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                     }
                                                 } else {
                                                     // Standard Search Result
-                                                    const shortAddress = item.display_name.split(',').slice(0, 3).join(',');
+                                                    const shortAddress = item.display_name.split(',').slice(0, 5).join(',');
                                                     setVenue(shortAddress);
                                                 }
 
