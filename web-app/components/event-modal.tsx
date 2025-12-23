@@ -298,59 +298,87 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 </div>
 
                 {isReadOnly ? (
-                    // --- VIEW MODE ---
-                    <div className="p-6 pt-2 overflow-y-auto space-y-6">
+                    // --- VIEW MODE (Story Style) ---
+                    <div className="relative h-full flex flex-col text-white">
 
-                        {/* Time & Location */}
-                        <div className="space-y-3 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
-                            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                                <Calendar className="text-blue-500 shrink-0" size={20} />
-                                <div>
-                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">Date & Time</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRange(startTime, endTime)}</p>
+                        {/* 1. Full Size Image / Background */}
+                        <div className="absolute inset-0 z-0">
+                            {imageUrl ? (
+                                <img
+                                    src={imageUrl}
+                                    alt={title}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-blue-900 via-purple-900 to-black"></div>
+                            )}
+                            {/* Gradient Overlay for Text Readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
+                        </div>
+
+                        {/* 2. Top Controls (Close Btn) */}
+                        <div className="relative z-10 p-4 flex justify-between items-start">
+                            <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest text-white/90 shadow-lg">
+                                {type}
+                            </div>
+                            {/* Close button handled by parent, but we can add secondary actions here if needed */}
+                        </div>
+
+                        {/* 3. Content (Bottom Aligned) */}
+                        <div className="relative z-10 mt-auto p-6 space-y-4 pb-8">
+
+                            {/* Title */}
+                            <h2 className="text-3xl font-black leading-tight shadow-black drop-shadow-md">
+                                {title}
+                            </h2>
+
+                            {/* Meta Info Row */}
+                            <div className="flex flex-wrap gap-4 text-sm font-medium text-white/90">
+                                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                                    <Clock size={16} className="text-blue-400" />
+                                    <span>{formatDateRange(startTime, endTime)}</span>
+                                </div>
+                                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 max-w-[200px]">
+                                    <MapPin size={16} className="text-red-400 shrink-0" />
+                                    <span className="truncate">{venue || 'Unknown Location'}</span>
                                 </div>
                             </div>
 
-                            <div className="w-full h-px bg-gray-200 dark:bg-white/10"></div>
+                            {/* Description (Scrollable if long, but compact) */}
+                            {description && (
+                                <div className="max-h-32 overflow-y-auto pr-2 text-sm text-gray-200 leading-relaxed opacity-90 hide-scrollbar">
+                                    {description}
+                                </div>
+                            )}
 
-                            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                                <MapPin className="text-red-500 shrink-0" size={20} />
-                                <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-sm truncate text-gray-900 dark:text-white">{venue || 'Unknown Location'}</p>
+                            {/* Actions */}
+                            <div className="grid grid-cols-2 gap-3 pt-2">
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl font-bold transition-all active:scale-95"
+                                >
+                                    <MapPin size={18} /> Directions
+                                </a>
+
+                                {event?.link ? (
                                     <a
-                                        href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
+                                        href={event.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 mt-0.5"
+                                        className="flex items-center justify-center gap-2 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all active:scale-95"
                                     >
-                                        Open in Maps <ExternalLink size={10} />
+                                        Tickets <ExternalLink size={18} />
                                     </a>
-                                </div>
+                                ) : (
+                                    <button disabled className="flex items-center justify-center gap-2 py-3.5 bg-gray-700/50 text-gray-400 rounded-xl font-bold cursor-not-allowed">
+                                        No Link
+                                    </button>
+                                )}
                             </div>
-                        </div>
 
-                        {/* Description */}
-                        <div>
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                                About Event
-                            </h3>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                {description || 'No description provided.'}
-                            </p>
                         </div>
-
-                        {/* Action Link */}
-                        {event?.link && (
-                            <a
-                                href={event.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 transition-all transform active:scale-95 group"
-                            >
-                                <span>Get Tickets / Info</span>
-                                <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </a>
-                        )}
                     </div>
                 ) : (
                     // --- CREATE MODE (Existing Form) ---
