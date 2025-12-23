@@ -104,12 +104,13 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
             } else if (now >= start && now <= end) {
                 // Live -> Show Event Progress Bar
                 const progress = (elapsed / duration) * 100;
-                const remainingMins = Math.ceil((end.getTime() - now.getTime()) / 60000);
+                const elapsedMins = Math.floor(elapsed / 60000);
+                const totalMins = Math.floor(duration / 60000);
                 setStatus({
                     label: 'Live',
                     color: 'green',
                     progress,
-                    timeText: `${remainingMins}m left`
+                    timeText: `${elapsedMins}m / ${totalMins}m`
                 });
             } else {
                 // Past
@@ -151,26 +152,25 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                             {event.title}
                         </h4>
 
-                        <div className="flex items-center justify-between mt-1.5">
-                            <p className="text-[9px] text-blue-300 font-semibold flex items-center gap-1">
-                                <Navigation size={9} /> {distanceText}
+                        <div className="flex items-center gap-3 mt-1.5">
+                            <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1">
+                                <Navigation size={10} /> {distanceText}
                             </p>
+                            {status.timeText && (
+                                <p className="text-[10px] text-gray-400 font-mono">
+                                    {status.timeText}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {status.timeText && (
-                    <div className={`w-full flex justify-end mt-auto mb-2 text-[10px] font-mono font-bold ${status.color === 'green' ? 'text-green-400' : 'text-gray-400'}`}>
-                        {status.timeText}
-                    </div>
-                )}
-
                 {status.progress !== undefined && (
-                    <div className="absolute bottom-0 left-0 w-full h-1 bg-white/10 overflow-hidden">
+                    <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
                         <div
-                            className={`h-full transition-all duration-1000 ease-out ${status.color === 'green' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]' : 'bg-orange-500'}`}
+                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
                             style={{ width: `${status.progress}%` }}
-                        />
+                        ></div>
                     </div>
                 )}
             </div>
