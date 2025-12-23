@@ -12,5 +12,3 @@ node_modules/
 !package.json
 !targets.json
 !schema.sql
-public/uploads/*
-!public/uploads/.gitkeep
