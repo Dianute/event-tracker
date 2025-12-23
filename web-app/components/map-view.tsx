@@ -448,7 +448,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
         {displayList.slice(0, 20).map(event => (
-          <div key={event.id} className="pointer-events-auto">
+          <div key={event.id} className="pointer-events-auto min-w-[85vw] md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
             <EventCard
               event={event}
               userLocation={userLocation}
