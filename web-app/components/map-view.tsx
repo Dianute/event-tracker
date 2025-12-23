@@ -127,20 +127,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
       map.off("locationfound", onLocation);
       map.stopLocate();
     };
-    return () => {
-      map.off("locationfound", onLocation);
-      map.stopLocate();
-    };
   }, [map, onLocationFound]);
-
-  const buttonRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (buttonRef.current) {
-      L.DomEvent.disableClickPropagation(buttonRef.current);
-      L.DomEvent.disableScrollPropagation(buttonRef.current);
-    }
-  }, [position]);
 
   useMapEvents({
     click(e) {
@@ -158,20 +145,6 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
             <Popup className="custom-popup">You are here</Popup>
           </Marker>
           <Circle center={position} radius={1000} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }} />
-
-          <div ref={buttonRef} className="fixed bottom-24 right-6 z-[1000]">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (position) map.flyTo(position, 15);
-              }}
-              className="bg-black/80 hover:bg-black text-white p-3 rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-sm"
-              title="Go to my location"
-            >
-              <Navigation size={20} className="text-blue-400" fill="currentColor" fillOpacity={0.2} />
-            </button>
-          </div>
         </>
       )}
 
@@ -499,26 +472,38 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         </div>
       )}
 
-      {/* List Toggle (Bottom Right) */}
-      <div className="fixed bottom-24 right-6 z-[1000]">
-        <button
-          onClick={() => setShowList(true)}
-          className="group flex items-center justify-center gap-2 bg-black/80 backdrop-blur-md border border-white/20 text-white pl-4 pr-5 py-3 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95"
-        >
-          <List size={20} />
-          <span className="font-bold text-sm">List</span>
-        </button>
-      </div>
+      {/* Floating Action Stack (Bottom Right) */}
+      <div className="fixed bottom-24 right-4 z-[1000] flex flex-col gap-3 items-end pointer-events-none">
 
-      {/* Add Button */}
-      <div className="fixed bottom-40 right-6 z-[1000]">
+        {/* Add Event */}
         <button
           onClick={onAddEventClick}
-          className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
+          className="pointer-events-auto w-12 h-12 flex items-center justify-center rounded-full shadow-[0_0_20px_rgba(37,99,235,0.5)] border border-blue-400/30 transition-all active:scale-95 backdrop-blur-sm bg-blue-600 hover:bg-blue-500 text-white"
           title="Add New Event"
         >
-          <Plus size={24} className="transition-transform duration-300" />
+          <Plus size={24} />
         </button>
+
+        {/* List View */}
+        <button
+          onClick={() => setShowList(true)}
+          className="pointer-events-auto w-12 h-12 flex items-center justify-center rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-md bg-black/60 hover:bg-black/80 text-white"
+          title="Open List"
+        >
+          <List size={22} />
+        </button>
+
+        {/* My Location */}
+        {userLocation && (
+          <button
+            onClick={() => map && map.flyTo([userLocation.lat, userLocation.lng], 15)}
+            className="pointer-events-auto w-12 h-12 flex items-center justify-center rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-md bg-black/60 hover:bg-black/80 text-blue-400"
+            title="Go to my location"
+          >
+            <Navigation size={20} fill="currentColor" fillOpacity={0.2} />
+          </button>
+        )}
+
       </div>
     </>
   );
