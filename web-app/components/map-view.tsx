@@ -252,7 +252,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     });
 
   const isCyber = mapTheme === 'cyberpunk';
-  const tileUrl = (mapTheme === 'light')
+  const tileUrl = (mapTheme === 'light' || mapTheme === 'cyberpunk')
     ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
