@@ -460,7 +460,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
         {displayList.slice(0, 20).map(event => (
-          <div key={event.id} className="pointer-events-auto min-w-[85vw] h-28 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+          <div key={event.id} className="pointer-events-auto min-w-[85vw] h-24 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
             <EventCard
               event={event}
               userLocation={userLocation}
@@ -479,7 +479,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
         <button
           onClick={() => setShowList(true)}
-          className="pointer-events-auto w-10 h-28 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
+          className="pointer-events-auto w-10 h-24 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
           title="Open List"
         >
           <List size={28} />
