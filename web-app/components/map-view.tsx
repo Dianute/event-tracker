@@ -450,7 +450,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Live Event List (Bottom) */}
-      <div className="fixed bottom-0 left-0 right-0 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
         flex flex-row md:flex-col 
         overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
         snap-x snap-mandatory 
@@ -473,6 +473,18 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             />
           </div>
         ))}
+      </div>
+
+      {/* Mobile List Toggle Button (Right Side) */}
+      <div className="fixed bottom-0 right-0 w-14 h-full md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-4 items-center bg-gradient-to-l from-black/80 to-transparent">
+        <button
+          onClick={() => setShowList(true)}
+          className="pointer-events-auto w-10 h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-l-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-blue-300 hover:text-white"
+          title="Open List"
+        >
+          <span className="text-[10px] font-bold uppercase -rotate-90 whitespace-nowrap tracking-widest">View All</span>
+          <List size={20} />
+        </button>
       </div>
 
       {/* Full List View Overlay */}
