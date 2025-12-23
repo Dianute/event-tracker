@@ -402,7 +402,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                             const parts = [];
                                                             if (data.address.road) parts.push(data.address.road);
                                                             if (data.address.city || data.address.town || data.address.village) parts.push(data.address.city || data.address.town || data.address.village);
-                                                            // if (data.address.postcode) parts.push(data.address.postcode); // User debated ZIP, keeping it clean for now unless requested
+                                                            if (data.address.postcode) parts.push(data.address.postcode);
                                                             if (data.address.country) parts.push(data.address.country);
 
                                                             setVenue(parts.join(', '));
