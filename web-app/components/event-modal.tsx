@@ -179,6 +179,25 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         onClose();
     };
 
+    // THEME STYLES
+    const isCyber = theme === 'cyberpunk';
+    const isLight = theme === 'light';
+
+    const bgClass = isCyber ? 'bg-[#050510] border-cyan-500/50 shadow-[0_0_30px_rgba(34,211,238,0.2)]' : isLight ? 'bg-white border-gray-200' : 'bg-[#121212] border-white/10';
+    const textClass = isCyber ? 'text-cyan-50' : isLight ? 'text-gray-900' : 'text-white';
+    const labelClass = isCyber ? 'text-cyan-400' : isLight ? 'text-gray-500' : 'text-gray-400';
+    const inputClass = isCyber
+        ? 'bg-cyan-950/30 border-cyan-500/30 text-cyan-100 placeholder-cyan-700/50 focus:border-cyan-400 focus:ring-cyan-400/20'
+        : isLight
+            ? 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:bg-white'
+            : 'bg-white/5 border-white/10 text-white placeholder-white/20 focus:border-white/30';
+
+    const buttonPrimaryClass = isCyber
+        ? 'bg-cyan-600 hover:bg-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.5)] border border-cyan-400/50'
+        : isLight
+            ? 'bg-blue-600 hover:bg-blue-500 text-white'
+            : 'bg-white text-black hover:bg-gray-200';
+
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200 overflow-y-auto">
             <div className={`w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border flex flex-col my-auto relative ${bgClass}`}>
