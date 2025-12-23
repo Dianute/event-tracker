@@ -267,8 +267,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     // --- VIEW MODE (Split Layout) ---
                     <div className="flex flex-col h-[85vh] md:h-auto bg-white dark:bg-zinc-900">
 
-                        {/* 1. Image Area (Top 40%) */}
-                        <div className="relative h-[40%] w-full shrink-0 bg-black">
+                        {/* 1. Image Area (Top 55%) */}
+                        <div className="relative h-[55%] w-full shrink-0 bg-black">
                             {imageUrl ? (
                                 <img
                                     src={imageUrl}
@@ -294,8 +294,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             </div>
                         </div>
 
-                        {/* 2. Info Area (Bottom 60% - Scrollable) */}
-                        <div className="h-[60%] flex flex-col p-6 overflow-hidden">
+                        {/* 2. Info Area (Bottom 45% - Scrollable) */}
+                        <div className="h-[45%] flex flex-col p-5 overflow-hidden">
 
                             <div className="overflow-y-auto pr-2 -mr-2 flex-1 space-y-4 hide-scrollbar">
                                 {/* Title */}
