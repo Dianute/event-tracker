@@ -366,6 +366,19 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     setIsSearching(true);
                                 }}
                                 placeholder="Search address or click on map..."
+                                onFocus={() => {
+                                    if (initialLocation) {
+                                        setSuggestions(prev => {
+                                            if (prev.some(s => s.osm_id === 'current-loc')) return prev;
+                                            return [{
+                                                display_name: "📍 Use Current Location",
+                                                lat: String(initialLocation.lat),
+                                                lon: String(initialLocation.lng),
+                                                osm_id: 'current-loc'
+                                            }, ...prev];
+                                        });
+                                    }
+                                }}
                                 className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all pl-10 text-sm text-zinc-900 dark:text-white placeholder-gray-400"
                             />
                             <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
