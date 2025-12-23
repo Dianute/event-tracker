@@ -115,8 +115,9 @@ app.post('/upload', upload.single('image'), async (req, res) => {
         const dir = path.dirname(outputPath);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
-        // Compress: Resize to max 1200px width, Convert to WebP, 80% Quality
+        // Compress: Auto-Rotate (EXIF), Resize to max 1200px width, Convert to WebP, 80% Quality
         await sharp(req.file.buffer)
+            .rotate() // <--- Fixes orientation
             .resize({ width: 1200, withoutEnlargement: true })
             .webp({ quality: 80 })
             .toFile(outputPath);
