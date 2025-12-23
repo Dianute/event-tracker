@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -193,6 +193,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
+  const [showList, setShowList] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -372,6 +373,17 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       <div className="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
+          {/* List Toggle */}
+          <button
+            onClick={() => setShowList(!showList)}
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
+            title="List View"
+          >
+            <List size={20} />
+          </button>
+
+          <div className="w-px h-6 bg-white/20 mx-1"></div>
+
           {/* Search */}
           <div className={`flex items-center transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-64 px-2' : 'w-10 justify-center'}`}>
             {isSearchOpen ? (
@@ -462,6 +474,39 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           </div>
         ))}
       </div>
+
+      {/* Full List View Overlay */}
+      {showList && (
+        <div className="fixed inset-0 z-[900] bg-[#121212] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="max-w-md mx-auto space-y-3">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">All Events ({displayList.length})</h2>
+              <button onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')} className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-1 rounded-full uppercase">
+                Sorted by {sortBy}
+              </button>
+            </div>
+
+            {displayList.map(event => (
+              <div key={event.id} className="w-full">
+                <EventCard
+                  event={event}
+                  userLocation={userLocation}
+                  variant="standard"
+                  onClick={() => {
+                    setShowList(false);
+                    if (map) map.flyTo([event.lat, event.lng], 16);
+                    if (onEventSelect) onEventSelect(event);
+                  }}
+                />
+              </div>
+            ))}
+
+            {displayList.length === 0 && (
+              <div className="text-center text-gray-500 mt-20">No events found matching your filters.</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Add Button */}
       <div className="fixed bottom-40 right-6 z-[1000]">
