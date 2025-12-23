@@ -476,14 +476,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Mobile List Toggle Button (Right Side) */}
-      <div className="fixed bottom-0 right-0 w-14 h-full md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-4 items-center bg-gradient-to-l from-black/80 to-transparent">
+      {/* Mobile List Toggle Button (Right Side) */}
+      <div className="fixed bottom-0 right-0 w-14 h-full md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-4 items-center">
         <button
           onClick={() => setShowList(true)}
-          className="pointer-events-auto w-10 h-24 bg-white/10 backdrop-blur-md border border-white/20 rounded-l-xl flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-blue-300 hover:text-white"
+          className="pointer-events-auto w-10 h-24 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
           title="Open List"
         >
-          <span className="text-[10px] font-bold uppercase -rotate-90 whitespace-nowrap tracking-widest">View All</span>
-          <List size={20} />
+          <List size={28} />
         </button>
       </div>
 
