@@ -63,8 +63,6 @@ interface MapViewProps {
   onRefresh?: () => void;
   onAddEventClick?: () => void;
   onEventSelect?: (event: Event) => void;
-  theme: 'dark' | 'light' | 'cyberpunk';
-  onThemeChange: (theme: 'dark' | 'light' | 'cyberpunk') => void;
 }
 
 // ... (keep helpers)
@@ -193,7 +191,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [map, setMap] = useState<L.Map | null>(null);
-  // const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark'); // MOVED TO PARENT
+  // Theme state lifted to parent
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
   const [showList, setShowList] = useState(false);
 
