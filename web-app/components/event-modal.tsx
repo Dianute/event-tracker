@@ -247,120 +247,110 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         )}
                     </div>
-                ) : null}
+                ) : imageUrl && (
+                    // View Mode: Display Image (Instagram/Story Style)
+                    <div className="relative w-full bg-black shrink-0 group overflow-hidden">
+                        {/* Blurred Background for Fill */}
+                        <div
+                            className="absolute inset-0 opacity-50 blur-2xl scale-110 transition-opacity duration-700"
+                            style={{
+                                backgroundImage: `url(${imageUrl})`,
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center'
+                            }}
+                        />
 
-
-                {!isReadOnly && (
-                    <div className="flex items-start justify-between p-6 pb-2">
-                        <div className="flex-1 pr-4">
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
-                                Create New Event
-                            </h2>
+                        {/* Main Image - Contain to show full content */}
+                        <div className="relative w-full min-h-[300px] max-h-[60vh] flex items-center justify-center bg-transparent backdrop-blur-sm/20">
+                            <img
+                                src={imageUrl}
+                                alt={title}
+                                className="w-auto h-auto max-w-full max-h-[60vh] object-contain shadow-2xl drop-shadow-2xl"
+                            />
                         </div>
-                        <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
-                            <X size={24} />
-                        </button>
+
+                        {/* Expand Button (Optional, visual cue) */}
+                        <div className="absolute bottom-2 right-2 bg-black/40 backdrop-blur-md p-1.5 rounded-full text-white/70 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ImageIcon size={14} />
+                        </div>
                     </div>
                 )}
 
+
+                <div className="flex items-start justify-between p-6 pb-2">
+                    <div className="flex-1 pr-4">
+                        {isReadOnly && (
+                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 border bg-opacity-10
+                                ${type === 'music' ? 'text-pink-600 bg-pink-100 border-pink-200 dark:text-pink-400 dark:bg-pink-500/10 dark:border-pink-500/20' :
+                                    type === 'food' ? 'text-orange-600 bg-orange-100 border-orange-200 dark:text-orange-400 dark:bg-orange-500/10 dark:border-orange-500/20' :
+                                        type === 'sports' ? 'text-green-600 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/10 dark:border-green-500/20' :
+                                            'text-blue-600 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20'}`}>
+                                <Tag size={10} /> {type}
+                            </div>
+                        )}
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                            {isReadOnly ? title : 'Create New Event'}
+                        </h2>
+                    </div>
+                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
+                        <X size={24} />
+                    </button>
+                </div>
+
                 {isReadOnly ? (
-                    // --- VIEW MODE (Split Layout) ---
-                    <div className="flex flex-col h-[85vh] md:h-auto bg-white dark:bg-zinc-900">
+                    // --- VIEW MODE ---
+                    <div className="p-6 pt-2 overflow-y-auto space-y-6">
 
-                        {/* 1. Image Area (Top 55%) */}
-                        <div className="relative h-[55%] w-full shrink-0 bg-black">
-                            {imageUrl ? (
-                                <img
-                                    src={imageUrl}
-                                    alt={title}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-blue-900 via-purple-900 to-black flex items-center justify-center">
-                                    <span className="text-4xl">✨</span>
+                        {/* Time & Location */}
+                        <div className="space-y-3 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
+                            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+                                <Calendar className="text-blue-500 shrink-0" size={20} />
+                                <div>
+                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">Date & Time</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRange(startTime, endTime)}</p>
                                 </div>
-                            )}
-
-                            {/* Close Button (Absolute) */}
-                            <button
-                                onClick={onClose}
-                                className="absolute top-4 right-4 z-50 p-2 bg-black/50 text-white rounded-full hover:bg-black/70 backdrop-blur border border-white/10"
-                            >
-                                <X size={20} />
-                            </button>
-
-                            <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 text-xs font-bold uppercase tracking-widest text-white shadow-lg">
-                                {type}
-                            </div>
-                        </div>
-
-                        {/* 2. Info Area (Bottom 45% - Scrollable) */}
-                        <div className="h-[45%] flex flex-col p-5 overflow-hidden">
-
-                            <div className="overflow-y-auto pr-2 -mr-2 flex-1 space-y-4 hide-scrollbar">
-                                {/* Title */}
-                                <h2 className="text-2xl font-black leading-tight text-gray-900 dark:text-white mb-4">
-                                    {title}
-                                </h2>
-
-                                {/* Meta Grid */}
-                                <div className="grid grid-cols-1 gap-3">
-                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                        <Clock className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                                        <div>
-                                            <p className="text-xs font-bold uppercase text-gray-400">When</p>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{formatDateRange(startTime, endTime)}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                                        <MapPin className="text-red-500 shrink-0 mt-0.5" size={18} />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold uppercase text-gray-400">Where</p>
-                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{venue || 'Unknown Location'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Description */}
-                                {description && (
-                                    <div className="pt-2">
-                                        <h3 className="text-xs font-bold uppercase text-gray-500 mb-2">About</h3>
-                                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                            {description}
-                                        </p>
-                                    </div>
-                                )}
                             </div>
 
-                            {/* Sticky Actions */}
-                            <div className="grid grid-cols-2 gap-3 pt-4 mt-auto border-t border-gray-100 dark:border-white/5">
-                                <a
-                                    href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-900 dark:text-white rounded-xl font-bold transition-all active:scale-95"
-                                >
-                                    <MapPin size={18} /> Directions
-                                </a>
+                            <div className="w-full h-px bg-gray-200 dark:bg-white/10"></div>
 
-                                {event?.link ? (
+                            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+                                <MapPin className="text-red-500 shrink-0" size={20} />
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-semibold text-sm truncate text-gray-900 dark:text-white">{venue || 'Unknown Location'}</p>
                                     <a
-                                        href={event.link}
+                                        href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 mt-0.5"
                                     >
-                                        Tickets <ExternalLink size={18} />
+                                        Open in Maps <ExternalLink size={10} />
                                     </a>
-                                ) : (
-                                    <button disabled className="flex items-center justify-center gap-2 py-3 bg-gray-100 dark:bg-white/5 text-gray-400 rounded-xl font-bold cursor-not-allowed">
-                                        No Link
-                                    </button>
-                                )}
+                                </div>
                             </div>
-
                         </div>
+
+                        {/* Description */}
+                        <div>
+                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                                About Event
+                            </h3>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                {description || 'No description provided.'}
+                            </p>
+                        </div>
+
+                        {/* Action Link */}
+                        {event?.link && (
+                            <a
+                                href={event.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 transition-all transform active:scale-95 group"
+                            >
+                                <span>Get Tickets / Info</span>
+                                <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
+                            </a>
+                        )}
                     </div>
                 ) : (
                     // --- CREATE MODE (Existing Form) ---

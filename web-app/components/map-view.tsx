@@ -373,16 +373,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       <div className="fixed top-4 left-0 right-0 z-[1000] flex justify-center px-4 pointer-events-none">
         <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
-          {/* List Toggle */}
-          <button
-            onClick={() => setShowList(!showList)}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
-            title="List View"
-          >
-            <List size={20} />
-          </button>
 
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
 
           {/* Search */}
           <div className={`flex items-center transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-64 px-2' : 'w-10 justify-center'}`}>
@@ -508,22 +499,25 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         </div>
       )}
 
+      {/* List Toggle (Bottom Right) */}
+      <div className="fixed bottom-24 right-6 z-[1000]">
+        <button
+          onClick={() => setShowList(true)}
+          className="group flex items-center justify-center gap-2 bg-black/80 backdrop-blur-md border border-white/20 text-white pl-4 pr-5 py-3 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95"
+        >
+          <List size={20} />
+          <span className="font-bold text-sm">List</span>
+        </button>
+      </div>
+
       {/* Add Button */}
-      <div className="fixed bottom-40 right-6 z-[1000] flex flex-col gap-4">
+      <div className="fixed bottom-40 right-6 z-[1000]">
         <button
           onClick={onAddEventClick}
           className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
           title="Add New Event"
         >
           <Plus size={24} className="transition-transform duration-300" />
-        </button>
-
-        <button
-          onClick={() => setShowList(!showList)}
-          className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-white/10 hover:bg-white/20 text-white"
-          title="Toggle List View"
-        >
-          {showList ? <X size={24} /> : <List size={24} />}
         </button>
       </div>
     </>
