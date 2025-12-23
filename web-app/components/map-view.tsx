@@ -63,6 +63,8 @@ interface MapViewProps {
   onRefresh?: () => void;
   onAddEventClick?: () => void;
   onEventSelect?: (event: Event) => void;
+  theme: 'dark' | 'light' | 'cyberpunk';
+  onThemeChange: (theme: 'dark' | 'light' | 'cyberpunk') => void;
 }
 
 // ... (keep helpers)
@@ -184,14 +186,14 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, theme: mapTheme, onThemeChange }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
   const [map, setMap] = useState<L.Map | null>(null);
-  const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
+  // const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark'); // MOVED TO PARENT
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
   const [showList, setShowList] = useState(false);
 
@@ -413,7 +415,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* Theme */}
           <button
-            onClick={() => setMapTheme(prev => prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark')}
+            onClick={() => onThemeChange(mapTheme === 'dark' ? 'cyberpunk' : mapTheme === 'cyberpunk' ? 'light' : 'dark')}
             className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${isCyber ? 'text-pink-400 bg-pink-500/10' : 'text-gray-300 hover:bg-white/10'}`}
             title="Toggle Theme"
           >
