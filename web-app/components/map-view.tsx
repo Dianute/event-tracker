@@ -252,8 +252,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       }
     });
 
+  const handleThemeChange = () => {
+    setMapTheme(prev => {
+      const next = prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark';
+      if (onThemeChange) onThemeChange(next);
+      return next;
+    });
+  };
+
   const isCyber = mapTheme === 'cyberpunk';
-  const tileUrl = (mapTheme === 'light' || mapTheme === 'cyberpunk')
+  const tileUrl = mapTheme === 'light'
     ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
@@ -414,7 +422,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* Theme */}
           <button
-            onClick={() => setMapTheme(prev => prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark')}
+            onClick={handleThemeChange}
             className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${isCyber ? 'text-pink-400 bg-pink-500/10' : 'text-gray-300 hover:bg-white/10'}`}
             title="Toggle Theme"
           >
