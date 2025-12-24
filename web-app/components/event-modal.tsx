@@ -379,7 +379,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             }, ...prev];
                                         });
                                     }
-                                }
+                                }}
                                 className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm
                                     ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
                                         theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
