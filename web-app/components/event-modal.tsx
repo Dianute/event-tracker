@@ -181,12 +181,18 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className="w-full max-w-md bg-white dark:bg-[#121212] rounded-3xl shadow-2xl overflow-hidden border border-zinc-200 dark:border-white/10 flex flex-col max-h-[90vh]">
+            <div className={`w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border flex flex-col max-h-[90vh] transition-colors duration-300
+                ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30 shadow-[0_0_30px_rgba(34,211,238,0.15)] text-cyan-50' :
+                    theme === 'light' ? 'bg-white border-gray-200 text-gray-900' :
+                        'bg-zinc-900 border-white/10 text-white'}`}>
 
                 {/* Header Image or Upload Area */}
                 {!isReadOnly ? (
                     // Create Mode: Upload Area
-                    <div className="relative w-full h-40 bg-gray-100 dark:bg-white/5 border-b border-gray-200 dark:border-white/10 flex items-center justify-center overflow-hidden shrink-0 group cursor-pointer transition-colors hover:bg-gray-200 dark:hover:bg-white/10">
+                    <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 group cursor-pointer transition-colors
+                        ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/20 hover:bg-cyan-900/30' :
+                            theme === 'light' ? 'bg-gray-100 border-gray-200 hover:bg-gray-200' :
+                                'bg-zinc-800/50 border-white/10 hover:bg-white/5'}`}>
                         {imageUrl ? (
                             <>
                                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -451,7 +457,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 value={title}
                                 placeholder="Event Title"
                                 onChange={(e) => setTitle(e.target.value)}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-medium text-zinc-900 dark:text-white placeholder-gray-400"
+                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-medium
+                                    ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
+                                        theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
+                                            'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500'}`}
                             />
                         </div>
 
@@ -462,7 +471,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 placeholder="Describe the event..."
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={3}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm resize-none text-zinc-900 dark:text-white placeholder-gray-400"
+                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm resize-none
+                                    ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
+                                        theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
+                                            'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500'}`}
                             />
                         </div>
 
@@ -475,7 +487,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         required
                                         value={startTime}
                                         onChange={(e) => setStartTime(e.target.value)}
-                                        className="w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-xs text-zinc-900 dark:text-white"
+                                        className={`w-full px-3 py-3 rounded-xl border outline-none transition-all text-xs
+                                            ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50' :
+                                                theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500' :
+                                                    'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500'}`}
                                     />
                                 </div>
                             </div>
@@ -487,7 +502,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         required
                                         value={endTime}
                                         onChange={(e) => setEndTime(e.target.value)}
-                                        className="w-full px-3 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-xs text-zinc-900 dark:text-white"
+                                        className={`w-full px-3 py-3 rounded-xl border outline-none transition-all text-xs
+                                            ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50' :
+                                                theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500' :
+                                                    'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500'}`}
                                     />
                                 </div>
                             </div>
@@ -510,9 +528,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         onClick={() => setType(cat.id)}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all
                                             ${type === cat.id
-                                                ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20 transform scale-105'
-                                                : 'bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/10 hover:border-gray-300 dark:hover:border-white/20'
-                                            }`}
+                                                ? (theme === 'cyberpunk' ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20')
+                                                : (theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-400 hover:bg-cyan-900/40' :
+                                                    theme === 'light' ? 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50' :
+                                                        'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10')
+                                            } transform ${type === cat.id ? 'scale-105' : ''}`}
                                     >
                                         <span className="text-sm">{cat.emoji}</span>
                                         <span>{cat.label}</span>
@@ -523,7 +543,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <button
                             type="submit"
-                            className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 transition-all transform hover:scale-[1.01] active:scale-[0.98] mt-2"
+                            className={`w-full py-4 font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.98] mt-2
+                                ${theme === 'cyberpunk' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20' :
+                                    'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'}`}
                         >
                             Create Event
                         </button>
