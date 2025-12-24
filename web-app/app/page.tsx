@@ -130,6 +130,7 @@ export default function Home() {
           onRefresh={fetchEvents}
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
+          onThemeChange={setCurrentTheme}
         />
       </div>
 
@@ -140,14 +141,14 @@ export default function Home() {
         </div>
       </div>
 
-
-
       <EventModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onSubmit={handleAddEvent}
         initialLocation={selectedLocation}
         event={selectedEvent}
+        theme={currentTheme}
+      />
       />
     </main>
   );

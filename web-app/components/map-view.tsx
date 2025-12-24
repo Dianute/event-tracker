@@ -63,6 +63,7 @@ interface MapViewProps {
   onRefresh?: () => void;
   onAddEventClick?: (location?: { lat: number; lng: number }) => void;
   onEventSelect?: (event: Event) => void;
+  onThemeChange?: (theme: 'dark' | 'light' | 'cyberpunk') => void;
 }
 
 // ... (keep helpers)
