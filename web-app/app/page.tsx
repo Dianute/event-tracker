@@ -149,7 +149,7 @@ export default function Home() {
         event={selectedEvent}
         theme={currentTheme}
       />
-      />
+
     </main>
   );
 }
