@@ -184,7 +184,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');

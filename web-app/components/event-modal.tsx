@@ -9,6 +9,7 @@ interface EventModalProps {
     onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
     initialLocation: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing
+    theme?: 'dark' | 'light' | 'cyberpunk';
 }
 
 // Custom helper to format date range
@@ -46,7 +47,7 @@ const toLocalISOString = (dateStr: string) => {
     return local.toISOString().slice(0, 16);
 };
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event, theme = 'dark' }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -378,17 +379,26 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             }, ...prev];
                                         });
                                     }
-                                }}
-                                className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 focus:ring-2 focus:ring-blue-500 outline-none transition-all pl-10 text-sm text-zinc-900 dark:text-white placeholder-gray-400"
+                                }
+                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm
+                                    ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
+                                        theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
+                                            'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500'}`}
                             />
                             <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
 
                             {suggestions.length > 0 && (
-                                <div className="absolute z-10 w-full mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                                <div className={`absolute z-10 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto
+                                    ${theme === 'cyberpunk' ? 'bg-[#0a0a15] border-cyan-500/30' :
+                                        theme === 'light' ? 'bg-white border-zinc-200' :
+                                            'bg-zinc-800 border-zinc-700'}`}>
                                     {suggestions.map((item, i) => (
                                         <div
                                             key={i}
-                                            className="p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer text-sm truncate flex items-center gap-2 text-gray-700 dark:text-gray-200"
+                                            className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors
+                                                ${theme === 'cyberpunk' ? 'hover:bg-cyan-900/30 text-cyan-200' :
+                                                    theme === 'light' ? 'hover:bg-zinc-100 text-gray-700' :
+                                                        'hover:bg-zinc-700 text-gray-200'}`}
                                             onClick={async () => {
                                                 if (item.osm_id === 'current-loc') {
                                                     // "Use My Location" - Fetch actual address with details

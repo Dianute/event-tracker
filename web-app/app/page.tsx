@@ -47,6 +47,8 @@ export default function Home() {
       .catch(err => console.error("Failed to fetch events:", err));
   };
 
+  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
+
   useEffect(() => {
     fetchEvents();
     // Poll for updates every 60 seconds (to catch deleted events)
