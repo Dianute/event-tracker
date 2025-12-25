@@ -521,22 +521,64 @@ hide - scrollbar pointer - events - none bg - gradient - to - t from - black / 8
         )}
       </div>
     </div>
-  )
-}
-
-{/* Add Button */ }
-<div className="fixed bottom-40 right-6 z-[1000]">
-  <button
-    onClick={() => {
-      const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
-      if (onAddEventClick) onAddEventClick(loc);
-    }}
-    className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
-    title="Add New Event"
+      {/* Cluster Drawer (Bottom Sheet) */ }
+  <div className={`fixed bottom-0 left-0 right-0 z-[2000] p-4 rounded-t-3xl transition-transform duration-300 transform 
+          ${selectedCluster ? 'translate-y-0' : 'translate-y-full'}
+          ${mapTheme === 'cyberpunk' ? 'bg-slate-900 border-t border-cyan-500/50 shadow-[0_0_30px_rgba(0,0,0,0.8)]' :
+      mapTheme === 'light' ? 'bg-white border-t border-gray-200 shadow-2xl' :
+        'bg-gray-900 border-t border-gray-800 shadow-2xl'}`}
+    style={{ maxHeight: '60vh' }}
   >
-    <Plus size={24} className="transition-transform duration-300" />
-  </button>
-</div>
+    {selectedCluster && (
+      <div className="flex flex-col h-full max-h-[55vh]">
+        {/* Handle Bar */}
+        <div className="w-12 h-1.5 bg-gray-400/30 rounded-full self-center mb-4 shrink-0"></div>
+
+        <div className="flex justify-between items-center mb-4 shrink-0">
+          <h3 className={`font-bold text-lg ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+            {selectedCluster.length} Events Here
+          </h3>
+          <button
+            onClick={() => setSelectedCluster(null)}
+            className="p-2 bg-gray-500/20 rounded-full hover:bg-gray-500/30"
+          >
+            <X size={20} className={` ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`} />
+          </button>
+        </div>
+
+        {/* Scrollable List */}
+        <div className="overflow-y-auto space-y-3 pb-safe px-1">
+          {selectedCluster.map(evt => (
+            <div key={evt.id} className="w-full">
+              <EventCard
+                event={evt}
+                userLocation={userLocation}
+                variant="compact"
+                onClick={() => {
+                  if (onEventSelect) onEventSelect(evt);
+                  setSelectedCluster(null);
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+
+  {/* Add Button */ }
+  <div className="fixed bottom-40 right-6 z-[1000]">
+    <button
+      onClick={() => {
+        const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
+        if (onAddEventClick) onAddEventClick(loc);
+      }}
+      className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
+      title="Add New Event"
+    >
+      <Plus size={24} className="transition-transform duration-300" />
+    </button>
+  </div>
           </>
         );
-      }
+}
