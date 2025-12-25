@@ -249,220 +249,225 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
         const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
         return distA - distB;
-      }
-    });
+        const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
 
-  const handleThemeChange = () => {
-    setMapTheme(prev => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      if (onThemeChange) onThemeChange(next);
-      return next;
-    });
-  };
-
-  const isCyber = mapTheme === 'cyberpunk';
-  const tileUrl = mapTheme === 'light'
-    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
-
-  return (
-    <>
-      <MapContainer
-        center={[54.8985, 23.9036]}
-        zoom={13}
-        scrollWheelZoom={true}
-        zoomControl={false}
-        className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
-        ref={setMap}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={tileUrl}
-          className={isCyber ? 'cyberpunk-tiles' : ''}
-        />
-
-        {Array.from(groupedEvents.entries()).map(([key, group]) => {
-          const event = group[0];
-          const isCluster = group.length > 1;
-          const isPast = event.endTime && new Date(event.endTime) < now;
-          const opacity = isPast ? 0.3 : 1;
-          const grayscale = isPast ? 'grayscale(100%)' : 'none';
-
-          const location = event.venue || (event.description ? event.description.split('\n')[0] : '');
-          let displayDate = event.date || '';
-          if (event.startTime) {
-            const start = new Date(event.startTime);
-            displayDate = `${start.toLocaleDateString([], { month: 'short', day: 'numeric' })} • ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        useEffect(() => {
+          if (map) {
+            map.on('click', () => {
+              setSelectedCluster(null);
+            });
           }
-          const link = event.link || (event.description && event.description.split('\n')[2]?.startsWith('http') ? event.description.split('\n')[2] : '');
+        }, [map]);
 
-          const markerIcon = isCluster ? L.divIcon({
-            className: 'cluster-marker',
-            html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
-            iconSize: [48, 48]
-          }) : getEventIcon(event.type, false, !!isPast);
 
-          return (
-            <Marker
-              key={key}
-              position={[event.lat, event.lng]}
-              icon={markerIcon}
-              opacity={opacity}
-              eventHandlers={{
-                click: () => {
-                  if (isCluster && map) {
-                    map.flyTo([event.lat, event.lng], 16);
-                  } else if (!isCluster && onEventSelect) {
-                    onEventSelect(event);
-                  }
-                }
-              }}
+        // Calculate center of cluster for "focus" effect (optional, or just pan to first event)
+        const handleClusterClick = (group: Event[]) => {
+          setSelectedCluster(group);
+          if (map && group.length > 0) {
+            map.flyTo([group[0].lat, group[0].lng], 16, { animate: true, duration: 0.8 });
+          }
+        };
+
+        const isCyber = mapTheme === 'cyberpunk';
+        const tileUrl = mapTheme === 'light'
+          ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+
+        return (
+          <>
+            <MapContainer
+              center={[54.8985, 23.9036]}
+              zoom={13}
+              scrollWheelZoom={true}
+              zoomControl={false}
+              className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
+              ref={setMap}
             >
-              {isCluster && (
-                <Popup className="custom-popup">
-                  <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
-                    {group.map((evt, i) => (
-                      <div
-                        key={evt.id}
-                        className={`${i > 0 ? 'mt-4 pt-4 border-t border-gray-600' : ''} cursor-pointer hover:bg-white/5 p-2 rounded transition-colors`}
-                        onClick={(e) => {
-                          e.stopPropagation();
+              <TileLayer
+                attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                url={tileUrl}
+                className={isCyber ? 'cyberpunk-tiles' : ''}
+              />
+
+              {Array.from(groupedEvents.entries()).map(([key, group]) => {
+                const event = group[0];
+                const isCluster = group.length > 1;
+                const isPast = event.endTime && new Date(event.endTime) < now;
+                const opacity = isPast ? 0.3 : 1;
+
+                // Cluster Marker Logic
+                const markerIcon = isCluster ? L.divIcon({
+                  className: 'cluster-marker',
+                  html: `<div class="flex items-center justify-center w-12 h-12 rounded-full shadow-lg border-2 font-bold text-lg transition-transform hover:scale-110 ${isCyber ? 'bg-slate-900 text-cyan-400 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-blue-600 text-white border-white'}">${group.length}</div>`,
+                  iconSize: [48, 48]
+                }) : getEventIcon(event.type, false, !!isPast);
+
+                return (
+                  <Marker
+                    key={key}
+                    position={[event.lat, event.lng]}
+                    icon={markerIcon}
+                    opacity={opacity}
+                    eventHandlers={{
+                      click: () => {
+                        if (isCluster) {
+                          handleClusterClick(group);
+                        } else if (onEventSelect) {
+                          onEventSelect(event);
+                        }
+                      }
+                    }}
+                  >
+                    {/* No Popup for clusters anymore - we use the drawer */}
+                  </Marker>
+                );
+              })}
+
+              <LocationMarker
+                onMapClick={onMapClick}
+                newLocation={newLocation || null}
+                onLocationFound={setUserLocation}
+              />
+            </MapContainer>
+
+
+            {/* Cluster Drawer (Bottom Sheet) */}
+            <div className={`fixed bottom-0 left-0 right-0 z-[2000] p-4 rounded-t-3xl transition-transform duration-300 transform 
+          ${selectedCluster ? 'translate-y-0' : 'translate-y-full'}
+          ${isCyber ? 'bg-slate-900 border-t border-cyan-500/50 shadow-[0_0_30px_rgba(0,0,0,0.8)]' :
+                mapTheme === 'light' ? 'bg-white border-t border-gray-200 shadow-2xl' :
+                  'bg-gray-900 border-t border-gray-800 shadow-2xl'}`}
+              style={{ maxHeight: '60vh' }}
+            >
+              {selectedCluster && (
+                <div className="flex flex-col h-full max-h-[55vh]">
+                  {/* Handle Bar */}
+                  <div className="w-12 h-1.5 bg-gray-400/30 rounded-full self-center mb-4 shrink-0"></div>
+
+                  <div className="flex justify-between items-center mb-4 shrink-0">
+                    <h3 className={`font-bold text-lg ${mapTheme === 'preview-light' ? 'text-gray-900' : 'text-white'}`}>
+                      {selectedCluster.length} Events Here
+                    </h3>
+                    <button
+                      onClick={() => setSelectedCluster(null)}
+                      className="p-2 bg-gray-500/20 rounded-full hover:bg-gray-500/30"
+                    >
+                      <X size={20} className="text-white" />
+                    </button>
+                  </div>
+
+                  {/* Scrollable List */}
+                  <div className="overflow-y-auto space-y-3 pb-safe">
+                    {selectedCluster.map(evt => (
+                      <div key={evt.id} /* Reusing EventCard logic inline or simplified for drawer */
+                        onClick={() => {
                           if (onEventSelect) onEventSelect(evt);
+                          setSelectedCluster(null);
                         }}
+                        className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-colors
+                                   ${isCyber ? 'bg-slate-800/50 border-cyan-500/20 hover:bg-slate-800' :
+                            mapTheme === 'light' ? 'bg-gray-50 border-gray-200 hover:bg-gray-100' :
+                              'bg-gray-800/50 border-gray-700 hover:bg-gray-800'}`}
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type, false, evt.endTime ? new Date(evt.endTime) < now : false).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
+                        <div className="text-2xl">{getEmoji(evt.type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className={`font-bold text-sm truncate ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>{evt.title}</h4>
+                          <div className="flex gap-2 text-xs opacity-70 mt-1">
+                            <span>{new Date(evt.startTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span>•</span>
+                            <span className="capitalize">{evt.type}</span>
                           </div>
                         </div>
-
-                        <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{evt.title}</h3>
-
-                        {displayDate && <div className="text-xs text-gray-300 mb-2">📅 {displayDate}</div>}
-
-                        <div className="flex gap-2 mt-2">
-                          {(evt.link || link) && (
-                            <a
-                              href={evt.link || link}
-                              target="_blank"
-                              onClick={e => e.stopPropagation()}
-                              className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-500"
-                            >
-                              Tickets
-                            </a>
-                          )}
-
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${evt.lat},${evt.lng}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={e => e.stopPropagation()}
-                            className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
-                            title="Open in Google Maps"
-                          >
-                            🗺️
-                          </a>
-                        </div>
+                        <ChevronRight size={16} className="opacity-50" />
                       </div>
                     ))}
                   </div>
-                </Popup>
+                </div>
               )}
-            </Marker>
-          );
-        })}
+            </div>
 
-        <LocationMarker
-          onMapClick={onMapClick}
-          newLocation={newLocation || null}
-          onLocationFound={setUserLocation}
-        />
-      </MapContainer>
+            {/* Top Controls */}
+            <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none">
+              <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
+                {/* List Toggle */}
+                <button
+                  onClick={() => setShowList(!showList)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
+                  title="List View"
+                >
+                  <List size={20} />
+                </button>
 
-      {/* Top Controls */}
-      <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
+                <div className="w-px h-6 bg-white/20 mx-1"></div>
 
-          {/* List Toggle */}
-          <button
-            onClick={() => setShowList(!showList)}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
-            title="List View"
-          >
-            <List size={20} />
-          </button>
+                {/* Search */}
+                <div className={`flex items-center transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-64 px-2' : 'w-10 justify-center'}`}>
+                  {isSearchOpen ? (
+                    <div className="flex items-center w-full">
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Search events..."
+                        className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onBlur={() => !searchQuery && setIsSearchOpen(false)}
+                      />
+                      {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white ml-1">×</button>}
+                    </div>
+                  ) : (
+                    <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
+                      <SearchIcon size={20} />
+                    </button>
+                  )}
+                </div>
 
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
+                <div className="w-px h-6 bg-white/20 mx-1"></div>
 
-          {/* Search */}
-          <div className={`flex items-center transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-64 px-2' : 'w-10 justify-center'}`}>
-            {isSearchOpen ? (
-              <div className="flex items-center w-full">
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Search events..."
-                  className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onBlur={() => !searchQuery && setIsSearchOpen(false)}
-                />
-                {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white ml-1">×</button>}
+                {/* Theme */}
+                <button
+                  onClick={handleThemeChange}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:bg-white/10`}
+                  title="Toggle Theme"
+                >
+                  {mapTheme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                </button>
+
+                <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+                {/* Sort */}
+                <button
+                  onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${sortBy === 'time' ? 'text-blue-400 bg-blue-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+                  title={sortBy === 'time' ? 'Sorted by Time' : 'Sorted by Distance'}
+                >
+                  {sortBy === 'time' ? '⏱️' : '📍'}
+                </button>
+
+                {/* Live */}
+                <button
+                  onClick={() => setShowHappeningNow(!showHappeningNow)}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${showHappeningNow ? 'text-green-400 bg-green-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+                  title="Toggle Live Events"
+                >
+                  {showHappeningNow ? '🟢' : '⚪'}
+                </button>
+
+                {/* Refresh */}
+                <button
+                  onClick={onRefresh}
+                  className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10`}
+                  title="Refresh Events"
+                >
+                  <RotateCw size={16} />
+                </button>
+
               </div>
-            ) : (
-              <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
-                <SearchIcon size={20} />
-              </button>
-            )}
-          </div>
+            </div>
 
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
-
-          {/* Theme */}
-          <button
-            onClick={handleThemeChange}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:bg-white/10`}
-            title="Toggle Theme"
-          >
-            {mapTheme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
-
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
-
-          {/* Sort */}
-          <button
-            onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${sortBy === 'time' ? 'text-blue-400 bg-blue-500/10' : 'text-gray-300 hover:bg-white/10'}`}
-            title={sortBy === 'time' ? 'Sorted by Time' : 'Sorted by Distance'}
-          >
-            {sortBy === 'time' ? '⏱️' : '📍'}
-          </button>
-
-          {/* Live */}
-          <button
-            onClick={() => setShowHappeningNow(!showHappeningNow)}
-            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${showHappeningNow ? 'text-green-400 bg-green-500/10' : 'text-gray-300 hover:bg-white/10'}`}
-            title="Toggle Live Events"
-          >
-            {showHappeningNow ? '🟢' : '⚪'}
-          </button>
-
-          {/* Refresh */}
-          <button
-            onClick={onRefresh}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10`}
-            title="Refresh Events"
-          >
-            <RotateCw size={16} />
-          </button>
-
-        </div>
-      </div>
-
-      {/* Live Event List (Bottom) */}
-      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+            {/* Live Event List (Bottom) */}
+            <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
         flex flex-row md:flex-col 
         overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
         snap-x snap-mandatory 
@@ -471,99 +476,99 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         py-3 md:py-0
         max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
-        {displayList.slice(0, 20).map(event => (
-          <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
-            <EventCard
-              event={event}
-              userLocation={userLocation}
-              onClick={() => {
-                if (map) {
-                  map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
-                }
-                if (onEventSelect) onEventSelect(event);
-              }}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* Mobile List Toggle Button (Right Side) */}
-      <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
-        <button
-          onClick={() => setShowList(true)}
-          className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
-          title="Open List"
-        >
-          <List size={24} />
-        </button>
-      </div>
-
-      {/* Full List View Overlay */}
-      {showList && (
-        <div className={`fixed inset-0 z-[2000] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
-          ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
-          <div className="max-w-md mx-auto space-y-3">
-            <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
-               ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
-
-              <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                All Events ({displayList.length})
-              </h2>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
-                      ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
-                      mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                        'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
-                >
-                  {sortBy === 'time' ? 'Time' : 'Dist'}
-                </button>
-                <button
-                  onClick={() => setShowList(false)}
-                  className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                >
-                  <Plus size={24} className="rotate-45" />
-                </button>
-              </div>
+              {displayList.slice(0, 20).map(event => (
+                <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+                  <EventCard
+                    event={event}
+                    userLocation={userLocation}
+                    onClick={() => {
+                      if (map) {
+                        map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                      }
+                      if (onEventSelect) onEventSelect(event);
+                    }}
+                  />
+                </div>
+              ))}
             </div>
 
-            {displayList.map(event => (
-              <div key={event.id} className="w-full">
-                <EventCard
-                  event={event}
-                  userLocation={userLocation}
-                  variant="standard"
-                  onClick={() => {
-                    setShowList(false);
-                    if (map) map.flyTo([event.lat, event.lng], 16);
-                    if (onEventSelect) onEventSelect(event);
-                  }}
-                />
+            {/* Mobile List Toggle Button (Right Side) */}
+            <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
+              <button
+                onClick={() => setShowList(true)}
+                className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
+                title="Open List"
+              >
+                <List size={24} />
+              </button>
+            </div>
+
+            {/* Full List View Overlay */}
+            {showList && (
+              <div className={`fixed inset-0 z-[2000] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
+          ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
+                <div className="max-w-md mx-auto space-y-3">
+                  <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
+               ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
+
+                    <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                      All Events ({displayList.length})
+                    </h2>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
+                      ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
+                            mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
+                              'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
+                      >
+                        {sortBy === 'time' ? 'Time' : 'Dist'}
+                      </button>
+                      <button
+                        onClick={() => setShowList(false)}
+                        className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                      >
+                        <Plus size={24} className="rotate-45" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {displayList.map(event => (
+                    <div key={event.id} className="w-full">
+                      <EventCard
+                        event={event}
+                        userLocation={userLocation}
+                        variant="standard"
+                        onClick={() => {
+                          setShowList(false);
+                          if (map) map.flyTo([event.lat, event.lng], 16);
+                          if (onEventSelect) onEventSelect(event);
+                        }}
+                      />
+                    </div>
+                  ))}
+
+                  {displayList.length === 0 && (
+                    <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found matching your filters.</div>
+                  )}
+                </div>
               </div>
-            ))}
-
-            {displayList.length === 0 && (
-              <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found matching your filters.</div>
             )}
-          </div>
-        </div>
-      )}
 
-      {/* Add Button */}
-      <div className="fixed bottom-40 right-6 z-[1000]">
-        <button
-          onClick={() => {
-            const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
-            if (onAddEventClick) onAddEventClick(loc);
-          }}
-          className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
-          title="Add New Event"
-        >
-          <Plus size={24} className="transition-transform duration-300" />
-        </button>
-      </div>
-    </>
-  );
-}
+            {/* Add Button */}
+            <div className="fixed bottom-40 right-6 z-[1000]">
+              <button
+                onClick={() => {
+                  const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
+                  if (onAddEventClick) onAddEventClick(loc);
+                }}
+                className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
+                title="Add New Event"
+              >
+                <Plus size={24} className="transition-transform duration-300" />
+              </button>
+            </div>
+          </>
+        );
+      }
