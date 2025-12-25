@@ -63,9 +63,12 @@ const formatAddress = (data: any, originalName?: string) => {
         }
     }
 
-    // 2. Road / Street
-    if (data.address.road) parts.push(data.address.road);
-    else if (data.address.pedestrian) parts.push(data.address.pedestrian);
+    // 2. Road / Street (with House Number)
+    let road = data.address.road || data.address.pedestrian;
+    if (road && data.address.house_number) {
+        road = `${road} ${data.address.house_number}`;
+    }
+    if (road) parts.push(road);
 
     // 3. City / Town
     const city = data.address.city || data.address.town || data.address.village || data.address.hamlet;
