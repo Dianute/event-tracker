@@ -115,7 +115,7 @@ import EventCard from '@/components/event-card';
 
 
 function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
-  onMapClick?: (lat: number; lng: number) => void,
+  onMapClick?: (lat: number, lng: number) => void,
   newLocation: { lat: number; lng: number } | null,
   onLocationFound: (pos: L.LatLng) => void
 }) {
