@@ -256,8 +256,23 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     groupedEvents.get(locKey)?.push(e);
   });
 
-  const displayList = Array.from(uniqueEvents.values())
-    .sort((a, b) => {
+  /* 
+   * REPAIRED COMPONENT LOGIC 
+   */
+  const handleThemeChange = () => {
+    const themes: ('dark' | 'light' | 'cyberpunk')[] = ['dark', 'light', 'cyberpunk'];
+    const nextIndex = (themes.indexOf(mapTheme) + 1) % themes.length;
+    const newTheme = themes[nextIndex];
+    setMapTheme(newTheme);
+    if (onThemeChange) onThemeChange(newTheme);
+  };
+
+  const handleClusterClick = (cluster: Event[]) => {
+    setSelectedCluster(cluster);
+  };
+
+  // Sorting for the List View
+  const displayList = Array.from(uniqueEvents.values()).sort((a, b) => {
       if (sortBy === 'time') {
         const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
         const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
@@ -267,25 +282,65 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
         const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
         return distA - distB;
-        <Marker
-          key={key}
-          position={[event.lat, event.lng]}
-          icon={markerIcon}
-          opacity={opacity}
-          eventHandlers={{
-            click: () => {
-              if (isCluster) {
-                handleClusterClick(group);
-              } else if (onEventSelect) {
-                onEventSelect(event);
-              }
-            }
-          }}
-        >
-          {/* No Popup for clusters anymore - we use the drawer */}
-        </Marker>
-                );
-})}
+      }
+  });
+
+  return (
+    <>
+      <MapContainer
+        center={[54.8985, 23.9036]}
+        zoom={13}
+        zoomControl={false}
+        className={`w-full h-full transition-colors duration-700 ${mapTheme === 'light' ? 'bg-gray-100' : 'bg-black'}`}
+        ref={setMap}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url={mapTheme === 'light' 
+            ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            : mapTheme === 'cyberpunk'
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" // Dark base for cyberpunk
+            : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          }
+          className={mapTheme === 'cyberpunk' ? 'brightness-125 contrast-125 hue-rotate-15 invert filter sepia-[.3]' : ''}
+        />
+
+        {/* Render Markers from Grouped Events */}
+        {Array.from(groupedEvents.entries()).map(([locKey, group]) => {
+          const isCluster = group.length > 1;
+          const event = group[0]; // Representative event
+          if (!event) return null;
+          
+          const isPast = event.endTime && new Date(event.endTime) < now;
+          const opacity = isPast ? 0.5 : 1;
+          const isCyber = mapTheme === 'cyberpunk';
+          
+          const markerIcon = isCluster ? L.divIcon({
+            className: 'cluster-marker',
+            html: `<div class="flex items-center justify-center w-12 h-12 rounded-full shadow-lg border-2 font-bold text-lg transition-transform hover:scale-110 ${isCyber ? 'bg-slate-900 text-cyan-400 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-blue-600 text-white border-white'}">${group.length}</div>`,
+            iconSize: [48, 48]
+          }) : getEventIcon(event.type, false, !!isPast);
+
+          return (
+            <Marker
+              key={locKey}
+              position={[event.lat, event.lng]}
+              icon={markerIcon}
+              opacity={opacity}
+              eventHandlers={{
+                click: () => {
+                  if (isCluster) {
+                    handleClusterClick(group);
+                  } else if (onEventSelect) {
+                    onEventSelect(event);
+                  }
+                }
+              }}
+            >
+              {/* No Popup for clusters anymore - we use the drawer */}
+            </Marker>
+          );
+        })}
 
 <LocationMarker
   onMapClick={onMapClick}
