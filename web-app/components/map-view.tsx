@@ -254,7 +254,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   const handleThemeChange = () => {
     setMapTheme(prev => {
-      const next = prev === 'dark' ? 'cyberpunk' : prev === 'cyberpunk' ? 'light' : 'dark';
+      const next = prev === 'dark' ? 'light' : 'dark';
       if (onThemeChange) onThemeChange(next);
       return next;
     });
@@ -423,10 +423,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           {/* Theme */}
           <button
             onClick={handleThemeChange}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${isCyber ? 'text-pink-400 bg-pink-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:bg-white/10`}
             title="Toggle Theme"
           >
-            {mapTheme === 'dark' ? <Moon size={18} /> : mapTheme === 'light' ? <Sun size={18} /> : <Zap size={18} />}
+            {mapTheme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
           </button>
 
           <div className="w-px h-6 bg-white/20 mx-1"></div>
