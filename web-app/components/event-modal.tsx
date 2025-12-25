@@ -340,7 +340,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <Tag size={10} /> {type}
                             </div>
                         )}
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                        <h2 className={`text-2xl font-bold leading-tight
+                            ${theme === 'cyberpunk' ? 'text-cyan-50 drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]' :
+                                theme === 'light' ? 'text-gray-900' :
+                                    'text-white'}`}>
                             {isReadOnly ? title : 'Create New Event'}
                         </h2>
                     </div>
@@ -354,26 +357,31 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     <div className="p-6 pt-2 overflow-y-auto space-y-6">
 
                         {/* Time & Location */}
-                        <div className="space-y-3 bg-gray-50 dark:bg-white/5 p-4 rounded-xl border border-gray-200 dark:border-white/5">
-                            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                                <Calendar className="text-blue-500 shrink-0" size={20} />
+                        <div className={`space-y-3 p-4 rounded-xl border
+                            ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100' :
+                                theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-700' :
+                                    'bg-white/5 border-white/5 text-gray-300'}`}>
+
+                            <div className="flex items-center gap-3">
+                                <Calendar className={`${theme === 'cyberpunk' ? 'text-cyan-400' : 'text-blue-500'} shrink-0`} size={20} />
                                 <div>
-                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">Date & Time</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">{formatDateRange(startTime, endTime)}</p>
+                                    <p className={`font-semibold text-sm ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Date & Time</p>
+                                    <p className="text-xs opacity-80">{formatDateRange(startTime, endTime)}</p>
                                 </div>
                             </div>
 
-                            <div className="w-full h-px bg-gray-200 dark:bg-white/10"></div>
+                            <div className={`w-full h-px ${theme === 'light' ? 'bg-gray-200' : 'bg-white/10'}`}></div>
 
-                            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                                <MapPin className="text-red-500 shrink-0" size={20} />
+                            <div className="flex items-center gap-3">
+                                <MapPin className={`${theme === 'cyberpunk' ? 'text-pink-500' : 'text-red-500'} shrink-0`} size={20} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-sm truncate text-gray-900 dark:text-white">{venue || 'Unknown Location'}</p>
+                                    <p className={`font-semibold text-sm truncate ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{venue || 'Unknown Location'}</p>
                                     <a
                                         href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1 mt-0.5"
+                                        className={`text-xs hover:underline flex items-center gap-1 mt-0.5
+                                            ${theme === 'cyberpunk' ? 'text-cyan-400' : 'text-blue-500'}`}
                                     >
                                         Open in Maps <ExternalLink size={10} />
                                     </a>
@@ -383,10 +391,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         {/* Description */}
                         <div>
-                            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                            <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                                 About Event
                             </h3>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
                                 {description || 'No description provided.'}
                             </p>
                         </div>
