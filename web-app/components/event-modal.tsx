@@ -47,6 +47,44 @@ const toLocalISOString = (dateStr: string) => {
     return local.toISOString().slice(0, 16);
 };
 
+// Helper: Strict Address Formatter
+const formatAddress = (data: any, originalName?: string) => {
+    if (!data || !data.address) return '';
+
+    const parts = [];
+
+    // 1. Venue Name (Only if explicitly provided and not redundant)
+    if (originalName) {
+        // clean up name
+        const nameNode = originalName.split(',')[0];
+        if (nameNode !== data.address.road && nameNode !== data.address.city &&
+            nameNode !== data.address.town && nameNode !== data.address.pedestrian) {
+            parts.push(nameNode);
+        }
+    }
+
+    // 2. Road / Street
+    if (data.address.road) parts.push(data.address.road);
+    else if (data.address.pedestrian) parts.push(data.address.pedestrian);
+
+    // 3. City / Town
+    const city = data.address.city || data.address.town || data.address.village || data.address.hamlet;
+    if (city) parts.push(city);
+
+    // 4. ZIP (Requested by user)
+    if (data.address.postcode) parts.push(data.address.postcode);
+
+    // 5. Country
+    if (data.address.country) parts.push(data.address.country);
+
+    // Fallback if parts is empty but we have a display_name
+    if (parts.length === 0 && data.display_name) {
+        return data.display_name.split(',').slice(0, 3).join(',');
+    }
+
+    return parts.join(', ');
+};
+
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event, theme = 'dark' }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -90,9 +128,13 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                 if (initialLocation) {
                     setCurrentLocation(initialLocation);
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${initialLocation.lat}&lon=${initialLocation.lng}`)
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${initialLocation.lat}&lon=${initialLocation.lng}&addressdetails=1`)
                         .then(res => res.json())
-                        .then(data => { if (data.display_name) setVenue(data.display_name); })
+                        .then(data => {
+                            const formatted = formatAddress(data);
+                            if (formatted) setVenue(formatted);
+                            else if (data.display_name) setVenue(data.display_name.split(',').slice(0, 3).join(', '));
+                        })
                         .catch(err => console.error("Reverse geocode failed", err));
                 } else {
                     setVenue('');
@@ -406,32 +448,19 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                     theme === 'light' ? 'hover:bg-zinc-100 text-gray-700' :
                                                         'hover:bg-zinc-700 text-gray-200'}`}
                                             onClick={async () => {
-                                                if (item.osm_id === 'current-loc') {
-                                                    // "Use My Location" - Fetch actual address with details
-                                                    setVenue("Locating...");
-                                                    try {
-                                                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}&addressdetails=1`);
-                                                        const data = await res.json();
-                                                        if (data && data.address) {
-                                                            // Construct specific format: "Road, City, Country" (and ZIP if available?)
-                                                            // User asked for: "Main St, Kaunas, Lithuania"
-                                                            const parts = [];
-                                                            if (data.address.road) parts.push(data.address.road);
-                                                            if (data.address.city || data.address.town || data.address.village) parts.push(data.address.city || data.address.town || data.address.village);
-                                                            if (data.address.postcode) parts.push(data.address.postcode);
-                                                            if (data.address.country) parts.push(data.address.country);
+                                                // Always fetch details to get a clean, consistent format (Road, City, ZIP, Country)
+                                                setVenue("Formatting...");
 
-                                                            setVenue(parts.join(', '));
-                                                        } else {
-                                                            setVenue(`${item.lat}, ${item.lon}`);
-                                                        }
-                                                    } catch (err) {
-                                                        setVenue(`${item.lat}, ${item.lon}`);
-                                                    }
-                                                } else {
-                                                    // Standard Search Result - Shorten to 5 parts to ensure City/Country is included
-                                                    const shortAddress = item.display_name.split(',').slice(0, 5).join(',');
-                                                    setVenue(shortAddress);
+                                                try {
+                                                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}&addressdetails=1`);
+                                                    const data = await res.json();
+
+                                                    // Pass original name only if it's NOT "Use Current Location"
+                                                    const originalName = item.osm_id !== 'current-loc' ? item.display_name : undefined;
+
+                                                    setVenue(formatAddress(data, originalName));
+                                                } catch (err) {
+                                                    setVenue(item.display_name.split(',').slice(0, 4).join(','));
                                                 }
 
                                                 setCurrentLocation({
