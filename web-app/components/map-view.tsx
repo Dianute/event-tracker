@@ -535,21 +535,26 @@ hide - scrollbar pointer - events - none bg - gradient - to - t from - black / 8
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
           <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-            All Events ({displayList.length})
+            {selectedCluster ? `${selectedCluster.length} Events Here` : `All Events (${displayList.length})`}
           </h2>
 
           <div className="flex gap-2">
-            <button
-              onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-              className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
+            {!selectedCluster && (
+              <button
+                onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+                className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
                       ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
-                  mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                    'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
-            >
-              {sortBy === 'time' ? 'Time' : 'Dist'}
-            </button>
+                    mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
+                      'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
+              >
+                {sortBy === 'time' ? 'Time' : 'Dist'}
+              </button>
+            )}
             <button
-              onClick={() => setShowList(false)}
+              onClick={() => {
+                setShowList(false);
+                setSelectedCluster(null);
+              }}
               className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
             >
               <Plus size={24} className="rotate-45" />
@@ -557,7 +562,7 @@ hide - scrollbar pointer - events - none bg - gradient - to - t from - black / 8
           </div>
         </div>
 
-        {displayList.map(event => (
+        {(selectedCluster || displayList).map(event => (
           <div key={event.id} className="w-full">
             <EventCard
               event={event}
@@ -567,13 +572,14 @@ hide - scrollbar pointer - events - none bg - gradient - to - t from - black / 8
                 setShowList(false);
                 if (map) map.flyTo([event.lat, event.lng], 16);
                 if (onEventSelect) onEventSelect(event);
+                setSelectedCluster(null);
               }}
             />
           </div>
         ))}
 
-        {displayList.length === 0 && (
-          <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found matching your filters.</div>
+        {(selectedCluster || displayList).length === 0 && (
+          <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found.</div>
         )}
       </div>
     </div>
