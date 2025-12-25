@@ -608,7 +608,7 @@ hide - scrollbar pointer - events - none bg - gradient - to - t from - black / 8
               <EventCard
                 event={evt}
                 userLocation={userLocation}
-                variant="compact"
+                variant="standard"
                 onClick={() => {
                   if (onEventSelect) onEventSelect(evt);
                   setSelectedCluster(null);
