@@ -352,7 +352,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
 
   {/* Cluster Drawer (Bottom Sheet) */ }
-  < div className = {`fixed bottom-0 left-0 right-0 z-[2000] p-4 rounded-t-3xl transition-transform duration-300 transform 
+  <div className={`fixed bottom-0 left-0 right-0 z-[2000] p-4 rounded-t-3xl transition-transform duration-300 transform 
           ${selectedCluster ? 'translate-y-0' : 'translate-y-full'}
           ${isCyber ? 'bg-slate-900 border-t border-cyan-500/50 shadow-[0_0_30px_rgba(0,0,0,0.8)]' :
       mapTheme === 'light' ? 'bg-white border-t border-gray-200 shadow-2xl' :
@@ -404,10 +404,10 @@ style = {{ maxHeight: '60vh' }}
       </div>
     </div>
   )}
-            </div >
+            </div>
 
   {/* Top Controls */ }
-  < div className = "fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none" >
+  <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none" >
     <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
       {/* List Toggle */}
@@ -484,11 +484,11 @@ style = {{ maxHeight: '60vh' }}
       </button>
 
     </div>
-            </div >
+            </div>
 
   {/* Live Event List (Bottom) */ }
-  < div className = "fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-  < div className = "fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+  <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+  <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
         flex flex-row md:flex-col
         overflow-x-auto md:overflow-x-hidden md:overflow-y-auto
         snap-x md:snap-none snap-mandatory
@@ -514,10 +514,10 @@ style = {{ maxHeight: '60vh' }}
     </div>
   ))
 }
-            </div >
+            </div>
 
   {/* Mobile List Toggle Button (Right Side) */ }
-  < div className = "fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center" >
+  <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center" >
     <button
       onClick={() => setShowList(true)}
       className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
@@ -525,7 +525,7 @@ style = {{ maxHeight: '60vh' }}
     >
       <List size={24} />
     </button>
-            </div >
+            </div>
 
   {/* Full List View Overlay */ }
 {
