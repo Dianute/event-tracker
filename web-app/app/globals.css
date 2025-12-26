@@ -53,3 +53,46 @@ body {
 .animate-sand-drift {
   animation: sand-drift 4s ease-in-out infinite alternate;
 }
+
+/* Custom Scrollbars */
+/* Width */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle - Default (Dark/Cyberpunk-ish) */
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Light Theme overrides - Applied when body/parent has 'light' class or forced via specificity if needed. 
+   Since we don't have a global 'light' class on body usually in this setup, we rely on context. 
+   But specific containers can use these if we add a class, or we can use the .light selector if the theme provider adds it. 
+   Assuming the theme provider adds .light to a wrapper.
+*/
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+/* Cyberpunk specific if needed */
+.cyberpunk ::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.3);
+  /* Cyan-ish */
+  box-shadow: 0 0 5px rgba(34, 211, 238, 0.5);
+}
