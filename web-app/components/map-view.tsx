@@ -109,6 +109,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
 }) {
   const [position, setPosition] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const map = useMap();
 
   useEffect(() => {
