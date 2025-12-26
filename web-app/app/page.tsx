@@ -121,7 +121,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-between relative">
-      <div className="z-10 w-full flex-1 font-mono text-sm lg:flex">
+      <div className="z-10 w-full h-full font-mono text-sm lg:flex">
         <MapView
           events={events}
           onMapClick={handleMapClick}

@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } 
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef } from 'react';
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, X, ChevronRight } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -37,18 +37,6 @@ const getEventIcon = (type: string, isNew?: boolean, isFinished?: boolean) => {
     case 'social':
     default:
       return createEmojiIcon('🍻', isNew, isFinished);
-  }
-};
-
-const getEmoji = (type: string) => {
-  switch (type) {
-    case 'social': return '🍻';
-    case 'food': return '🍔';
-    case 'music': return '🎵';
-    case 'arts': return '🎨';
-    case 'learning': return '📚';
-    case 'sports': return '⚽';
-    default: return '📍';
   }
 };
 
@@ -140,6 +128,10 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
       map.off("locationfound", onLocation);
       map.stopLocate();
     };
+    return () => {
+      map.off("locationfound", onLocation);
+      map.stopLocate();
+    };
   }, [map, onLocationFound]);
 
   const buttonRef = useRef<HTMLDivElement>(null);
@@ -203,29 +195,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
   const [showList, setShowList] = useState(false);
-  const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
-
-  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week'>('all');
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (map) {
-      map.on('click', () => {
-        setSelectedCluster(null);
-      });
-    }
-  }, [map]);
-
-
   if (!mounted) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
-  const endOfWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Next 7 days
 
   const filteredEvents = events.filter(e => {
     const timeMatch = !showHappeningNow || (() => {
@@ -235,27 +212,13 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       return now >= start && now <= end;
     })();
 
-    const filterMatch = (() => {
-      if (timeFilter === 'all') return true;
-      if (!e.startTime) return false;
-      const start = new Date(e.startTime);
-
-      if (timeFilter === 'today') {
-        return start >= startOfToday && start <= endOfToday;
-      }
-      if (timeFilter === 'week') {
-        return start >= startOfToday && start <= endOfWeek;
-      }
-      return true;
-    })();
-
     const query = searchQuery.toLowerCase();
     const searchMatch = !searchQuery ||
       e.title.toLowerCase().includes(query) ||
       e.description.toLowerCase().includes(query) ||
       e.type.toLowerCase().includes(query);
 
-    return timeMatch && searchMatch && filterMatch;
+    return timeMatch && searchMatch;
   });
 
   // Deduplication & Clustering
@@ -275,89 +238,137 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     groupedEvents.get(locKey)?.push(e);
   });
 
-  /* 
-   * REPAIRED COMPONENT LOGIC 
-   */
+  const displayList = Array.from(uniqueEvents.values())
+    .sort((a, b) => {
+      if (sortBy === 'time') {
+        const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
+        const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
+        return startA - startB;
+      } else {
+        if (!userLocation) return 0;
+        const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
+        const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
+        return distA - distB;
+      }
+    });
+
   const handleThemeChange = () => {
-    const themes: ('dark' | 'light' | 'cyberpunk')[] = ['dark', 'light', 'cyberpunk'];
-    const nextIndex = (themes.indexOf(mapTheme) + 1) % themes.length;
-    const newTheme = themes[nextIndex];
-    setMapTheme(newTheme);
-    if (onThemeChange) onThemeChange(newTheme);
+    setMapTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      if (onThemeChange) onThemeChange(next);
+      return next;
+    });
   };
 
-  const handleClusterClick = (cluster: Event[]) => {
-    setSelectedCluster(cluster);
-    setShowList(true);
-  };
-
-  // Sorting for the List View
-  const displayList = Array.from(uniqueEvents.values()).sort((a, b) => {
-    if (sortBy === 'time') {
-      const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
-      return startA - startB;
-    } else {
-      if (!userLocation) return 0;
-      const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
-      const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
-      return distA - distB;
-    }
-  });
+  const isCyber = mapTheme === 'cyberpunk';
+  const tileUrl = mapTheme === 'light'
+    ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
   return (
     <>
       <MapContainer
         center={[54.8985, 23.9036]}
         zoom={13}
+        scrollWheelZoom={true}
         zoomControl={false}
-        className={`w-full h-full transition-colors duration-700 ${mapTheme === 'light' ? 'bg-gray-100' : 'bg-black'}`}
+        className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
         ref={setMap}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url={mapTheme === 'light'
-            ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-            : mapTheme === 'cyberpunk'
-              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" // Dark base for cyberpunk
-              : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          }
-          className={mapTheme === 'cyberpunk' ? 'brightness-125 contrast-125 hue-rotate-15 invert filter sepia-[.3]' : ''}
+          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url={tileUrl}
+          className={isCyber ? 'cyberpunk-tiles' : ''}
         />
 
-        {/* Render Markers from Grouped Events */}
-        {Array.from(groupedEvents.entries()).map(([locKey, group]) => {
+        {Array.from(groupedEvents.entries()).map(([key, group]) => {
+          const event = group[0];
           const isCluster = group.length > 1;
-          const event = group[0]; // Representative event
-          if (!event) return null;
-
           const isPast = event.endTime && new Date(event.endTime) < now;
-          const opacity = isPast ? 0.5 : 1;
-          const isCyber = mapTheme === 'cyberpunk';
+          const opacity = isPast ? 0.3 : 1;
+          const grayscale = isPast ? 'grayscale(100%)' : 'none';
+
+          const location = event.venue || (event.description ? event.description.split('\n')[0] : '');
+          let displayDate = event.date || '';
+          if (event.startTime) {
+            const start = new Date(event.startTime);
+            displayDate = `${start.toLocaleDateString([], { month: 'short', day: 'numeric' })} • ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+          }
+          const link = event.link || (event.description && event.description.split('\n')[2]?.startsWith('http') ? event.description.split('\n')[2] : '');
 
           const markerIcon = isCluster ? L.divIcon({
             className: 'cluster-marker',
-            html: `<div class="flex items-center justify-center w-12 h-12 rounded-full shadow-lg border-2 font-bold text-lg transition-transform hover:scale-110 ${isCyber ? 'bg-slate-900 text-cyan-400 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-blue-600 text-white border-white'}">${group.length}</div>`,
+            html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
             iconSize: [48, 48]
           }) : getEventIcon(event.type, false, !!isPast);
 
           return (
             <Marker
-              key={locKey}
+              key={key}
               position={[event.lat, event.lng]}
               icon={markerIcon}
               opacity={opacity}
               eventHandlers={{
                 click: () => {
-                  if (isCluster) {
-                    handleClusterClick(group);
-                  } else if (onEventSelect) {
+                  if (isCluster && map) {
+                    map.flyTo([event.lat, event.lng], 16);
+                  } else if (!isCluster && onEventSelect) {
                     onEventSelect(event);
                   }
                 }
               }}
             >
-              {/* No Popup for clusters anymore - we use the drawer */}
+              {isCluster && (
+                <Popup className="custom-popup">
+                  <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
+                    {group.map((evt, i) => (
+                      <div
+                        key={evt.id}
+                        className={`${i > 0 ? 'mt-4 pt-4 border-t border-gray-600' : ''} cursor-pointer hover:bg-white/5 p-2 rounded transition-colors`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onEventSelect) onEventSelect(evt);
+                        }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type, false, evt.endTime ? new Date(evt.endTime) < now : false).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
+                          </div>
+                        </div>
+
+                        <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{evt.title}</h3>
+
+                        {displayDate && <div className="text-xs text-gray-300 mb-2">📅 {displayDate}</div>}
+
+                        <div className="flex gap-2 mt-2">
+                          {(evt.link || link) && (
+                            <a
+                              href={evt.link || link}
+                              target="_blank"
+                              onClick={e => e.stopPropagation()}
+                              className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-500"
+                            >
+                              Tickets
+                            </a>
+                          )}
+
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${evt.lat},${evt.lng}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={e => e.stopPropagation()}
+                            className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
+                            title="Open in Google Maps"
+                          >
+                            🗺️
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Popup>
+              )}
             </Marker>
           );
         })}
@@ -368,6 +379,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           onLocationFound={setUserLocation}
         />
       </MapContainer>
+
 
       {/* Top Controls */}
       <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none">
@@ -447,36 +459,32 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           </button>
 
         </div>
-      </div >
+      </div>
 
       {/* Live Event List (Bottom) */}
-      {/* Live Event List (Bottom) */}
       <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-        flex flex-row md:flex-col
-        overflow-x-auto md:overflow-x-hidden md:overflow-y-auto
-        snap-x md:snap-none snap-mandatory
-        gap-0 md:gap-3
-        px-2 md:px-0 md:w-80
+        flex flex-row md:flex-col 
+        overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
+        snap-x snap-mandatory 
+        gap-0 md:gap-0 
+        px-2 md:px-0 md:w-80 
         py-3 md:py-0
-        max-h-[50vh] md:max-h-[60vh]
-        hide-scrollbar md:hide-scrollbar-none
-        pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
-        {
-          displayList.slice(0, 20).map(event => (
-            <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
-              <EventCard
-                event={event}
-                userLocation={userLocation}
-                onClick={() => {
-                  if (map) {
-                    map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
-                  }
-                  if (onEventSelect) onEventSelect(event);
-                }}
-              />
-            </div>
-          ))
-        }
+        max-h-[50vh] md:max-h-[60vh] 
+        hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
+        {displayList.slice(0, 20).map(event => (
+          <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+            <EventCard
+              event={event}
+              userLocation={userLocation}
+              onClick={() => {
+                if (map) {
+                  map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                }
+                if (onEventSelect) onEventSelect(event);
+              }}
+            />
+          </div>
+        ))}
       </div>
 
       {/* Mobile List Toggle Button (Right Side) */}
@@ -491,66 +499,57 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Full List View Overlay */}
-      {
-        showList && (
-          <div className={`fixed inset-0 z-[2000] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
+      {showList && (
+        <div className={`fixed inset-0 z-[2000] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
           ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
-            <div className="max-w-md mx-auto space-y-3">
-              <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
+          <div className="max-w-md mx-auto space-y-3">
+            <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
-                <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                  {selectedCluster ? `${selectedCluster.length} Events Here` : `All Events (${displayList.length})`}
-                </h2>
+              <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                All Events ({displayList.length})
+              </h2>
 
-                <div className="flex gap-2">
-                  {!selectedCluster && (
-                    <button
-                      onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+                  className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
                       ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
-                          mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                            'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
-                    >
-                      {sortBy === 'time' ? 'Time' : 'Dist'}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => {
-                      setShowList(false);
-                      setSelectedCluster(null);
-                    }}
-                    className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                  >
-                    <Plus size={24} className="rotate-45" />
-                  </button>
-                </div>
+                      mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
+                        'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
+                >
+                  {sortBy === 'time' ? 'Time' : 'Dist'}
+                </button>
+                <button
+                  onClick={() => setShowList(false)}
+                  className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                >
+                  <Plus size={24} className="rotate-45" />
+                </button>
               </div>
-
-              {(selectedCluster || displayList).map(event => (
-                <div key={event.id} className="w-full">
-                  <EventCard
-                    event={event}
-                    userLocation={userLocation}
-                    variant="standard"
-                    onClick={() => {
-                      setShowList(false);
-                      if (map) map.flyTo([event.lat, event.lng], 16);
-                      if (onEventSelect) onEventSelect(event);
-                      setSelectedCluster(null);
-                    }}
-                  />
-                </div>
-              ))}
-
-              {(selectedCluster || displayList).length === 0 && (
-                <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found.</div>
-              )}
             </div>
+
+            {displayList.map(event => (
+              <div key={event.id} className="w-full">
+                <EventCard
+                  event={event}
+                  userLocation={userLocation}
+                  variant="standard"
+                  onClick={() => {
+                    setShowList(false);
+                    if (map) map.flyTo([event.lat, event.lng], 16);
+                    if (onEventSelect) onEventSelect(event);
+                  }}
+                />
+              </div>
+            ))}
+
+            {displayList.length === 0 && (
+              <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found matching your filters.</div>
+            )}
           </div>
-        )
-      }
-      {/* Cluster Drawer Removed - Replaced by Full List View */}
+        </div>
+      )}
 
       {/* Add Button */}
       <div className="fixed bottom-40 right-6 z-[1000]">
