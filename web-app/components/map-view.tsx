@@ -548,6 +548,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               )}
             </div>
           </div>
+        )
+      }
       {/* Cluster Drawer Removed - Replaced by Full List View */}
 
       {/* Add Button */}
