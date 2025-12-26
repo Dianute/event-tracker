@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 0, 0, 0;
+        --background-end-rgb: 0, 0, 0;
+    }
+}
+
+body {
+    color: rgb(var(--foreground-rgb));
+    background: linear-gradient(to bottom,
+            transparent,
+            rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+}
+
+/* Custom Marker Pulse */
+.pulse-animation {
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+}
+
+/* Sand Drift Animation for Ended Events */
+@keyframes sand-drift {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: translateY(2px) scale(0.98);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 0.7;
+    }
+}
+
+.animate-sand-drift {
+    animation: sand-drift 4s ease-in-out infinite;
+}
+
+/* Cyberpunk Map Styles */
+.cyberpunk-map {
+    background-color: #050510 !important;
+}
+
+.cyberpunk-tiles .leaflet-tile {
+    filter: hue-rotate(180deg) invert(1) contrast(1.1) brightness(0.9) !important;
+}
+
+/* Leaflet Popup Customization */
+.custom-popup .leaflet-popup-content-wrapper {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.custom-popup .leaflet-popup-tip {
+    background: rgba(0, 0, 0, 0.8);
+}
