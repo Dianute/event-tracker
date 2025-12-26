@@ -205,6 +205,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [showList, setShowList] = useState(false);
   const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
 
+  const [timeFilter, setTimeFilter] = useState<'all' | 'today' | 'week'>('all');
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -221,6 +223,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   if (!mounted) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  const endOfWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Next 7 days
 
   const filteredEvents = events.filter(e => {
     const timeMatch = !showHappeningNow || (() => {
@@ -230,13 +235,27 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       return now >= start && now <= end;
     })();
 
+    const filterMatch = (() => {
+      if (timeFilter === 'all') return true;
+      if (!e.startTime) return false;
+      const start = new Date(e.startTime);
+
+      if (timeFilter === 'today') {
+        return start >= startOfToday && start <= endOfToday;
+      }
+      if (timeFilter === 'week') {
+        return start >= startOfToday && start <= endOfWeek;
+      }
+      return true;
+    })();
+
     const query = searchQuery.toLowerCase();
     const searchMatch = !searchQuery ||
       e.title.toLowerCase().includes(query) ||
       e.description.toLowerCase().includes(query) ||
       e.type.toLowerCase().includes(query);
 
-    return timeMatch && searchMatch;
+    return timeMatch && searchMatch && filterMatch;
   });
 
   // Deduplication & Clustering
@@ -274,16 +293,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   // Sorting for the List View
   const displayList = Array.from(uniqueEvents.values()).sort((a, b) => {
-      if (sortBy === 'time') {
-        const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
-        const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
-        return startA - startB;
-      } else {
-        if (!userLocation) return 0;
-        const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
-        const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
-        return distA - distB;
-      }
+    if (sortBy === 'time') {
+      const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return startA - startB;
+    } else {
+      if (!userLocation) return 0;
+      const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
+      const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
+      return distA - distB;
+    }
   });
 
   return (
@@ -297,11 +316,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url={mapTheme === 'light' 
+          url={mapTheme === 'light'
             ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
             : mapTheme === 'cyberpunk'
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" // Dark base for cyberpunk
-            : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" // Dark base for cyberpunk
+              : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           }
           className={mapTheme === 'cyberpunk' ? 'brightness-125 contrast-125 hue-rotate-15 invert filter sepia-[.3]' : ''}
         />
@@ -311,11 +330,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           const isCluster = group.length > 1;
           const event = group[0]; // Representative event
           if (!event) return null;
-          
+
           const isPast = event.endTime && new Date(event.endTime) < now;
           const opacity = isPast ? 0.5 : 1;
           const isCyber = mapTheme === 'cyberpunk';
-          
+
           const markerIcon = isCluster ? L.divIcon({
             className: 'cluster-marker',
             html: `<div class="flex items-center justify-center w-12 h-12 rounded-full shadow-lg border-2 font-bold text-lg transition-transform hover:scale-110 ${isCyber ? 'bg-slate-900 text-cyan-400 border-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-blue-600 text-white border-white'}">${group.length}</div>`,
@@ -343,71 +362,31 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           );
         })}
 
-<LocationMarker
-  onMapClick={onMapClick}
-  newLocation={newLocation || null}
-  onLocationFound={setUserLocation}
-/>
-            </MapContainer >
+        <LocationMarker
+          onMapClick={onMapClick}
+          newLocation={newLocation || null}
+          onLocationFound={setUserLocation}
+        />
+      </MapContainer >
 
 
-  {/* Cluster Drawer (Bottom Sheet) */ }
-  <div className={`fixed bottom-0 left-0 right-0 z-[2000] p-4 rounded-t-3xl transition-transform duration-300 transform 
+      {/* Cluster Drawer (Bottom Sheet) */}
+      <div className={`fixed bottom-0 left-0 right-0 z-[2000] p-4 rounded-t-3xl transition-transform duration-300 transform 
           ${selectedCluster ? 'translate-y-0' : 'translate-y-full'}
-          ${isCyber ? 'bg-slate-900 border-t border-cyan-500/50 shadow-[0_0_30px_rgba(0,0,0,0.8)]' :
-      mapTheme === 'light' ? 'bg-white border-t border-gray-200 shadow-2xl' :
-        'bg-gray-900 border-t border-gray-800 shadow-2xl'}`}
-style = {{ maxHeight: '60vh' }}
-            >
-  { selectedCluster && (
-    <div className="flex flex-col h-full max-h-[55vh]">
-      {/* Handle Bar */}
-      <div className="w-12 h-1.5 bg-gray-400/30 rounded-full self-center mb-4 shrink-0"></div>
-
-      <div className="flex justify-between items-center mb-4 shrink-0">
-        <h3 className={`font-bold text-lg ${mapTheme === 'preview-light' ? 'text-gray-900' : 'text-white'}`}>
-          {selectedCluster.length} Events Here
-        </h3>
-        <button
-          onClick={() => setSelectedCluster(null)}
-          className="p-2 bg-gray-500/20 rounded-full hover:bg-gray-500/30"
-        >
-          <X size={20} className="text-white" />
-        </button>
-      </div>
-
-      {/* Scrollable List */}
-      <div className="overflow-y-auto space-y-3 pb-safe">
-        {selectedCluster.map(evt => (
-          <div key={evt.id} /* Reusing EventCard logic inline or simplified for drawer */
-            onClick={() => {
-              if (onEventSelect) onEventSelect(evt);
-              setSelectedCluster(null);
-            }}
-            className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-colors
-                                   ${isCyber ? 'bg-slate-800/50 border-cyan-500/20 hover:bg-slate-800' :
-                mapTheme === 'light' ? 'bg-gray-50 border-gray-200 hover:bg-gray-100' :
-                  'bg-gray-800/50 border-gray-700 hover:bg-gray-800'}`}
-          >
-            <div className="text-2xl">{getEmoji(evt.type)}</div>
-            <div className="flex-1 min-w-0">
-              <h4 className={`font-bold text-sm truncate ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>{evt.title}</h4>
-              <div className="flex gap-2 text-xs opacity-70 mt-1">
-                <span>{new Date(evt.startTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                <span>•</span>
-                <span className="capitalize">{evt.type}</span>
-              </div>
-            </div>
+          ${mapTheme === 'cyberpunk' ? 'bg-slate-900 border-t border-cyan-500/50 shadow-[0_0_30px_rgba(0,0,0,0.8)]' :
+          mapTheme === 'light' ? 'bg-white border-t border-gray-200 shadow-2xl' :
+            'bg-gray-900 border-t border-gray-800 shadow-2xl'}`}
             <ChevronRight size={16} className="opacity-50" />
-          </div>
-        ))}
-      </div>
-    </div>
+    </div >
+        ))
+}
+      </div >
+    </div >
   )}
-            </div>
+            </div >
 
   {/* Top Controls */ }
-  <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none" >
+  < div className = "fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none" >
     <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
 
       {/* List Toggle */}
@@ -484,20 +463,20 @@ style = {{ maxHeight: '60vh' }}
       </button>
 
     </div>
-            </div>
+            </div >
 
   {/* Live Event List (Bottom) */ }
-  <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-  <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-        flex flex-row md:flex-col
-        overflow-x-auto md:overflow-x-hidden md:overflow-y-auto
-        snap-x md:snap-none snap-mandatory
-        gap-0 md:gap-3
-        px-2 md:px-0 md:w-80
-        py-3 md:py-0
-        max-h-[50vh] md:max-h-[60vh]
-        hide-scrollbar md:hide-scrollbar-none
-        pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
+  < div className = "fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+    < div className = "fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+        flex flex - row md: flex - col
+overflow - x - auto md: overflow - x - hidden md: overflow - y - auto
+snap - x md: snap - none snap - mandatory
+gap - 0 md: gap - 3
+px - 2 md: px - 0 md: w - 80
+py - 3 md: py - 0
+max - h - [50vh] md: max - h - [60vh]
+hide - scrollbar md: hide - scrollbar - none
+pointer - events - none bg - gradient - to - t from - black / 80 via - black / 40 to - transparent md: bg - none">
 {
   displayList.slice(0, 20).map(event => (
     <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
@@ -514,10 +493,10 @@ style = {{ maxHeight: '60vh' }}
     </div>
   ))
 }
-            </div>
+            </div >
 
   {/* Mobile List Toggle Button (Right Side) */ }
-  <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center" >
+  < div className = "fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center" >
     <button
       onClick={() => setShowList(true)}
       className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
@@ -525,7 +504,7 @@ style = {{ maxHeight: '60vh' }}
     >
       <List size={24} />
     </button>
-            </div>
+            </div >
 
   {/* Full List View Overlay */ }
 {
@@ -585,7 +564,7 @@ style = {{ maxHeight: '60vh' }}
         )}
       </div>
     </div>
-      {/* Cluster Drawer Removed - Replaced by Full List View */}
+      {/* Cluster Drawer Removed - Replaced by Full List View */ }
 
   {/* Add Button */ }
   <div className="fixed bottom-40 right-6 z-[1000]">
