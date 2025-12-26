@@ -225,371 +225,305 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     };
 
     return (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
-            <div className={`w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border flex flex-col max-h-[90vh] transition-colors duration-300
-                ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30 shadow-[0_0_30px_rgba(34,211,238,0.15)] text-cyan-50' :
+        <div className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            {/* Main Modal Container - Fullscreen on Mobile, Card on Desktop */}
+            <div className={`w-full h-[95vh] md:h-auto md:max-h-[85vh] md:max-w-lg md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
+                ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30' :
                     theme === 'light' ? 'bg-white border-gray-200 text-gray-900' :
-                        'bg-zinc-900 border-white/10 text-white'}`}>
+                        'bg-zinc-900 border-white/10 text-white'}
+                ${!isReadOnly ? 'rounded-t-3xl md:rounded-3xl' : ''}`}>
 
-                {/* Header Image or Upload Area */}
-                {!isReadOnly ? (
-                    // Create Mode: Upload Area
-                    <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 group cursor-pointer transition-colors
-                        ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/20 hover:bg-cyan-900/30' :
-                            theme === 'light' ? 'bg-gray-100 border-gray-200 hover:bg-gray-200' :
-                                'bg-zinc-800/50 border-white/10 hover:bg-white/5'}`}>
-                        {imageUrl ? (
-                            <>
-                                <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setImageUrl('');
-                                    }}
-                                    className="absolute top-2 right-2 p-1 bg-black/50 text-white rounded-full hover:bg-red-500 transition-colors"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </>
-                        ) : (
-                            <div className="flex flex-col items-center gap-3 w-full h-full justify-center">
-                                <div className="flex gap-4">
-                                    {/* Camera Button - Direct Launch */}
-                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/cam">
-                                        <div className="p-3.5 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30 group-hover/cam:scale-110 transition-transform">
-                                            <Camera size={24} />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest group-hover/cam:text-blue-600 transition-colors">
-                                            Camera
-                                        </span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            capture="environment"
-                                            className="hidden"
-                                            onChange={handleImageUpload}
-                                            disabled={isUploading}
-                                        />
-                                    </label>
-
-                                    {/* Gallery Button - File Picker */}
-                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/gal">
-                                        <div className="p-3.5 rounded-full bg-white dark:bg-white/10 shadow-sm border border-gray-100 dark:border-white/5 group-hover/gal:scale-110 transition-transform">
-                                            <ImageIcon size={24} className="text-gray-500 dark:text-gray-400" />
-                                        </div>
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest group-hover/gal:text-gray-800 dark:group-hover/gal:text-white transition-colors">
-                                            Gallery
-                                        </span>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={handleImageUpload}
-                                            disabled={isUploading}
-                                        />
-                                    </label>
-                                </div>
-
-                                {isUploading && (
-                                    <span className="text-xs font-bold text-blue-500 animate-pulse mt-1">
-                                        Uploading...
-                                    </span>
-                                )}
-                            </div>
-
-                        )}
-                    </div>
-                ) : imageUrl && (
-                    // View Mode: Display Image (Instagram/Story Style)
-                    <div className="relative w-full bg-black shrink-0 group overflow-hidden">
-                        {/* Blurred Background for Fill */}
-                        <div
-                            className="absolute inset-0 opacity-50 blur-2xl scale-110 transition-opacity duration-700"
-                            style={{
-                                backgroundImage: `url(${imageUrl})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center'
-                            }}
-                        />
-
-                        {/* Main Image - Contain to show full content */}
-                        <div className="relative w-full min-h-[300px] max-h-[60vh] flex items-center justify-center bg-transparent backdrop-blur-sm/20">
-                            <img
-                                src={imageUrl}
-                                alt={title}
-                                className="w-auto h-auto max-w-full max-h-[60vh] object-contain shadow-2xl drop-shadow-2xl"
-                            />
-                        </div>
-
-                        {/* Expand Button (Optional, visual cue) */}
-                        <div className="absolute bottom-2 right-2 bg-black/40 backdrop-blur-md p-1.5 rounded-full text-white/70 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ImageIcon size={14} />
-                        </div>
-                    </div>
-                )}
-
-
-                <div className="flex items-start justify-between p-6 pb-2">
-                    <div className="flex-1 pr-4">
-                        {isReadOnly && (
-                            <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 border bg-opacity-10
-                                ${type === 'music' ? 'text-pink-600 bg-pink-100 border-pink-200 dark:text-pink-400 dark:bg-pink-500/10 dark:border-pink-500/20' :
-                                    type === 'food' ? 'text-orange-600 bg-orange-100 border-orange-200 dark:text-orange-400 dark:bg-orange-500/10 dark:border-orange-500/20' :
-                                        type === 'sports' ? 'text-green-600 bg-green-100 border-green-200 dark:text-green-400 dark:bg-green-500/10 dark:border-green-500/20' :
-                                            'text-blue-600 bg-blue-100 border-blue-200 dark:text-blue-400 dark:bg-blue-500/10 dark:border-blue-500/20'}`}>
-                                <Tag size={10} /> {type}
-                            </div>
-                        )}
-                        <h2 className={`text-2xl font-bold leading-tight
-                            ${theme === 'cyberpunk' ? 'text-cyan-50 drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]' :
-                                theme === 'light' ? 'text-gray-900' :
-                                    'text-white'}`}>
-                            {isReadOnly ? title : 'Create New Event'}
-                        </h2>
-                    </div>
-                    <button onClick={onClose} className="p-2 -mr-2 -mt-2 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-white/10 rounded-full transition-all">
-                        <X size={24} />
-                    </button>
-                </div>
-
+                {/* --- VIEW MODE: Split Screen Layout --- */}
                 {isReadOnly ? (
-                    // --- VIEW MODE ---
-                    <div className="p-6 pt-2 overflow-y-auto space-y-6">
+                    <div className="flex flex-col h-full relative">
+                        {/* 1. TOP SECTION: Immersive Image (45% Height) */}
+                        <div className="relative h-[45%] shrink-0 w-full overflow-hidden bg-black group">
+                            {/* Blurry Background */}
+                            <div
+                                className="absolute inset-0 opacity-60 blur-2xl scale-110"
+                                style={{
+                                    backgroundImage: `url(${imageUrl || '/api/placeholder/400/320'})`,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center'
+                                }}
+                            />
 
-                        {/* Time & Location */}
-                        <div className={`space-y-3 p-4 rounded-xl border
-                            ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100' :
-                                theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-700' :
-                                    'bg-white/5 border-white/5 text-gray-300'}`}>
-
-                            <div className="flex items-center gap-3">
-                                <Calendar className={`${theme === 'cyberpunk' ? 'text-cyan-400' : 'text-blue-500'} shrink-0`} size={20} />
-                                <div>
-                                    <p className={`font-semibold text-sm ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Date & Time</p>
-                                    <p className="text-xs opacity-80">{formatDateRange(startTime, endTime)}</p>
-                                </div>
+                            {/* Main Image */}
+                            <div className="absolute inset-0 flex items-center justify-center p-4">
+                                <img
+                                    src={imageUrl || '/api/placeholder/400/320'}
+                                    alt={title}
+                                    className="w-full h-full object-contain drop-shadow-2xl"
+                                />
                             </div>
 
-                            <div className={`w-full h-px ${theme === 'light' ? 'bg-gray-200' : 'bg-white/10'}`}></div>
+                            {/* Floating Top Controls */}
+                            <div className="absolute top-4 left-0 right-0 px-4 flex justify-between items-start z-10">
+                                {/* Category Badge */}
+                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-md border
+                                     ${type === 'music' ? 'bg-pink-500/80 text-white border-pink-400/30' :
+                                        type === 'food' ? 'bg-orange-500/80 text-white border-orange-400/30' :
+                                            type === 'sports' ? 'bg-green-600/80 text-white border-green-500/30' :
+                                                'bg-blue-600/80 text-white border-blue-500/30'}`}>
+                                    <span className="text-xs">{
+                                        type === 'food' ? '🍔' :
+                                            type === 'sports' ? '⚽' :
+                                                type === 'music' ? '🎵' :
+                                                    type === 'arts' ? '🎨' :
+                                                        type === 'learning' ? '📚' : '🍻'
+                                    }</span>
+                                    {type}
+                                </div>
 
-                            <div className="flex items-center gap-3">
-                                <MapPin className={`${theme === 'cyberpunk' ? 'text-pink-500' : 'text-red-500'} shrink-0`} size={20} />
-                                <div className="flex-1 min-w-0">
-                                    <p className={`font-semibold text-sm truncate ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{venue || 'Unknown Location'}</p>
+                                {/* Close Button */}
+                                <button
+                                    onClick={onClose}
+                                    className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-black/60 transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 2. BOTTOM SECTION: Info Panel (55% Height) */}
+                        <div className={`flex-1 relative flex flex-col w-full -mt-6 rounded-t-3xl z-10 shadow-[0_-5px_20px_rgba(0,0,0,0.2)]
+                            ${theme === 'cyberpunk' ? 'bg-[#0a0a15]' :
+                                theme === 'light' ? 'bg-white' :
+                                    'bg-zinc-900'}`}>
+
+                            {/* Drag Handle (Visual Cue) */}
+                            <div className="w-full flex justify-center pt-3 pb-1">
+                                <div className={`w-12 h-1.5 rounded-full opacity-20 ${theme === 'light' ? 'bg-black' : 'bg-white'}`} />
+                            </div>
+
+                            <div className="flex-1 flex flex-col px-6 pb-6 overflow-hidden">
+                                {/* Header: Title */}
+                                <div className="mb-5 text-center">
+                                    <h2 className={`text-2xl font-black leading-tight mb-1
+                                        ${theme === 'cyberpunk' ? 'text-cyan-50 drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]' :
+                                            theme === 'light' ? 'text-gray-900' :
+                                                'text-white'}`}>
+                                        {title}
+                                    </h2>
+                                </div>
+
+                                {/* Metadata Grid (Compact) */}
+                                <div className="grid grid-cols-2 gap-3 mb-5 shrink-0">
+                                    <div className={`p-3 rounded-2xl border flex flex-col items-center justify-center text-center gap-1.5 shadow-sm
+                                        ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100' :
+                                            theme === 'light' ? 'bg-gray-50 border-gray-100' :
+                                                'bg-white/5 border-white/5'}`}>
+                                        <Clock className={theme === 'cyberpunk' ? 'text-cyan-400' : 'text-blue-500'} size={18} />
+                                        <div>
+                                            <p className={`text-[10px] font-bold uppercase tracking-wide opacity-60 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Time</p>
+                                            <p className={`text-xs font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                                {formatDateRange(startTime, endTime).split('•')[1] || 'TBA'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className={`p-3 rounded-2xl border flex flex-col items-center justify-center text-center gap-1.5 shadow-sm
+                                        ${theme === 'cyberpunk' ? 'bg-pink-950/20 border-pink-500/30 text-pink-100' :
+                                            theme === 'light' ? 'bg-gray-50 border-gray-100' :
+                                                'bg-white/5 border-white/5'}`}>
+                                        <MapPin className={theme === 'cyberpunk' ? 'text-pink-500' : 'text-red-500'} size={18} />
+                                        <div className="w-full px-1">
+                                            <p className={`text-[10px] font-bold uppercase tracking-wide opacity-60 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Location</p>
+                                            <p className={`text-xs font-semibold truncate w-full ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                                {venue ? venue.split(',')[0] : 'Unknown'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Description (Scrollable) */}
+                                <div className={`flex-1 overflow-y-auto mb-4 pr-1 scrollbar-thin
+                                    ${theme === 'light' ? 'scrollbar-thumb-gray-200' : 'scrollbar-thumb-white/10'}`}>
+                                    <h3 className={`text-xs font-bold uppercase tracking-widest mb-2 opacity-80 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        About
+                                    </h3>
+                                    <p className={`text-sm leading-relaxed whitespace-pre-wrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
+                                        {description || 'No description provided.'}
+                                    </p>
+                                </div>
+
+                                {/* Bottom Action Button */}
+                                {event?.link && (
                                     <a
-                                        href={`https://www.google.com/maps/search/?api=1&query=${currentLocation?.lat},${currentLocation?.lng}`}
+                                        href={event.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className={`text-xs hover:underline flex items-center gap-1 mt-0.5
-                                            ${theme === 'cyberpunk' ? 'text-cyan-400' : 'text-blue-500'}`}
+                                        className={`w-full py-3.5 flex items-center justify-center gap-2 rounded-xl font-bold shadow-lg transition-transform active:scale-95 shrink-0
+                                            ${theme === 'cyberpunk' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20' :
+                                                'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/30'}`}
                                     >
-                                        Open in Maps <ExternalLink size={10} />
+                                        <span>Get Tickets / Info</span>
+                                        <ExternalLink size={16} />
                                     </a>
-                                </div>
+                                )}
                             </div>
                         </div>
-
-                        {/* Description */}
-                        <div>
-                            <h3 className={`text-sm font-bold mb-2 flex items-center gap-2 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                About Event
-                            </h3>
-                            <p className={`text-sm leading-relaxed whitespace-pre-wrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                                {description || 'No description provided.'}
-                            </p>
-                        </div>
-
-                        {/* Action Link */}
-                        {event?.link && (
-                            <a
-                                href={event.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center justify-center gap-2 w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 dark:shadow-blue-900/20 transition-all transform active:scale-95 group"
-                            >
-                                <span>Get Tickets / Info</span>
-                                <ExternalLink size={18} className="group-hover:translate-x-1 transition-transform" />
-                            </a>
-                        )}
                     </div>
                 ) : (
-                    // --- CREATE MODE (Existing Form) ---
-                    <form onSubmit={handleSubmit} className="p-6 pt-2 overflow-y-auto space-y-4">
-                        <div className="relative">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
-                            <input
-                                type="text"
-                                required
-                                value={venue}
-                                onChange={(e) => {
-                                    setVenue(e.target.value);
-                                    setIsSearching(true);
-                                }}
-                                placeholder="Search address or click on map..."
-                                onFocus={() => {
-                                    if (initialLocation) {
-                                        setSuggestions(prev => {
-                                            if (prev.some(s => s.osm_id === 'current-loc')) return prev;
-                                            return [{
-                                                display_name: "📍 Use Current Location",
-                                                lat: String(initialLocation.lat),
-                                                lon: String(initialLocation.lng),
-                                                osm_id: 'current-loc'
-                                            }, ...prev];
-                                        });
-                                    }
-                                }}
-                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm
-                                    ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
-                                        theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
-                                            'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500'}`}
-                            />
-                            <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
+                    // --- CREATE MODE: Standard Scrollable Form ---
+                    <>
+                        {/* Create Mode Header (Image/Close) */}
+                        <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 transition-colors
+                             ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/20' :
+                                theme === 'light' ? 'bg-gray-100 border-gray-200' :
+                                    'bg-zinc-800/50 border-white/10'}`}>
 
-                            {suggestions.length > 0 && (
-                                <div className={`absolute z-10 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto
-                                    ${theme === 'cyberpunk' ? 'bg-[#0a0a15] border-cyan-500/30' :
-                                        theme === 'light' ? 'bg-white border-zinc-200' :
-                                            'bg-zinc-800 border-zinc-700'}`}>
-                                    {suggestions.map((item, i) => (
-                                        <div
-                                            key={i}
-                                            className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors
-                                                ${theme === 'cyberpunk' ? 'hover:bg-cyan-900/30 text-cyan-200' :
-                                                    theme === 'light' ? 'hover:bg-zinc-100 text-gray-700' :
-                                                        'hover:bg-zinc-700 text-gray-200'}`}
-                                            onClick={async () => {
-                                                // Always fetch details to get a clean, consistent format (Road, City, ZIP, Country)
-                                                setVenue("Formatting...");
+                            <button
+                                onClick={onClose}
+                                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
 
-                                                try {
-                                                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}&addressdetails=1`);
-                                                    const data = await res.json();
-
-                                                    // Pass original name only if it's NOT "Use Current Location"
-                                                    const originalName = item.osm_id !== 'current-loc' ? item.display_name : undefined;
-
-                                                    setVenue(formatAddress(data, originalName));
-                                                } catch (err) {
-                                                    setVenue(item.display_name.split(',').slice(0, 4).join(','));
-                                                }
-
-                                                setCurrentLocation({
-                                                    lat: parseFloat(item.lat),
-                                                    lng: parseFloat(item.lon)
-                                                });
-                                                setSuggestions([]);
-                                                setIsSearching(false);
-                                            }}
-                                        >
-                                            <MapPin size={12} className="text-gray-400" /> {item.display_name}
+                            {imageUrl ? (
+                                <>
+                                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setImageUrl(''); }}
+                                        className="absolute bottom-3 right-3 p-1.5 bg-red-500 text-white rounded-full shadow-lg"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="flex gap-4">
+                                    {/* Camera Button */}
+                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/cam">
+                                        <div className="p-3.5 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30 active:scale-90 transition-transform">
+                                            <Camera size={24} />
                                         </div>
-                                    ))}
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Camera</span>
+                                        <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    </label>
+
+                                    {/* Gallery Button */}
+                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/gal">
+                                        <div className="p-3.5 rounded-full bg-white dark:bg-white/10 shadow-sm border border-gray-100 dark:border-white/5 active:scale-90 transition-transform">
+                                            <ImageIcon size={24} className="text-gray-500 dark:text-gray-400" />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gallery</span>
+                                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                                    </label>
+                                </div>
+                            )}
+
+                            {isUploading && (
+                                <div className="absolute inset-0 bg-black/60 flex items-center justify-center flex-col gap-2 backdrop-blur-sm">
+                                    <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+                                    <span className="text-xs font-bold text-white">Uploading...</span>
                                 </div>
                             )}
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What</label>
-                            <input
-                                type="text"
-                                required
-                                value={title}
-                                placeholder="Event Title"
-                                onChange={(e) => setTitle(e.target.value)}
-                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm font-medium
-                                    ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
-                                        theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
-                                            'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500'}`}
-                            />
+                        <div className="p-6 pt-4 pb-2">
+                            <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Details</label>
+                        <form onSubmit={handleSubmit} className="px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
+                            {/* Where */}
+                            <div className="relative">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={venue}
+                                    placeholder="Search address..."
+                                    onChange={(e) => { setVenue(e.target.value); setIsSearching(true); }}
+                                    onFocus={() => {
+                                        if (initialLocation && !venue) {
+                                            setSuggestions(prev => [{
+                                                display_name: "📍 Use Current Location",
+                                                lat: String(initialLocation.lat),
+                                                lon: String(initialLocation.lng),
+                                                osm_id: 'current-loc'
+                                            }]);
+                                        }
+                                    }}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm
+                                        ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100' :
+                                            theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' :
+                                                'bg-white/5 border-white/10 text-white'}`}
+                                />
+                                <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
+
+                                {suggestions.length > 0 && (
+                                    <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto
+                                        ${theme === 'light' ? 'bg-white' : 'bg-zinc-800 border-zinc-700'}`}>
+                                        {suggestions.map((item, i) => (
+                                            <div key={i} className="p-3 cursor-pointer text-sm truncate flex items-center gap-2 hover:bg-white/10"
+                                                onClick={async () => {
+                                                    setVenue(item.display_name.split(',')[0]);
+                                                    setCurrentLocation({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
+                                                    setSuggestions([]);
+                                                    // (Optional: Trigger full reverse geocode here for strict format)
+                                                }}>
+                                                <MapPin size={12} /> {item.display_name}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* What */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={title}
+                                    placeholder="Event Title"
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium
+                                        ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                />
+                            </div>
+
+                            {/* When */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Start</label>
+                                    <input type="datetime-local" required value={startTime} onChange={(e) => setStartTime(e.target.value)}
+                                        className={`w-full px-3 py-3 rounded-xl border outline-none text-xs ${theme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-white/5 text-white'}`} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">End</label>
+                                    <input type="datetime-local" required value={endTime} onChange={(e) => setEndTime(e.target.value)}
+                                        className={`w-full px-3 py-3 rounded-xl border outline-none text-xs ${theme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-white/5 text-white'}`} />
+                                </div>
+                            </div>
+
+                            {/* Category & Details */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Category</label>
+                                <div className="flex flex-wrap gap-2">
+                                    {[{ id: 'social', emoji: '🍻' }, { id: 'food', emoji: '🍔' }, { id: 'music', emoji: '🎵' }, { id: 'arts', emoji: '🎨' }, { id: 'sports', emoji: '⚽' }].map(cat => (
+                                        <button key={cat.id} type="button" onClick={() => setType(cat.id)}
+                                            className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase ${type === cat.id ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-500 border-dashed border-gray-500'}`}>
+                                            {cat.emoji} {cat.id}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <textarea
                                 value={description}
-                                placeholder="Describe the event..."
                                 onChange={(e) => setDescription(e.target.value)}
-                                rows={3}
-                                className={`w-full px-4 py-3 rounded-xl border outline-none transition-all text-sm resize-none
-                                    ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50 placeholder-cyan-700' :
-                                        theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500 placeholder-gray-400' :
-                                            'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500 placeholder-gray-500'}`}
+                                placeholder="Details..."
+                                rows={2}
+                                className={`w-full px-4 py-3 rounded-xl border outline-none text-sm resize-none
+                                    ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
                             />
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Start</label>
-                                <div className="relative">
-                                    <input
-                                        type="datetime-local"
-                                        required
-                                        value={startTime}
-                                        onChange={(e) => setStartTime(e.target.value)}
-                                        className={`w-full px-3 py-3 rounded-xl border outline-none transition-all text-xs
-                                            ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50' :
-                                                theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500' :
-                                                    'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500'}`}
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">End</label>
-                                <div className="relative">
-                                    <input
-                                        type="datetime-local"
-                                        required
-                                        value={endTime}
-                                        onChange={(e) => setEndTime(e.target.value)}
-                                        className={`w-full px-3 py-3 rounded-xl border outline-none transition-all text-xs
-                                            ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100 focus:ring-2 focus:ring-cyan-500/50' :
-                                                theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900 focus:ring-2 focus:ring-blue-500' :
-                                                    'bg-white/5 border-white/10 text-white focus:ring-2 focus:ring-blue-500'}`}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Category</label>
-                            <div className="flex flex-wrap gap-2">
-                                {[
-                                    { id: 'social', label: 'Social', emoji: '🍻' },
-                                    { id: 'food', label: 'Food', emoji: '🍔' },
-                                    { id: 'music', label: 'Music', emoji: '🎵' },
-                                    { id: 'arts', label: 'Arts', emoji: '🎨' },
-                                    { id: 'learning', label: 'Learn', emoji: '📚' },
-                                    { id: 'sports', label: 'Sport', emoji: '⚽' }
-                                ].map((cat) => (
-                                    <button
-                                        key={cat.id}
-                                        type="button"
-                                        onClick={() => setType(cat.id)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-wider transition-all
-                                            ${type === cat.id
-                                                ? (theme === 'cyberpunk' ? 'bg-cyan-500 border-cyan-500 text-black shadow-[0_0_10px_rgba(34,211,238,0.5)]' : 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20')
-                                                : (theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-400 hover:bg-cyan-900/40' :
-                                                    theme === 'light' ? 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50' :
-                                                        'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10')
-                                            } transform ${type === cat.id ? 'scale-105' : ''}`}
-                                    >
-                                        <span className="text-sm">{cat.emoji}</span>
-                                        <span>{cat.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className={`w-full py-4 font-bold rounded-xl shadow-lg transition-all transform hover:scale-[1.01] active:scale-[0.98] mt-2
-                                ${theme === 'cyberpunk' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20' :
-                                    'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-500/20'}`}
-                        >
-                            Create Event
-                        </button>
-                    </form>
+                            <button type="submit" className="w-full py-4 bg-blue-600 font-bold rounded-xl text-white hover:bg-blue-500 transition-colors shadow-lg">
+                                Create Event
+                            </button>
+                        </form>
+                    </>
                 )}
             </div>
         </div>
