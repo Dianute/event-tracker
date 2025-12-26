@@ -226,146 +226,110 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            {/* Main Modal Container - Fullscreen on Mobile, Card on Desktop */}
-            <div className={`w-full h-[95vh] md:h-auto md:max-h-[85vh] md:max-w-lg md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
+            {/* Main Modal Container - Fullscreen "Story" Card */}
+            <div className={`w-full h-[95vh] md:h-[85vh] md:max-h-[800px] md:max-w-[450px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
                 ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30' :
                     theme === 'light' ? 'bg-white border-gray-200 text-gray-900' :
                         'bg-zinc-900 border-white/10 text-white'}
                 ${!isReadOnly ? 'rounded-t-3xl md:rounded-3xl' : ''}`}>
 
-                {/* --- VIEW MODE: Split Screen Layout --- */}
+                {/* --- VIEW MODE: Immersive Story Layout --- */}
                 {isReadOnly ? (
-                    <div className="flex flex-col h-full relative">
-                        {/* 1. TOP SECTION: Immersive Image (45% Height) */}
-                        <div className="relative h-[45%] shrink-0 w-full overflow-hidden bg-black group">
-                            {/* Blurry Background */}
-                            <div
-                                className="absolute inset-0 opacity-60 blur-2xl scale-110"
-                                style={{
-                                    backgroundImage: `url(${imageUrl || '/api/placeholder/400/320'})`,
-                                    backgroundSize: 'cover',
-                                    backgroundPosition: 'center'
-                                }}
-                            />
+                    <div className="w-full h-full relative bg-black group">
 
-                            {/* Main Image */}
-                            <div className="absolute inset-0 flex items-center justify-center p-4">
+                        {/* 1. Fullscreen Image Layer */}
+                        <div className="absolute inset-0 z-0">
+                            {imageUrl ? (
                                 <img
-                                    src={imageUrl || '/api/placeholder/400/320'}
+                                    src={imageUrl}
                                     alt={title}
-                                    className="w-full h-full object-contain drop-shadow-2xl"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
-                            </div>
-
-                            {/* Floating Top Controls */}
-                            <div className="absolute top-4 left-0 right-0 px-4 flex justify-between items-start z-10">
-                                {/* Category Badge */}
-                                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-md border
-                                     ${type === 'music' ? 'bg-pink-500/80 text-white border-pink-400/30' :
-                                        type === 'food' ? 'bg-orange-500/80 text-white border-orange-400/30' :
-                                            type === 'sports' ? 'bg-green-600/80 text-white border-green-500/30' :
-                                                'bg-blue-600/80 text-white border-blue-500/30'}`}>
-                                    <span className="text-xs">{
-                                        type === 'food' ? '🍔' :
-                                            type === 'sports' ? '⚽' :
-                                                type === 'music' ? '🎵' :
-                                                    type === 'arts' ? '🎨' :
-                                                        type === 'learning' ? '📚' : '🍻'
-                                    }</span>
-                                    {type}
+                            ) : (
+                                <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
+                                    <ImageIcon size={48} className="text-white/20" />
                                 </div>
+                            )}
 
-                                {/* Close Button */}
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-black/60 transition-colors"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
+                            {/* Gradient Overlays for Readability */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent h-32 pointer-events-none" /> {/* Top Fade */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent top-1/3 pointer-events-none" /> {/* Bottom Deep Fade */}
                         </div>
 
-                        {/* 2. BOTTOM SECTION: Info Panel (55% Height) */}
-                        <div className={`flex-1 relative flex flex-col w-full -mt-6 rounded-t-3xl z-10 shadow-[0_-5px_20px_rgba(0,0,0,0.2)]
-                            ${theme === 'cyberpunk' ? 'bg-[#0a0a15]' :
-                                theme === 'light' ? 'bg-white' :
-                                    'bg-zinc-900'}`}>
-
-                            {/* Drag Handle (Visual Cue) */}
-                            <div className="w-full flex justify-center pt-3 pb-1">
-                                <div className={`w-12 h-1.5 rounded-full opacity-20 ${theme === 'light' ? 'bg-black' : 'bg-white'}`} />
+                        {/* 2. Top Controls (Floating) */}
+                        <div className="absolute top-0 left-0 right-0 p-5 flex justify-between items-start z-50 pointer-events-none">
+                            {/* Category Badge */}
+                            <div className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
+                                 ${type === 'music' ? 'bg-pink-500/50' :
+                                    type === 'food' ? 'bg-orange-500/50' :
+                                        type === 'sports' ? 'bg-green-600/50' :
+                                            'bg-blue-600/50'}`}>
+                                <span className="text-sm shadow-black drop-shadow-md">{
+                                    type === 'food' ? '🍔' :
+                                        type === 'sports' ? '⚽' :
+                                            type === 'music' ? '🎵' :
+                                                type === 'arts' ? '🎨' :
+                                                    type === 'learning' ? '📚' : '🍻'
+                                }</span>
+                                <span className="drop-shadow-md">{type}</span>
                             </div>
 
-                            <div className="flex-1 flex flex-col px-6 pb-6 overflow-hidden">
-                                {/* Header: Title */}
-                                <div className="mb-5 text-center">
-                                    <h2 className={`text-2xl font-black leading-tight mb-1
-                                        ${theme === 'cyberpunk' ? 'text-cyan-50 drop-shadow-[0_0_5px_rgba(34,211,238,0.3)]' :
-                                            theme === 'light' ? 'text-gray-900' :
-                                                'text-white'}`}>
-                                        {title}
-                                    </h2>
-                                </div>
+                            {/* Close Button */}
+                            <button
+                                onClick={onClose}
+                                className="pointer-events-auto p-2.5 rounded-full bg-black/20 backdrop-blur-xl text-white border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+                            >
+                                <X size={22} />
+                            </button>
+                        </div>
 
-                                {/* Metadata Grid (Compact) */}
-                                <div className="grid grid-cols-2 gap-3 mb-5 shrink-0">
-                                    <div className={`p-3 rounded-2xl border flex flex-col items-center justify-center text-center gap-1.5 shadow-sm
-                                        ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100' :
-                                            theme === 'light' ? 'bg-gray-50 border-gray-100' :
-                                                'bg-white/5 border-white/5'}`}>
-                                        <Clock className={theme === 'cyberpunk' ? 'text-cyan-400' : 'text-blue-500'} size={18} />
-                                        <div>
-                                            <p className={`text-[10px] font-bold uppercase tracking-wide opacity-60 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Time</p>
-                                            <p className={`text-xs font-semibold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                                {formatDateRange(startTime, endTime).split('•')[1] || 'TBA'}
-                                            </p>
-                                        </div>
-                                    </div>
+                        {/* 3. Bottom Content (Info Overlay) */}
+                        <div className="absolute bottom-0 left-0 right-0 z-40 p-6 pb-8 text-white flex flex-col gap-5 max-h-[65%] overflow-y-auto scrollbar-none">
 
-                                    <div className={`p-3 rounded-2xl border flex flex-col items-center justify-center text-center gap-1.5 shadow-sm
-                                        ${theme === 'cyberpunk' ? 'bg-pink-950/20 border-pink-500/30 text-pink-100' :
-                                            theme === 'light' ? 'bg-gray-50 border-gray-100' :
-                                                'bg-white/5 border-white/5'}`}>
-                                        <MapPin className={theme === 'cyberpunk' ? 'text-pink-500' : 'text-red-500'} size={18} />
-                                        <div className="w-full px-1">
-                                            <p className={`text-[10px] font-bold uppercase tracking-wide opacity-60 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>Location</p>
-                                            <p className={`text-xs font-semibold truncate w-full ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                                {venue ? venue.split(',')[0] : 'Unknown'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Description (Scrollable) */}
-                                <div className={`flex-1 overflow-y-auto mb-4 pr-1 scrollbar-thin
-                                    ${theme === 'light' ? 'scrollbar-thumb-gray-200' : 'scrollbar-thumb-white/10'}`}>
-                                    <h3 className={`text-xs font-bold uppercase tracking-widest mb-2 opacity-80 ${theme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                                        About
-                                    </h3>
-                                    <p className={`text-sm leading-relaxed whitespace-pre-wrap ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}>
-                                        {description || 'No description provided.'}
-                                    </p>
-                                </div>
-
-                                {/* Bottom Action Button */}
-                                {event?.link && (
-                                    <a
-                                        href={event.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className={`w-full py-3.5 flex items-center justify-center gap-2 rounded-xl font-bold shadow-lg transition-transform active:scale-95 shrink-0
-                                            ${theme === 'cyberpunk' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-cyan-500/20' :
-                                                'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/30'}`}
-                                    >
-                                        <span>Get Tickets / Info</span>
-                                        <ExternalLink size={16} />
-                                    </a>
-                                )}
+                            {/* Title */}
+                            <div>
+                                <h1 className="text-3xl font-black leading-tight drop-shadow-lg mb-1">
+                                    {title}
+                                </h1>
                             </div>
+
+                            {/* Info Grid (Glassmorphism) */}
+                            <div className="grid grid-cols-2 gap-3 shrink-0">
+                                <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center text-center gap-1">
+                                    <Clock className="text-blue-400 mb-1" size={20} />
+                                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">Time</p>
+                                    <p className="text-xs font-semibold">{formatDateRange(startTime, endTime).split('•')[1] || 'TBA'}</p>
+                                </div>
+                                <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center text-center gap-1">
+                                    <MapPin className="text-red-500 mb-1" size={20} />
+                                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">Location</p>
+                                    <p className="text-xs font-semibold truncate w-full px-1">{venue ? venue.split(',')[0] : 'Unknown'}</p>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div className="prose prose-invert prose-sm max-w-none">
+                                <p className="text-sm text-gray-200 leading-relaxed opacity-90 font-medium dropshadow-md">
+                                    {description || 'No description provided.'}
+                                </p>
+                            </div>
+
+                            {/* Action Button */}
+                            {event?.link && (
+                                <a
+                                    href={event.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full py-4 bg-white text-black font-black rounded-xl text-center shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
+                                >
+                                    <span>GET TICKETS</span>
+                                    <ExternalLink size={16} />
+                                </a>
+                            )}
                         </div>
                     </div>
                 ) : (
-                    // --- CREATE MODE: Standard Scrollable Form ---
+                    // --- CREATE MODE: Standard Form ---
                     <>
                         {/* Create Mode Header (Image/Close) */}
                         <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 transition-colors
@@ -375,14 +339,14 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                             <button
                                 onClick={onClose}
-                                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors"
+                                className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors shadow-lg active:scale-90"
                             >
                                 <X size={18} />
                             </button>
 
                             {imageUrl ? (
                                 <>
-                                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                    <img src={imageUrl} alt="Preview" className="w-full h-full object-cover bg-black/20" />
                                     <button
                                         onClick={(e) => { e.stopPropagation(); setImageUrl(''); }}
                                         className="absolute bottom-3 right-3 p-1.5 bg-red-500 text-white rounded-full shadow-lg"
@@ -424,7 +388,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
+                        <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
                             {/* Where */}
                             <div className="relative">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
@@ -460,7 +424,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                     setVenue(item.display_name.split(',')[0]);
                                                     setCurrentLocation({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                                                     setSuggestions([]);
-                                                    // (Optional: Trigger full reverse geocode here for strict format)
                                                 }}>
                                                 <MapPin size={12} /> {item.display_name}
                                             </div>
