@@ -108,12 +108,12 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   onLocationFound: (pos: L.LatLng) => void
 }) {
   const [position, setPosition] = useState<L.LatLng | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
   const map = useMap();
 
   useEffect(() => {
-    map.locate({ watch: true, enableHighAccuracy: true });
-
     function onLocation(e: L.LocationEvent) {
+      setIsLocating(false);
       setPosition((prev) => {
         if (!prev) {
           map.flyTo(e.latlng, 15);
@@ -123,13 +123,17 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
       onLocationFound(e.latlng);
     }
 
+    function onLocationError(e: L.ErrorEvent) {
+      setIsLocating(false);
+      console.warn("Location access denied or failed:", e.message);
+    }
+
     map.on("locationfound", onLocation);
+    map.on("locationerror", onLocationError);
+
     return () => {
       map.off("locationfound", onLocation);
-      map.stopLocate();
-    };
-    return () => {
-      map.off("locationfound", onLocation);
+      map.off("locationerror", onLocationError);
       map.stopLocate();
     };
   }, [map, onLocationFound]);
@@ -141,7 +145,18 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
       L.DomEvent.disableClickPropagation(buttonRef.current);
       L.DomEvent.disableScrollPropagation(buttonRef.current);
     }
-  }, [position]);
+  }, []);
+
+  const handleLocate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (position) {
+      map.flyTo(position, 15);
+    } else {
+      setIsLocating(true);
+      map.locate({ watch: true, enableHighAccuracy: true });
+    }
+  };
 
   useMapEvents({
     click(e) {
@@ -159,22 +174,24 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
             <Popup className="custom-popup">You are here</Popup>
           </Marker>
           <Circle center={position} radius={1000} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }} />
-
-          <div ref={buttonRef} className="fixed bottom-24 right-6 z-[1000]">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (position) map.flyTo(position, 15);
-              }}
-              className="bg-black/80 hover:bg-black text-white p-3 rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-sm"
-              title="Go to my location"
-            >
-              <Navigation size={20} className="text-blue-400" fill="currentColor" fillOpacity={0.2} />
-            </button>
-          </div>
         </>
       )}
+
+      <div ref={buttonRef} className="fixed bottom-24 right-6 z-[1000]">
+        <button
+          onClick={handleLocate}
+          className={`p-3 rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-sm ${isLocating ? 'bg-blue-600 animate-pulse' : 'bg-black/80 hover:bg-black'} text-white`}
+          title={position ? "Go to my location" : "Locate me"}
+          disabled={isLocating}
+        >
+          <Navigation
+            size={20}
+            className={`transition-colors ${position ? "text-blue-400" : "text-white/50"}`}
+            fill="currentColor"
+            fillOpacity={0.2}
+          />
+        </button>
+      </div>
 
       {newLocation && (
         <Marker position={[newLocation.lat, newLocation.lng]} icon={createEmojiIcon('📍')} opacity={0.8}>
