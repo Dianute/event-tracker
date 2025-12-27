@@ -332,11 +332,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     else setRadiusFilter(null); // Back to World
   };
 
-  const getRadiusIcon = () => {
-    if (radiusFilter === 1000) return <span className="text-[10px] font-bold">1k</span>;
-    if (radiusFilter === 5000) return <span className="text-[10px] font-bold">5k</span>;
-    if (radiusFilter === 10000) return <span className="text-[10px] font-bold">10k</span>;
-    return <Globe size={18} />;
+  const getRadiusLabel = () => {
+    if (radiusFilter === 1000) return '1 km';
+    if (radiusFilter === 5000) return '5 km';
+    if (radiusFilter === 10000) return '10 km';
+    return 'World';
   }
 
   // Function to cycle time
@@ -347,26 +347,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     else setTimeFilter('all');
   }
 
-  const getTimeIcon = () => {
-    if (timeFilter === 'live') return <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse box-content border-2 border-transparent"></span>; // Dot
-    if (timeFilter === 'today') return <Clock size={18} />;
-    if (timeFilter === 'week') return <Calendar size={18} />;
-    return <span className="text-[10px] font-bold">ALL</span>;
+  const getTimeLabel = () => {
+    if (timeFilter === 'live') return 'Live';
+    if (timeFilter === 'today') return 'Today';
+    if (timeFilter === 'week') return 'Week';
+    return 'All';
   }
-
-  const getFilterLabel = (type: 'radius' | 'time') => {
-    if (type === 'radius') {
-      if (!radiusFilter) return 'Global';
-      return `${radiusFilter / 1000}km`;
-    }
-    if (type === 'time') {
-      if (timeFilter === 'all') return 'All Time';
-      if (timeFilter === 'live') return 'Now';
-      if (timeFilter === 'today') return 'Today';
-      if (timeFilter === 'week') return 'This Week';
-    }
-  }
-
 
   const handleThemeChange = () => {
     setMapTheme(prev => {
@@ -504,26 +490,25 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           <div className="w-px h-6 bg-white/20 mx-1"></div>
 
-          {/* New RADIUS Filter Button (Replaces Sort) */}
+          {/* New RADIUS Filter Button (Pill) */}
           <button
             onClick={cycleRadiusFilters}
-            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all relative
-                ${radiusFilter ? 'text-blue-400 bg-blue-500/10' : 'text-gray-300 hover:bg-white/10'}`}
-            title={`Radius: ${getFilterLabel('radius')}`}
+            className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap
+                ${radiusFilter ? 'text-blue-300 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
+            title="Filter by Radius"
           >
-            {getRadiusIcon()}
-            {/* Tiny Indicator Dot if active filter */}
-            {radiusFilter && <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border-2 border-black"></div>}
+            {getRadiusLabel()}
           </button>
 
-          {/* New TIME Filter Button (Replaces Live) */}
+          {/* New TIME Filter Button (Pill) */}
           <button
             onClick={cycleTimeFilters}
-            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all relative
-                ${timeFilter !== 'all' ? 'text-green-400 bg-green-500/10' : 'text-gray-300 hover:bg-white/10'}`}
-            title={`Time: ${getFilterLabel('time')}`}
+            className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5
+                ${timeFilter !== 'all' ? 'text-green-300 border-green-500/30 bg-green-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
+            title="Filter by Time"
           >
-            {getTimeIcon()}
+            {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
+            {getTimeLabel()}
           </button>
 
           {/* Refresh */}
