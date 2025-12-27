@@ -100,6 +100,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [showControls, setShowControls] = useState(true);
 
     // Effect to reset or populate form
     useEffect(() => {
@@ -235,7 +236,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                 {/* --- VIEW MODE: Immersive Story Layout --- */}
                 {isReadOnly ? (
-                    <div className="w-full h-full relative bg-black group">
+                    <div
+                        className="w-full h-full relative bg-black group cursor-pointer"
+                        onClick={() => setShowControls(!showControls)}
+                    >
 
                         {/* 1. Fullscreen Image Layer */}
                         <div className="absolute inset-0 z-0">
@@ -252,18 +256,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             )}
 
                             {/* Gradient Overlays for Readability */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent h-32 pointer-events-none" /> {/* Top Fade */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent top-1/3 pointer-events-none" /> {/* Bottom Deep Fade */}
+                            <div className={`absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent h-32 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`} /> {/* Top Fade */}
+                            <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent top-1/3 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`} /> {/* Bottom Deep Fade */}
                         </div>
 
                         {/* 2. Top Controls (Floating) */}
-                        <div className="absolute top-0 left-0 right-0 p-5 flex justify-between items-start z-50 pointer-events-none">
+                        <div className={`absolute top-0 left-0 right-0 p-5 flex justify-between items-start z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                             {/* Category Badge */}
-                            <div className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
+                            <div
+                                onClick={(e) => e.stopPropagation()}
+                                className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
                                  ${type === 'music' ? 'bg-pink-500/50' :
-                                    type === 'food' ? 'bg-orange-500/50' :
-                                        type === 'sports' ? 'bg-green-600/50' :
-                                            'bg-blue-600/50'}`}>
+                                        type === 'food' ? 'bg-orange-500/50' :
+                                            type === 'sports' ? 'bg-green-600/50' :
+                                                'bg-blue-600/50'}`}
+                            >
                                 <span className="text-sm shadow-black drop-shadow-md">{
                                     type === 'food' ? '🍔' :
                                         type === 'sports' ? '⚽' :
@@ -276,7 +283,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                             {/* Close Button */}
                             <button
-                                onClick={onClose}
+                                onClick={(e) => { e.stopPropagation(); onClose(); }}
                                 className="pointer-events-auto p-2.5 rounded-full bg-black/20 backdrop-blur-xl text-white border border-white/10 hover:bg-white/20 transition-all active:scale-95"
                             >
                                 <X size={22} />
@@ -284,7 +291,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         </div>
 
                         {/* 3. Bottom Content (Info Overlay) */}
-                        <div className="absolute bottom-0 left-0 right-0 z-40 p-6 pb-8 text-white flex flex-col gap-5 max-h-[65%] overflow-y-auto scrollbar-none">
+                        <div className={`absolute bottom-0 left-0 right-0 z-40 p-6 pb-8 text-white flex flex-col gap-5 max-h-[65%] overflow-y-auto scrollbar-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
 
                             {/* Title */}
                             <div>
@@ -320,6 +327,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     href={event.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
                                     className="w-full py-4 bg-white text-black font-black rounded-xl text-center shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
                                 >
                                     <span>GET TICKETS</span>
