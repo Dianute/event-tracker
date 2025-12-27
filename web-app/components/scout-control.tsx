@@ -8,7 +8,8 @@ interface Target {
     selector?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// Forcing local backend for development testing
+const API_URL = 'http://localhost:8080';
 
 export default function ScoutControl({ onClose }: { onClose: () => void }) {
     const [targets, setTargets] = useState<Target[]>([]);
