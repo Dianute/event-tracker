@@ -536,8 +536,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                   userLocation={userLocation}
                   variant="standard"
                   onClick={() => {
-                    setShowList(false);
-                    setSelectedCluster(null);
+                    // Don't close list - preserve context for "Back" navigation
                     if (map) map.flyTo([event.lat, event.lng], 16);
                     if (onEventSelect) onEventSelect(event);
                   }}
