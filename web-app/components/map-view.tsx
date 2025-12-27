@@ -234,6 +234,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
+  const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
   const [showList, setShowList] = useState(false);
 
   useEffect(() => {
@@ -305,6 +306,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     ? "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
+  const activeList = selectedCluster || displayList;
+
   return (
     <>
       <MapContainer
@@ -353,46 +356,17 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                   L.DomEvent.stopPropagation(e.originalEvent);
                   console.log('Marker clicked:', event.title);
 
-                  if (isCluster && map) {
-                    map.flyTo([event.lat, event.lng], 16);
-                  } else if (!isCluster && onEventSelect) {
+                  if (isCluster) {
+                    if (map) map.flyTo([event.lat, event.lng], 16);
+                    setSelectedCluster(group);
+                    setShowList(true);
+                  } else if (onEventSelect) {
                     onEventSelect(event);
                   }
                 }
               }}
             >
-              {isCluster && (
-                <Popup className="custom-popup">
-                  <div className={`flex flex-col gap-2 p-2 min-w-[260px] max-h-[320px] overflow-y-auto rounded-xl backdrop-blur-xl border shadow-2xl
-                    ${isCyber ? 'bg-slate-950/90 border-pink-500/50 shadow-pink-900/20' :
-                      mapTheme === 'light' ? 'bg-white/90 border-gray-200 shadow-xl' :
-                        'bg-gray-900/90 border-gray-700 shadow-black'}`}>
-
-                    <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 px-1 flex justify-between items-center
-                      ${isCyber ? 'text-pink-400' : mapTheme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
-                      <span>{group.length} Events Here</span>
-                      <span className="text-[9px] opacity-70">Scroll for more</span>
-                    </div>
-
-                    {group.map((evt) => (
-                      <div
-                        key={evt.id}
-                        className="transition-transform active:scale-95"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onEventSelect) onEventSelect(evt);
-                        }}
-                      >
-                        <EventCard
-                          event={evt}
-                          userLocation={userLocation}
-                          variant="compact"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </Popup>
-              )}
+              {/* No Popup for Cluster anymore, or only for non-cluster if needed? No, single event select opens modal directly. */}
             </Marker>
           );
         })}
@@ -411,7 +385,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* List Toggle */}
           <button
-            onClick={() => setShowList(!showList)}
+            onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
             className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
             title="List View"
           >
@@ -531,21 +505,23 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
               <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                All Events ({displayList.length})
+                {selectedCluster ? `Cluster Events (${selectedCluster.length})` : `All Events (${displayList.length})`}
               </h2>
 
               <div className="flex gap-2">
+                {!selectedCluster && (
+                  <button
+                    onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
+                        ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
+                        mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
+                          'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
+                  >
+                    {sortBy === 'time' ? 'Time' : 'Dist'}
+                  </button>
+                )}
                 <button
-                  onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
-                      ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
-                      mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                        'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
-                >
-                  {sortBy === 'time' ? 'Time' : 'Dist'}
-                </button>
-                <button
-                  onClick={() => setShowList(false)}
+                  onClick={() => { setShowList(false); setSelectedCluster(null); }}
                   className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                 >
                   <Plus size={24} className="rotate-45" />
@@ -553,7 +529,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               </div>
             </div>
 
-            {displayList.map(event => (
+            {activeList.map(event => (
               <div key={event.id} className="w-full">
                 <EventCard
                   event={event}
@@ -561,6 +537,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                   variant="standard"
                   onClick={() => {
                     setShowList(false);
+                    setSelectedCluster(null);
                     if (map) map.flyTo([event.lat, event.lng], 16);
                     if (onEventSelect) onEventSelect(event);
                   }}
@@ -568,8 +545,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               </div>
             ))}
 
-            {displayList.length === 0 && (
-              <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found matching your filters.</div>
+            {activeList.length === 0 && (
+              <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found.</div>
             )}
           </div>
         </div>
