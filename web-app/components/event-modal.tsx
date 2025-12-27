@@ -460,6 +460,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             }]);
                                         }
                                     }}
+                                    onBlur={() => {
+                                        // Delay hiding to allow click to register
+                                        setTimeout(() => setSuggestions([]), 200);
+                                    }}
                                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm
                                         ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/30 text-cyan-100' :
                                             theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' :
@@ -472,6 +476,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         ${theme === 'light' ? 'bg-white' : 'bg-zinc-800 border-zinc-700'}`}>
                                         {suggestions.map((item, i) => (
                                             <div key={i} className="p-3 cursor-pointer text-sm truncate flex items-center gap-2 hover:bg-white/10"
+                                                onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
                                                 onClick={async () => {
                                                     if (item.osm_id === 'current-loc') {
                                                         // Resolve Real Address
