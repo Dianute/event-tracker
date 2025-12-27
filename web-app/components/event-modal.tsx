@@ -247,7 +247,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <img
                                     src={imageUrl}
                                     alt={title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className={`w-full h-full transition-all duration-300 ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`}
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
