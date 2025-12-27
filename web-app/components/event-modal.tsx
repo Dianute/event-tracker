@@ -31,7 +31,7 @@ const formatDateRange = (startStr: string, endStr: string) => {
     return `${dateText} • ${startTimeText}`;
 };
 
-import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon } from 'lucide-react';
+import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon, Navigation } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -261,24 +261,37 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         </div>
 
                         {/* 2. Top Controls (Floating) */}
-                        <div className={`absolute top-0 left-0 right-0 p-5 flex justify-between items-start z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-                            {/* Category Badge */}
-                            <div
-                                onClick={(e) => e.stopPropagation()}
-                                className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
-                                 ${type === 'music' ? 'bg-pink-500/50' :
-                                        type === 'food' ? 'bg-orange-500/50' :
-                                            type === 'sports' ? 'bg-green-600/50' :
-                                                'bg-blue-600/50'}`}
-                            >
-                                <span className="text-sm shadow-black drop-shadow-md">{
-                                    type === 'food' ? '🍔' :
-                                        type === 'sports' ? '⚽' :
-                                            type === 'music' ? '🎵' :
-                                                type === 'arts' ? '🎨' :
-                                                    type === 'learning' ? '📚' : '🍻'
-                                }</span>
-                                <span className="drop-shadow-md">{type}</span>
+                        <div className={`absolute top-0 left-0 right-0 pt-12 px-5 pb-5 flex justify-between items-center z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+
+                            <div className="flex items-center gap-2">
+                                {/* Category Badge */}
+                                <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
+                                    ${type === 'music' ? 'bg-pink-500/50' :
+                                            type === 'food' ? 'bg-orange-500/50' :
+                                                type === 'sports' ? 'bg-green-600/50' :
+                                                    'bg-blue-600/50'}`}
+                                >
+                                    <span className="text-sm shadow-black drop-shadow-md">{
+                                        type === 'food' ? '🍔' :
+                                            type === 'sports' ? '⚽' :
+                                                type === 'music' ? '🎵' :
+                                                    type === 'arts' ? '🎨' :
+                                                        type === 'learning' ? '📚' : '🍻'
+                                    }</span>
+                                    <span className="drop-shadow-md">{type}</span>
+                                </div>
+
+                                {/* Distance Badge */}
+                                {initialLocation && event.lat && event.lng && (
+                                    <div className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/10 bg-black/40 text-white/90">
+                                        <Navigation size={10} className="text-cyan-400 fill-cyan-400" />
+                                        <span className="drop-shadow-md">
+                                            {getDistanceFromLatLonInKm(initialLocation.lat, initialLocation.lng, event.lat, event.lng)} km
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Close Button */}
