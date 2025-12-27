@@ -300,18 +300,31 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 </h1>
                             </div>
 
-                            {/* Info Grid (Glassmorphism) */}
-                            <div className="grid grid-cols-2 gap-3 shrink-0">
-                                <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center text-center gap-1">
-                                    <Clock className="text-blue-400 mb-1" size={20} />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">Time</p>
-                                    <p className="text-xs font-semibold">{formatDateRange(startTime, endTime).split('•')[1] || 'TBA'}</p>
+                            {/* Info Grid (Compact & Clickable) */}
+                            <div className="flex flex-col gap-2 shrink-0">
+                                {/* Time Row */}
+                                <div className="flex items-center gap-3 text-sm font-medium text-gray-100">
+                                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-md">
+                                        <Clock size={16} className="text-blue-400" />
+                                    </div>
+                                    <span className="drop-shadow-md">{formatDateRange(startTime, endTime)}</span>
                                 </div>
-                                <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 flex flex-col items-center justify-center text-center gap-1">
-                                    <MapPin className="text-red-500 mb-1" size={20} />
-                                    <p className="text-[10px] font-bold uppercase tracking-wider opacity-60">Location</p>
-                                    <p className="text-xs font-semibold truncate w-full px-1">{venue ? venue.split(',')[0] : 'Unknown'}</p>
-                                </div>
+
+                                {/* Location Row (Clickable) */}
+                                <a
+                                    href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-3 text-sm font-medium text-gray-100 hover:text-white transition-colors group/loc"
+                                >
+                                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/loc:bg-white/20 transition-colors">
+                                        <MapPin size={16} className="text-red-500" />
+                                    </div>
+                                    <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md truncate pr-4">
+                                        {venue ? venue.split(',')[0] : 'Unknown Location'}
+                                    </span>
+                                </a>
                             </div>
 
                             {/* Description */}
