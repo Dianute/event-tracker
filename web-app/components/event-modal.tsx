@@ -49,7 +49,7 @@ const formatDateRange = (startStr: string, endStr: string) => {
 
 import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon } from 'lucide-react';
 
-const API_URL = 'http://localhost:8080';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // Helper: Convert UTC string to Local 'YYYY-MM-DDTHH:mm' for Input
 const toLocalISOString = (dateStr: string) => {
