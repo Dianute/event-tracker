@@ -64,159 +64,26 @@ interface MapViewProps {
   onAddEventClick?: (location?: { lat: number; lng: number }) => void;
   onEventSelect?: (event: Event) => void;
   onThemeChange?: (theme: 'dark' | 'light' | 'cyberpunk') => void;
+  onUserLocationUpdate?: (location: { lat: number; lng: number }) => void;
 }
 
 // ... (keep helpers)
 
-// Helper to calculate distance in meters
-function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
-  const R = 6371e3; // metres
-  const φ1 = lat1 * Math.PI / 180;
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
+// ...
 
-  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-    Math.cos(φ1) * Math.cos(φ2) *
-    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // in metres
-}
-
-
-
-// Helper to format distance text (km if > 1000m)
-const formatDistance = (meters: number) => {
-  if (meters >= 1000) {
-    return `${(meters / 1000).toFixed(1)} km`;
-  }
-  return `${Math.round(meters)} m`;
-};
-
-// EventCard moved to @/components/event-card.tsx
-import EventCard from '@/components/event-card';
-// function EventCardOld...
-
-
-
-
-
-function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
-  onMapClick?: (lat: number, lng: number) => void,
-  newLocation: { lat: number; lng: number } | null,
-  onLocationFound: (pos: L.LatLng) => void
-}) {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-  const [isLocating, setIsLocating] = useState(false);
-  const map = useMap();
-
-  useEffect(() => {
-    function onLocation(e: L.LocationEvent) {
-      setIsLocating(false);
-      setPosition((prev) => {
-        if (!prev) {
-          map.flyTo(e.latlng, 15);
-        }
-        return e.latlng;
-      });
-      onLocationFound(e.latlng);
-    }
-
-    function onLocationError(e: L.ErrorEvent) {
-      setIsLocating(false);
-      console.warn("Location access denied or failed:", e.message);
-    }
-
-    map.on("locationfound", onLocation);
-    map.on("locationerror", onLocationError);
-
-    return () => {
-      map.off("locationfound", onLocation);
-      map.off("locationerror", onLocationError);
-      map.stopLocate();
-    };
-  }, [map, onLocationFound]);
-
-  const buttonRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (buttonRef.current) {
-      L.DomEvent.disableClickPropagation(buttonRef.current);
-      L.DomEvent.disableScrollPropagation(buttonRef.current);
-    }
-  }, []);
-
-  const handleLocate = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (position) {
-      map.flyTo(position, 15);
-    } else {
-      setIsLocating(true);
-      map.locate({ watch: true, enableHighAccuracy: true });
-    }
-  };
-
-  // Auto-locate on mount
-  useEffect(() => {
-    // Only locate if we don't have a position yet
-    if (!position) {
-      setIsLocating(true);
-      map.locate({ setView: false, maxZoom: 15, watch: true, enableHighAccuracy: true });
-    }
-  }, [map]);
-
-  useMapEvents({
-    click(e) {
-      if (onMapClick) {
-        onMapClick(e.latlng.lat, e.latlng.lng);
-      }
-    },
-  });
-
-  return (
-    <>
-      {position && (
-        <>
-          <Marker position={position} icon={L.divIcon({ className: 'user-marker', html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-[0_0_15px_#3b82f6] pulse-animation"></div>', iconSize: [16, 16] })}>
-            <Popup className="custom-popup">You are here</Popup>
-          </Marker>
-          <Circle center={position} radius={1000} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }} />
-        </>
-      )}
-
-      <div ref={buttonRef} className="fixed bottom-24 right-6 z-[1000]">
-        <button
-          onClick={handleLocate}
-          className={`p-3 rounded-full shadow-lg border border-white/20 transition-all active:scale-95 backdrop-blur-sm ${isLocating ? 'bg-blue-600 animate-pulse' : 'bg-black/80 hover:bg-black'} text-white`}
-          title={position ? "Go to my location" : "Locate me"}
-          disabled={isLocating}
-        >
-          <Navigation
-            size={20}
-            className={`transition-colors ${position ? "text-blue-400" : "text-white/50"}`}
-            fill="currentColor"
-            fillOpacity={0.2}
-          />
-        </button>
-      </div>
-
-      {newLocation && (
-        <Marker position={[newLocation.lat, newLocation.lng]} icon={createEmojiIcon('📍')} opacity={0.8}>
-          <Popup className="custom-popup">New Event Location</Popup>
-        </Marker>
-      )}
-    </>
-  );
-}
-
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
+
+  // Bubble up user location
+  useEffect(() => {
+    if (userLocation && onUserLocationUpdate) {
+      onUserLocationUpdate({ lat: userLocation.lat, lng: userLocation.lng });
+    }
+  }, [userLocation, onUserLocationUpdate]);
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
