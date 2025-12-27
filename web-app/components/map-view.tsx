@@ -183,7 +183,12 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
           <Marker position={position} icon={L.divIcon({ className: 'user-marker', html: '<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-[0_0_15px_#3b82f6] pulse-animation"></div>', iconSize: [16, 16] })}>
             <Popup className="custom-popup">You are here</Popup>
           </Marker>
-          <Circle center={position} radius={1000} pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }} />
+          <Circle
+            center={position}
+            radius={1000}
+            pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.1, weight: 1, dashArray: '5, 5' }}
+            interactive={false} // Prevent blocking clicks on markers below
+          />
         </>
       )}
 
