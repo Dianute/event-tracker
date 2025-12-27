@@ -300,8 +300,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     className={`w-full h-full transition-all duration-300 ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`}
                                 />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-                                    <ImageIcon size={48} className="text-white/20" />
+                                <div className={`w-full h-full flex items-center justify-center
+                                    ${theme === 'light' ? 'bg-gradient-to-br from-gray-100 to-gray-200' :
+                                        theme === 'cyberpunk' ? 'bg-[#050510] border-b border-cyan-500/20' :
+                                            'bg-gradient-to-br from-gray-900 to-black'}`}>
+                                    <ImageIcon size={48} className={theme === 'light' ? 'text-gray-300' : theme === 'cyberpunk' ? 'text-cyan-900' : 'text-white/20'} />
                                 </div>
                             )}
 
@@ -436,7 +439,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <div className="flex gap-4">
                                     {/* Camera Button */}
                                     <label className="flex flex-col items-center gap-2 cursor-pointer group/cam">
-                                        <div className="p-3.5 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/30 active:scale-90 transition-transform">
+                                        <div className={`p-3.5 rounded-full shadow-lg active:scale-90 transition-transform ${theme === 'cyberpunk' ? 'bg-cyan-600 shadow-cyan-500/30 text-white' : 'bg-blue-600 text-white shadow-blue-500/30'}`}>
                                             <Camera size={24} />
                                         </div>
                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Camera</span>
@@ -445,8 +448,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                                     {/* Gallery Button */}
                                     <label className="flex flex-col items-center gap-2 cursor-pointer group/gal">
-                                        <div className="p-3.5 rounded-full bg-white dark:bg-white/10 shadow-sm border border-gray-100 dark:border-white/5 active:scale-90 transition-transform">
-                                            <ImageIcon size={24} className="text-gray-500 dark:text-gray-400" />
+                                        <div className={`p-3.5 rounded-full shadow-sm border active:scale-90 transition-transform 
+                                            ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-700' :
+                                                theme === 'cyberpunk' ? 'bg-cyan-950/30 border-cyan-500/30 text-cyan-400' :
+                                                    'bg-white/10 border-white/5 text-gray-400'}`}>
+                                            <ImageIcon size={24} />
                                         </div>
                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gallery</span>
                                         <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
@@ -499,9 +505,14 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                                 {suggestions.length > 0 && (
                                     <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto
-                                        ${theme === 'light' ? 'bg-white' : 'bg-zinc-800 border-zinc-700'}`}>
+                                        ${theme === 'light' ? 'bg-white border-gray-200' :
+                                            theme === 'cyberpunk' ? 'bg-[#0a0a1a] border-cyan-500/30' :
+                                                'bg-zinc-800 border-zinc-700'}`}>
                                         {suggestions.map((item, i) => (
-                                            <div key={i} className="p-3 cursor-pointer text-sm truncate flex items-center gap-2 hover:bg-white/10"
+                                            <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors
+                                                ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' :
+                                                    theme === 'cyberpunk' ? 'text-cyan-100 hover:bg-cyan-900/30' :
+                                                        'text-gray-200 hover:bg-white/10'}`}
                                                 onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
                                                 onClick={async () => {
                                                     setIsSearching(false); // Stop search effect
