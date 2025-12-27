@@ -504,8 +504,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             <div key={i} className="p-3 cursor-pointer text-sm truncate flex items-center gap-2 hover:bg-white/10"
                                                 onMouseDown={(e) => e.preventDefault()} // Prevent blur on click
                                                 onClick={async () => {
+                                                    setIsSearching(false); // Stop search effect
                                                     if (item.osm_id === 'current-loc') {
-                                                        // Resolve Real Address
                                                         try {
                                                             setVenue("Finding address...");
                                                             const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}&addressdetails=1`);
@@ -513,11 +513,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                             const address = formatAddress(data);
                                                             setVenue(address || "Current Location");
                                                         } catch (e) {
-                                                            console.error("Reverse geocode failed", e);
                                                             setVenue("Current Location");
                                                         }
                                                     } else {
-                                                        setVenue(item.display_name.split(',')[0]);
+                                                        // Use full name to be safe
+                                                        setVenue(item.display_name);
                                                     }
                                                     setCurrentLocation({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                                                     setSuggestions([]);
