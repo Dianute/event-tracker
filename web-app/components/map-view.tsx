@@ -163,7 +163,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
     // Only locate if we don't have a position yet
     if (!position) {
       setIsLocating(true);
-      map.locate({ setView: true, maxZoom: 15, watch: true, enableHighAccuracy: true });
+      map.locate({ setView: false, maxZoom: 15, watch: true, enableHighAccuracy: true });
     }
   }, [map]);
 
