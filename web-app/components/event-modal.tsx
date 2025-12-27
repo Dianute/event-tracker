@@ -345,9 +345,16 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/loc:bg-white/20 transition-colors">
                                         <MapPin size={16} className="text-red-500" />
                                     </div>
-                                    <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md truncate pr-4">
-                                        {venue ? venue.split(',')[0] : 'Unknown Location'}
-                                    </span>
+                                    <div className="flex flex-col">
+                                        <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md truncate pr-4">
+                                            {venue ? venue.split(',')[0] : 'Unknown Location'}
+                                        </span>
+                                        {distanceString && (
+                                            <span className="text-[10px] font-bold text-blue-300 mt-0.5 animate-pulse">
+                                                {distanceString} away
+                                            </span>
+                                        )}
+                                    </div>
                                 </a>
                             </div>
 
