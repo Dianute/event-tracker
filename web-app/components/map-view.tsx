@@ -344,20 +344,19 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           return (
             <Marker
-              key={key}
+              key={`${key}-${group.length}`}
               position={[event.lat, event.lng]}
               icon={markerIcon}
               opacity={opacity}
               eventHandlers={{
-                click: () => {
-                  console.log('Marker clicked:', event.title, 'Cluster:', isCluster);
+                click: (e) => {
+                  L.DomEvent.stopPropagation(e.originalEvent);
+                  console.log('Marker clicked:', event.title);
+
                   if (isCluster && map) {
                     map.flyTo([event.lat, event.lng], 16);
                   } else if (!isCluster && onEventSelect) {
-                    console.log('Calling onEventSelect');
                     onEventSelect(event);
-                  } else {
-                    console.warn('Click ignored. isCluster:', isCluster, 'onEventSelect:', !!onEventSelect);
                   }
                 }
               }}
