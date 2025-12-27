@@ -223,12 +223,38 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     if (!isOpen) return null;
     const isReadOnly = !!event;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isReadOnly) return;
-        if (!currentLocation) {
-            alert("Please select a location from the search or click the map!");
-            return;
+
+        let finalLat = currentLocation?.lat;
+        let finalLng = currentLocation?.lng;
+
+        // Validation: If no hard location selected, try to geocode the text input
+        if (!finalLat || !finalLng) {
+            if (!venue.trim()) {
+                alert("Please enter a location.");
+                return;
+            }
+
+            try {
+                // Quick Geocode
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(venue)}&limit=1`);
+                const data = await res.json();
+
+                if (data && data.length > 0) {
+                    finalLat = parseFloat(data[0].lat);
+                    finalLng = parseFloat(data[0].lon);
+                    // Optional: Update venue name to match found? No, keep user input.
+                } else {
+                    alert("We couldn't find that address. Please select a suggestion or click the map.");
+                    return;
+                }
+            } catch (err) {
+                console.error("Geocode error", err);
+                alert("Error finding location. Please try using the map.");
+                return;
+            }
         }
 
         // Convert Local Input Time to UTC for Storage
@@ -241,8 +267,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             type,
             startTime: startUTC,
             endTime: endUTC,
-            lat: currentLocation.lat,
-            lng: currentLocation.lng,
+            lat: finalLat!, // valid now
+            lng: finalLng!,
             venue,
             imageUrl
         });
