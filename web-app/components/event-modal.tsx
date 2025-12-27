@@ -1,7 +1,77 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon, Navigation, X } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+// Helper: Convert UTC string to Local 'YYYY-MM-DDTHH:mm' for Input
+const toLocalISOString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const offset = date.getTimezoneOffset() * 60000;
+    const local = new Date(date.getTime() - offset);
+    return local.toISOString().slice(0, 16);
+};
+
+// Custom helper to format date range
+const formatDateRange = (startStr: string, endStr: string) => {
+    if (!startStr) return '';
+    const start = new Date(startStr);
+    const end = endStr ? new Date(endStr) : null;
+
+    const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+    const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+
+    const dateText = start.toLocaleDateString([], dateOptions);
+    const startTimeText = start.toLocaleTimeString([], timeOptions);
+
+    if (end) {
+        const endTimeText = end.toLocaleTimeString([], timeOptions);
+        return `${dateText} • ${startTimeText} - ${endTimeText}`;
+    }
+    return `${dateText} • ${startTimeText}`;
+};
+
+// Helper: Strict Address Formatter
+const formatAddress = (data: any, originalName?: string) => {
+    if (!data || !data.address) return '';
+    const parts = [];
+    if (originalName) {
+        const nameNode = originalName.split(',')[0];
+        if (nameNode !== data.address.road && nameNode !== data.address.city &&
+            nameNode !== data.address.town && nameNode !== data.address.pedestrian) {
+            parts.push(nameNode);
+        }
+    }
+    let road = data.address.road || data.address.pedestrian;
+    if (road && data.address.house_number) {
+        road = `${road} ${data.address.house_number}`;
+    }
+    if (road) parts.push(road);
+    const city = data.address.city || data.address.town || data.address.village || data.address.hamlet;
+    if (city) parts.push(city);
+    if (data.address.postcode) parts.push(data.address.postcode);
+    if (data.address.country) parts.push(data.address.country);
+
+    if (parts.length === 0 && data.display_name) {
+        return data.display_name.split(',').slice(0, 3).join(',');
+    }
+    return parts.join(', ');
+};
+
+// Helper: Calculate distance in km
+const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return (R * c).toFixed(1);
+};
 
 interface EventModalProps {
     isOpen: boolean;
@@ -12,8 +82,6 @@ interface EventModalProps {
     event?: any; // Event object for viewing
     theme?: 'dark' | 'light' | 'cyberpunk';
 }
-
-// ... (helpers)
 
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark' }: EventModalProps) {
     const [title, setTitle] = useState('');
@@ -212,9 +280,15 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
 
                                 {/* Distance Badge (DEBUG MODE) */}
-                                <div className="bg-red-600 border-2 border-white text-white font-bold px-4 py-2 z-[9999]">
-                                    DEBUG: {event?.lat ? 'E_OK' : 'E_NO'} / {userLocation ? 'U_OK' : 'U_NO'}
-                                </div>
+                                {/* Distance Badge */}
+                                {userLocation && event.lat && event.lng && (
+                                    <div className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/10 bg-black/40 text-white/90">
+                                        <Navigation size={10} className="text-cyan-400 fill-cyan-400" />
+                                        <span className="drop-shadow-md">
+                                            {getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, event.lat, event.lng)} km
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Close Button */}
