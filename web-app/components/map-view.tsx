@@ -442,21 +442,21 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
       {/* Top Controls */}
       <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all">
+        <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all max-w-full overflow-x-auto hide-scrollbar">
 
           {/* List Toggle */}
           <button
             onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
+            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
             title="List View"
           >
             <List size={20} />
           </button>
 
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
+          <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
 
           {/* Search */}
-          <div className={`flex items-center transition-all duration-300 ease-in-out ${isSearchOpen ? 'w-64 px-2' : 'w-10 justify-center'}`}>
+          <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-full md:w-64 px-2' : 'w-10 justify-center'}`}>
             {isSearchOpen ? (
               <div className="flex items-center w-full">
                 <input
