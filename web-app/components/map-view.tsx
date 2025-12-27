@@ -492,6 +492,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* New RADIUS Filter Button (Pill) */}
           <button
+            key="radius-btn"
             onClick={cycleRadiusFilters}
             className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap
                 ${radiusFilter ? 'text-blue-300 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
@@ -502,6 +503,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* New TIME Filter Button (Pill) */}
           <button
+            key="time-btn"
             onClick={cycleTimeFilters}
             className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5
                 ${timeFilter !== 'all' ? 'text-green-300 border-green-500/30 bg-green-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
