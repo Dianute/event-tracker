@@ -363,50 +363,31 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             >
               {isCluster && (
                 <Popup className="custom-popup">
-                  <div className={`p-3 min-w-[240px] text-white rounded-lg border backdrop-blur-md ${isCyber ? 'bg-slate-900/90 border-pink-500' : 'bg-gray-800 border-gray-700'}`}>
-                    {group.map((evt, i) => (
+                  <div className={`flex flex-col gap-2 p-2 min-w-[260px] max-h-[320px] overflow-y-auto rounded-xl backdrop-blur-xl border shadow-2xl
+                    ${isCyber ? 'bg-slate-950/90 border-pink-500/50 shadow-pink-900/20' :
+                      mapTheme === 'light' ? 'bg-white/90 border-gray-200 shadow-xl' :
+                        'bg-gray-900/90 border-gray-700 shadow-black'}`}>
+
+                    <div className={`text-[10px] font-bold uppercase tracking-wider mb-1 px-1 flex justify-between items-center
+                      ${isCyber ? 'text-pink-400' : mapTheme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>
+                      <span>{group.length} Events Here</span>
+                      <span className="text-[9px] opacity-70">Scroll for more</span>
+                    </div>
+
+                    {group.map((evt) => (
                       <div
                         key={evt.id}
-                        className={`${i > 0 ? 'mt-4 pt-4 border-t border-gray-600' : ''} cursor-pointer hover:bg-white/5 p-2 rounded transition-colors`}
+                        className="transition-transform active:scale-95"
                         onClick={(e) => {
                           e.stopPropagation();
                           if (onEventSelect) onEventSelect(evt);
                         }}
                       >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xl" style={{ filter: grayscale }}>{(getEventIcon(evt.type, false, evt.endTime ? new Date(evt.endTime) < now : false).options.html as string)?.match(/>(.*?)</)?.[1]}</span>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${isCyber ? 'text-cyan-400 border-cyan-500 bg-cyan-900/30' : 'text-blue-300 border-blue-700 bg-blue-900/20'}`}>{evt.type}</span>
-                          </div>
-                        </div>
-
-                        <h3 className={`font-bold text-lg m-0 leading-tight mb-2 ${isCyber ? 'text-pink-100 drop-shadow-[0_0_5px_rgba(255,0,255,0.5)]' : 'text-white'}`}>{evt.title}</h3>
-
-                        {displayDate && <div className="text-xs text-gray-300 mb-2">📅 {displayDate}</div>}
-
-                        <div className="flex gap-2 mt-2">
-                          {(evt.link || link) && (
-                            <a
-                              href={evt.link || link}
-                              target="_blank"
-                              onClick={e => e.stopPropagation()}
-                              className="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-500"
-                            >
-                              Tickets
-                            </a>
-                          )}
-
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${evt.lat},${evt.lng}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={e => e.stopPropagation()}
-                            className={`px-3 py-2 rounded-lg transition-all flex items-center justify-center ${isCyber ? 'bg-slate-800 hover:bg-slate-700 text-pink-400 border border-pink-500/30' : 'bg-gray-700 hover:bg-gray-600 text-gray-200'}`}
-                            title="Open in Google Maps"
-                          >
-                            🗺️
-                          </a>
-                        </div>
+                        <EventCard
+                          event={evt}
+                          userLocation={userLocation}
+                          variant="compact"
+                        />
                       </div>
                     ))}
                   </div>
