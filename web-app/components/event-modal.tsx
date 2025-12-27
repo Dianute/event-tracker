@@ -213,9 +213,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                                 {/* Distance Badge (DEBUG MODE) */}
                                 <div className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/10 bg-black/40 text-white/90">
-                                    <Navigation size={10} className="text-cyan-400 fill-cyan-400" />
-                                    <span className="drop-shadow-md">
-                                        D: {event?.lat}, {event?.lng} | {userLocation ? 'Loc:OK' : 'Loc:NO'}
+                                    <span className="drop-shadow-md text-yellow-300">
+                                        DIST: {event?.lat ? 'Y' : 'N'} | {userLocation ? 'Y' : 'N'}
                                     </span>
                                 </div>
                             </div>
