@@ -345,10 +345,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               opacity={opacity}
               eventHandlers={{
                 click: () => {
+                  console.log('Marker clicked:', event.title, 'Cluster:', isCluster);
                   if (isCluster && map) {
                     map.flyTo([event.lat, event.lng], 16);
                   } else if (!isCluster && onEventSelect) {
+                    console.log('Calling onEventSelect');
                     onEventSelect(event);
+                  } else {
+                    console.warn('Click ignored. isCluster:', isCluster, 'onEventSelect:', !!onEventSelect);
                   }
                 }
               }}

@@ -71,6 +71,7 @@ export default function Home() {
   };
 
   const handleEventSelect = (event: any) => {
+    console.log("Page: handleEventSelect called", event.title);
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
