@@ -104,7 +104,7 @@ import EventCard from '@/components/event-card';
 
 
 function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
-  onMapClick?: (lat: number, lng: number) => void,
+  onMapClick?: (lat: number; lng: number) => void,
   newLocation: { lat: number; lng: number } | null,
   onLocationFound: (pos: L.LatLng) => void
 }) {
@@ -219,7 +219,10 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
 
 export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
-  const [showHappeningNow, setShowHappeningNow] = useState(false);
+  // Filters
+  const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
+  const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
@@ -233,7 +236,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
-  const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');
   const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
   const [showList, setShowList] = useState(false);
 
@@ -246,11 +248,32 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const now = new Date();
 
   const filteredEvents = events.filter(e => {
-    const timeMatch = !showHappeningNow || (() => {
-      if (!e.startTime || !e.endTime) return true;
-      const start = new Date(e.startTime);
-      const end = new Date(e.endTime);
-      return now >= start && now <= end;
+    // Time Filter Logic
+    const start = e.startTime ? new Date(e.startTime) : new Date(0); // Default to past if missing
+    const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000); // Default to far future
+
+    const timeMatch = (() => {
+      if (timeFilter === 'all') return true;
+      if (timeFilter === 'live') return now >= start && now <= end;
+      if (timeFilter === 'today') {
+        const tomorrow4am = new Date(now);
+        tomorrow4am.setDate(tomorrow4am.getDate() + 1);
+        tomorrow4am.setHours(4, 0, 0, 0);
+        return start < tomorrow4am && end > now;
+      }
+      if (timeFilter === 'week') {
+        const nextWeek = new Date(now);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        return start < nextWeek && end > now;
+      }
+      return true;
+    })();
+
+    // Radius Filter Logic
+    const radiusMatch = (() => {
+      if (!radiusFilter || !userLocation) return true;
+      const dist = getDistance(userLocation.lat, userLocation.lng, e.lat, e.lng);
+      return dist <= radiusFilter;
     })();
 
     const query = searchQuery.toLowerCase();
@@ -259,7 +282,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       e.description.toLowerCase().includes(query) ||
       e.type.toLowerCase().includes(query);
 
-    return timeMatch && searchMatch;
+    return timeMatch && radiusMatch && searchMatch;
   });
 
   // Deduplication & Clustering
@@ -279,9 +302,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     groupedEvents.get(locKey)?.push(e);
   });
 
+  // Smart Sort: Distance if radius filter active, otherwise Time
+  const smartSortBy = radiusFilter ? 'distance' : 'time';
+
   const displayList = Array.from(uniqueEvents.values())
     .sort((a, b) => {
-      if (sortBy === 'time') {
+      if (smartSortBy === 'time') {
         const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
         const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
         return startA - startB;
@@ -292,6 +318,55 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         return distA - distB;
       }
     });
+
+  // Function to cycle radius
+  const cycleRadiusFilters = () => {
+    if (!userLocation) {
+      alert("Please enable location to use distance filters.");
+      // Ideally this would trigger map.locate() again but simple alert is ok for now logic-wise
+      return;
+    }
+    if (radiusFilter === null) setRadiusFilter(1000); // 1km
+    else if (radiusFilter === 1000) setRadiusFilter(5000); // 5km
+    else if (radiusFilter === 5000) setRadiusFilter(10000); // 10km
+    else setRadiusFilter(null); // Back to World
+  };
+
+  const getRadiusIcon = () => {
+    if (radiusFilter === 1000) return <span className="text-[10px] font-bold">1k</span>;
+    if (radiusFilter === 5000) return <span className="text-[10px] font-bold">5k</span>;
+    if (radiusFilter === 10000) return <span className="text-[10px] font-bold">10k</span>;
+    return <Globe size={18} />;
+  }
+
+  // Function to cycle time
+  const cycleTimeFilters = () => {
+    if (timeFilter === 'all') setTimeFilter('live');
+    else if (timeFilter === 'live') setTimeFilter('today');
+    else if (timeFilter === 'today') setTimeFilter('week');
+    else setTimeFilter('all');
+  }
+
+  const getTimeIcon = () => {
+    if (timeFilter === 'live') return <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse box-content border-2 border-transparent"></span>; // Dot
+    if (timeFilter === 'today') return <Clock size={18} />;
+    if (timeFilter === 'week') return <Calendar size={18} />;
+    return <span className="text-[10px] font-bold">ALL</span>;
+  }
+
+  const getFilterLabel = (type: 'radius' | 'time') => {
+    if (type === 'radius') {
+      if (!radiusFilter) return 'Global';
+      return `${radiusFilter / 1000}km`;
+    }
+    if (type === 'time') {
+      if (timeFilter === 'all') return 'All Time';
+      if (timeFilter === 'live') return 'Now';
+      if (timeFilter === 'today') return 'Today';
+      if (timeFilter === 'week') return 'This Week';
+    }
+  }
+
 
   const handleThemeChange = () => {
     setMapTheme(prev => {
@@ -429,22 +504,26 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           <div className="w-px h-6 bg-white/20 mx-1"></div>
 
-          {/* Sort */}
+          {/* New RADIUS Filter Button (Replaces Sort) */}
           <button
-            onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${sortBy === 'time' ? 'text-blue-400 bg-blue-500/10' : 'text-gray-300 hover:bg-white/10'}`}
-            title={sortBy === 'time' ? 'Sorted by Time' : 'Sorted by Distance'}
+            onClick={cycleRadiusFilters}
+            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all relative
+                ${radiusFilter ? 'text-blue-400 bg-blue-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+            title={`Radius: ${getFilterLabel('radius')}`}
           >
-            {sortBy === 'time' ? '⏱️' : '📍'}
+            {getRadiusIcon()}
+            {/* Tiny Indicator Dot if active filter */}
+            {radiusFilter && <div className="absolute top-0 right-0 w-2 h-2 bg-blue-500 rounded-full border-2 border-black"></div>}
           </button>
 
-          {/* Live */}
+          {/* New TIME Filter Button (Replaces Live) */}
           <button
-            onClick={() => setShowHappeningNow(!showHappeningNow)}
-            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all ${showHappeningNow ? 'text-green-400 bg-green-500/10' : 'text-gray-300 hover:bg-white/10'}`}
-            title="Toggle Live Events"
+            onClick={cycleTimeFilters}
+            className={`w-8 h-8 flex items-center justify-center rounded-full font-bold transition-all relative
+                ${timeFilter !== 'all' ? 'text-green-400 bg-green-500/10' : 'text-gray-300 hover:bg-white/10'}`}
+            title={`Time: ${getFilterLabel('time')}`}
           >
-            {showHappeningNow ? '🟢' : '⚪'}
+            {getTimeIcon()}
           </button>
 
           {/* Refresh */}
@@ -509,17 +588,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               </h2>
 
               <div className="flex gap-2">
-                {!selectedCluster && (
-                  <button
-                    onClick={() => setSortBy(prev => prev === 'time' ? 'distance' : 'time')}
-                    className={`text-xs font-bold px-3 py-1.5 rounded-full uppercase transition-all
-                        ${mapTheme === 'cyberpunk' ? (sortBy === 'time' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/50' : 'bg-pink-500/20 text-pink-300 border border-pink-500/50') :
-                        mapTheme === 'light' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' :
-                          'text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'}`}
-                  >
-                    {sortBy === 'time' ? 'Time' : 'Dist'}
-                  </button>
-                )}
                 <button
                   onClick={() => { setShowList(false); setSelectedCluster(null); }}
                   className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
