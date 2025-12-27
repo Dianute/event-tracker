@@ -13,8 +13,7 @@ const MapView = dynamic<any>(() => import('@/components/map-view'), {
   loading: () => <div className="h-screen w-full flex items-center justify-center bg-gray-50">Loading Map...</div>
 });
 
-const API_URL = 'http://localhost:8080';
-// const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 interface Event {
   id: string;

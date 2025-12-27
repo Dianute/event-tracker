@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS events (
     date TEXT,
     link TEXT,
     imageUrl TEXT,
-    imageUrl TEXT,
     createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
