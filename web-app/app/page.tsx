@@ -36,7 +36,6 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   // Load events from Backend on mount
   // Load events from Backend
@@ -132,7 +131,6 @@ export default function Home() {
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
           onThemeChange={setCurrentTheme}
-          onUserLocationUpdate={setUserLocation}
         />
       </div>
 
@@ -148,7 +146,6 @@ export default function Home() {
         onClose={handleCloseModal}
         onSubmit={handleAddEvent}
         initialLocation={selectedLocation}
-        userLocation={userLocation}
         event={selectedEvent}
         theme={currentTheme}
       />

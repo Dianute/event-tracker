@@ -1,18 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon, Navigation, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-
-// Helper: Convert UTC string to Local 'YYYY-MM-DDTHH:mm' for Input
-const toLocalISOString = (dateStr: string) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    const offset = date.getTimezoneOffset() * 60000;
-    const local = new Date(date.getTime() - offset);
-    return local.toISOString().slice(0, 16);
-};
+interface EventModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
+    initialLocation: { lat: number; lng: number } | null;
+    event?: any; // Event object for viewing
+    theme?: 'dark' | 'light' | 'cyberpunk';
+}
 
 // Custom helper to format date range
 const formatDateRange = (startStr: string, endStr: string) => {
@@ -33,57 +31,64 @@ const formatDateRange = (startStr: string, endStr: string) => {
     return `${dateText} • ${startTimeText}`;
 };
 
+import { Calendar, MapPin, Tag, ExternalLink, Clock, Camera, Image as ImageIcon } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+// Helper: Convert UTC string to Local 'YYYY-MM-DDTHH:mm' for Input
+const toLocalISOString = (dateStr: string) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    // Determine offset in ms
+    const offset = date.getTimezoneOffset() * 60000;
+    // Create new date adjusted by offset
+    const local = new Date(date.getTime() - offset);
+    // Return ISO string sliced (removing Z and seconds)
+    return local.toISOString().slice(0, 16);
+};
+
 // Helper: Strict Address Formatter
 const formatAddress = (data: any, originalName?: string) => {
     if (!data || !data.address) return '';
+
     const parts = [];
+
+    // 1. Venue Name (Only if explicitly provided and not redundant)
     if (originalName) {
+        // clean up name
         const nameNode = originalName.split(',')[0];
         if (nameNode !== data.address.road && nameNode !== data.address.city &&
             nameNode !== data.address.town && nameNode !== data.address.pedestrian) {
             parts.push(nameNode);
         }
     }
+
+    // 2. Road / Street (with House Number)
     let road = data.address.road || data.address.pedestrian;
     if (road && data.address.house_number) {
         road = `${road} ${data.address.house_number}`;
     }
     if (road) parts.push(road);
+
+    // 3. City / Town
     const city = data.address.city || data.address.town || data.address.village || data.address.hamlet;
     if (city) parts.push(city);
+
+    // 4. ZIP (Requested by user)
     if (data.address.postcode) parts.push(data.address.postcode);
+
+    // 5. Country
     if (data.address.country) parts.push(data.address.country);
 
+    // Fallback if parts is empty but we have a display_name
     if (parts.length === 0 && data.display_name) {
         return data.display_name.split(',').slice(0, 3).join(',');
     }
+
     return parts.join(', ');
 };
 
-// Helper: Calculate distance in km
-const getDistanceFromLatLonInKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
-    const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return (R * c).toFixed(1);
-};
-
-interface EventModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
-    initialLocation: { lat: number; lng: number } | null;
-    userLocation?: { lat: number; lng: number } | null; // Added for distance calc
-    event?: any; // Event object for viewing
-    theme?: 'dark' | 'light' | 'cyberpunk';
-}
-
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark' }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, event, theme = 'dark' }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -256,39 +261,24 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         </div>
 
                         {/* 2. Top Controls (Floating) */}
-                        <div className={`absolute top-0 left-0 right-0 pt-12 px-5 pb-5 flex justify-between items-center z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-
-                            <div className="flex items-center gap-2">
-                                {/* Category Badge */}
-                                <div
-                                    onClick={(e) => e.stopPropagation()}
-                                    className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
-                                    ${type === 'music' ? 'bg-pink-500/50' :
-                                            type === 'food' ? 'bg-orange-500/50' :
-                                                type === 'sports' ? 'bg-green-600/50' :
-                                                    'bg-blue-600/50'}`}
-                                >
-                                    <span className="text-sm shadow-black drop-shadow-md">{
-                                        type === 'food' ? '🍔' :
-                                            type === 'sports' ? '⚽' :
-                                                type === 'music' ? '🎵' :
-                                                    type === 'arts' ? '🎨' :
-                                                        type === 'learning' ? '📚' : '🍻'
-                                    }</span>
-                                    <span className="drop-shadow-md">{type}</span>
-                                </div>
-
-
-                                {/* Distance Badge (DEBUG MODE) */}
-                                {/* Distance Badge */}
-                                {userLocation && event.lat && event.lng && (
-                                    <div className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/10 bg-black/40 text-white/90">
-                                        <Navigation size={10} className="text-cyan-400 fill-cyan-400" />
-                                        <span className="drop-shadow-md">
-                                            {getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, event.lat, event.lng)} km
-                                        </span>
-                                    </div>
-                                )}
+                        <div className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                            {/* Category Badge */}
+                            <div
+                                onClick={(e) => e.stopPropagation()}
+                                className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white
+                                 ${type === 'music' ? 'bg-pink-500/50' :
+                                        type === 'food' ? 'bg-orange-500/50' :
+                                            type === 'sports' ? 'bg-green-600/50' :
+                                                'bg-blue-600/50'}`}
+                            >
+                                <span className="text-sm shadow-black drop-shadow-md">{
+                                    type === 'food' ? '🍔' :
+                                        type === 'sports' ? '⚽' :
+                                            type === 'music' ? '🎵' :
+                                                type === 'arts' ? '🎨' :
+                                                    type === 'learning' ? '📚' : '🍻'
+                                }</span>
+                                <span className="drop-shadow-md">{type}</span>
                             </div>
 
                             {/* Close Button */}
