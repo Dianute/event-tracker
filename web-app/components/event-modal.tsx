@@ -210,15 +210,25 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     <span className="drop-shadow-md">{type}</span>
                                 </div>
 
+
                                 {/* Distance Badge */}
-                                {userLocation && event.lat && event.lng && (
+                                {event.lat && event.lng ? (
                                     <div className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/10 bg-black/40 text-white/90">
                                         <Navigation size={10} className="text-cyan-400 fill-cyan-400" />
                                         <span className="drop-shadow-md">
-                                            {getDistanceFromLatLonInKm(userLocation.lat, userLocation.lng, event.lat, event.lng)} km
+                                            {userLocation ? (
+                                                `${getDistanceFromLatLonInKm(
+                                                    Number(userLocation.lat),
+                                                    Number(userLocation.lng),
+                                                    Number(event.lat),
+                                                    Number(event.lng)
+                                                )} km`
+                                            ) : (
+                                                <span className="animate-pulse">LOCATING...</span>
+                                            )}
                                         </span>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
 
                             {/* Close Button */}
