@@ -48,14 +48,6 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
                 console.error('Error initializing schema:', err);
             } else {
                 console.log('Schema initialized.');
-                // Migration: Ensure imageUrl column exists (Safe add)
-                db.run("ALTER TABLE events ADD COLUMN imageUrl TEXT", (err) => {
-                    if (err && !err.message.includes("duplicate column name")) {
-                        // ignore duplicate error
-                    } else if (!err) {
-                        console.log("✅ Schema updated: Added imageUrl column.");
-                    }
-                });
             }
         });
     }
