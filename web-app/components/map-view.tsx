@@ -64,6 +64,7 @@ interface MapViewProps {
   onAddEventClick?: (location?: { lat: number; lng: number }) => void;
   onEventSelect?: (event: Event) => void;
   onThemeChange?: (theme: 'dark' | 'light' | 'cyberpunk') => void;
+  onUserLocationUpdate?: (lat: number, lng: number) => void;
 }
 
 // ... (keep helpers)
@@ -211,12 +212,20 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   const [showHappeningNow, setShowHappeningNow] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
+
+  // Propagate user location to parent
+  useEffect(() => {
+    if (userLocation && onUserLocationUpdate) {
+      onUserLocationUpdate(userLocation.lat, userLocation.lng);
+    }
+  }, [userLocation, onUserLocationUpdate]);
+
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [sortBy, setSortBy] = useState<'time' | 'distance'>('distance');

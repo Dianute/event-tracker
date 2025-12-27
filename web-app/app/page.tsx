@@ -35,6 +35,7 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
 
   // Load events from Backend on mount
@@ -131,6 +132,7 @@ export default function Home() {
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
           onThemeChange={setCurrentTheme}
+          onUserLocationUpdate={(lat, lng) => setUserPos({ lat, lng })}
         />
       </div>
 
@@ -146,6 +148,7 @@ export default function Home() {
         onClose={handleCloseModal}
         onSubmit={handleAddEvent}
         initialLocation={selectedLocation}
+        userLocation={userPos}
         event={selectedEvent}
         theme={currentTheme}
       />
