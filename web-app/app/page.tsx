@@ -132,7 +132,7 @@ export default function Home() {
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
           onThemeChange={setCurrentTheme}
-          onUserLocationUpdate={(lat, lng) => setUserPos({ lat, lng })}
+          onUserLocationUpdate={(lat: number, lng: number) => setUserPos({ lat, lng })}
         />
       </div>
 
