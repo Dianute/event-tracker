@@ -473,7 +473,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         {suggestions.map((item, i) => (
                                             <div key={i} className="p-3 cursor-pointer text-sm truncate flex items-center gap-2 hover:bg-white/10"
                                                 onClick={async () => {
-                                                    setVenue(item.display_name.split(',')[0]);
+                                                    if (item.osm_id === 'current-loc') {
+                                                        // Resolve Real Address
+                                                        try {
+                                                            setVenue("Finding address...");
+                                                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${item.lat}&lon=${item.lon}&addressdetails=1`);
+                                                            const data = await res.json();
+                                                            const address = formatAddress(data);
+                                                            setVenue(address || "Current Location");
+                                                        } catch (e) {
+                                                            console.error("Reverse geocode failed", e);
+                                                            setVenue("Current Location");
+                                                        }
+                                                    } else {
+                                                        setVenue(item.display_name.split(',')[0]);
+                                                    }
                                                     setCurrentLocation({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                                                     setSuggestions([]);
                                                 }}>
