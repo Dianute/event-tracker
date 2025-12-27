@@ -18,6 +18,7 @@ interface Event {
     venue?: string;
     date?: string;
     link?: string;
+    imageUrl?: string;
     createdAt?: string;
 }
 
@@ -134,6 +135,19 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 onClick={onClick}
                 className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer w-full h-full relative overflow-hidden flex flex-col justify-between"
             >
+                {/* Event Image */}
+                {event.imageUrl && (
+                    <div className="w-full h-32 mb-3 rounded-lg overflow-hidden relative group-hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-shadow">
+                        <img
+                            src={event.imageUrl}
+                            alt={event.title}
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                    </div>
+                )}
+
                 <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10
                     ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
                         status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
@@ -217,8 +231,12 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
     if (variant === 'visual') {
         return (
             <div className="bg-black/40 backdrop-blur-md rounded-2xl p-0 border border-white/10 w-full relative overflow-hidden h-24 group">
-                {/* Fake Background Image if none */}
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-purple-900/50 opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                {/* Background Image */}
+                {event.imageUrl ? (
+                    <img src={event.imageUrl} alt={event.title} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700" />
+                ) : (
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-purple-900/50 opacity-50 group-hover:opacity-70 transition-opacity"></div>
+                )}
 
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent">
                     <div className="flex justify-between items-end">

@@ -52,6 +52,7 @@ interface Event {
   venue?: string;
   date?: string;
   link?: string;
+  imageUrl?: string;
   createdAt?: string;
 }
 

@@ -142,8 +142,21 @@ async function runScout() {
                         // We try to find the first anchor.
                         const link = isFb ? (item.querySelector('a')?.href || window.location.href) : item.href;
 
+                        // Try to find an image
+                        let imageUrl = null;
+                        const img = item.querySelector('img');
+                        if (img) imageUrl = img.src;
+                        // Special check for style background-image (common in some sites)
+                        if (!imageUrl) {
+                            const style = window.getComputedStyle(item);
+                            const bg = style.backgroundImage;
+                            if (bg && bg !== 'none' && bg.startsWith('url')) {
+                                imageUrl = bg.slice(5, -2); // Remove url("...")
+                            }
+                        }
+
                         // Facebook posts are long, length check > 10 is fine.
-                        if (rawText && rawText.length > 10) found.push({ rawText, link });
+                        if (rawText && rawText.length > 10) found.push({ rawText, link, imageUrl });
                     });
                     return found;
                 }, selector, isFacebook);
@@ -220,6 +233,7 @@ async function runScout() {
                             venue: parsed.location,
                             date: parsed.dateRaw,
                             link: raw.link,
+                            imageUrl: raw.imageUrl, // <--- Add Image
                             description: `Event from ${target.name}\n${parsed.location}\n${parsed.dateRaw} @ ${parsed.timeRaw || "19:00"}`,
                             type: "music",
                             lat: coords.lat,
