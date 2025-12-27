@@ -121,6 +121,16 @@ export default function Home() {
       .catch(err => console.error("Error deleting:", err));
   };
 
+  const handleUserLocationUpdate = (lat: number, lng: number) => {
+    setUserPos(prev => {
+      // Prevent Loop: Only update if changed significantly
+      if (prev && Math.abs(prev.lat - lat) < 0.0001 && Math.abs(prev.lng - lng) < 0.0001) {
+        return prev;
+      }
+      return { lat, lng };
+    });
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between relative">
       <div className="z-10 w-full h-full font-mono text-sm lg:flex">
@@ -133,7 +143,7 @@ export default function Home() {
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
           onThemeChange={setCurrentTheme}
-          onUserLocationUpdate={(lat: number, lng: number) => setUserPos({ lat, lng })}
+          onUserLocationUpdate={handleUserLocationUpdate}
         />
       </div>
 
