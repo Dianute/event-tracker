@@ -128,30 +128,14 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         ? `${formatDistance(getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng))} away`
         : 'Locating...';
 
-    // --- VARIANT 1: STANDARD WITH IMAGE SUPPORT ---
+    // --- VARIANT 1: STANDARD WITH IMAGE SUPPORT (Image Removed) ---
     if (variant === 'standard') {
         return (
             <div
                 onClick={onClick}
-                className="bg-black/60 backdrop-blur-md rounded-xl p-0 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer w-full h-full relative overflow-hidden flex flex-col justify-between"
+                className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer w-full h-full relative overflow-hidden flex flex-col justify-between"
             >
-                {/* Optional Image Header */}
-                {event.imageUrl && (
-                    <div className="w-full h-24 bg-gray-800 relative overflow-hidden">
-                        <img
-                            src={event.imageUrl}
-                            alt={event.title}
-                            className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                            onError={(e) => {
-                                // Fallback if image fails to load
-                                (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
-                    </div>
-                )}
-
-                <div className="p-3 pt-2 h-full flex flex-col justify-between">
+                <div className="p-0 h-full flex flex-col justify-between">
                     {/* Status Badge */}
                     <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10 shadow-sm
                         ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
