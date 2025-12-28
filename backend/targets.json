@@ -1,12 +1,5 @@
 [
   {
-    "id": "default-1",
-    "name": "BandsInTown Klaipeda",
-    "url": "https://www.bandsintown.com/c/klaipeda-lithuania",
-    "selector": "a[href*='/e/']",
-    "city": "Klaipėda"
-  },
-  {
     "id": "kakava-1",
     "name": "Kakava - Klaipeda",
     "url": "https://kakava.lt/renginiai/klaipeda/visi",

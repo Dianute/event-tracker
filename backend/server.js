@@ -137,29 +137,18 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 app.post('/events', (req, res) => {
     const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
-    // Check for duplicates (same LINK or same TITLE+DATE)
-    const checkSql = `SELECT id FROM events WHERE link = ? OR (title = ? AND startTime = ?)`;
-    db.get(checkSql, [link || 'N/A', title, startTime], (err, row) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (row) {
-            // Already exists, return existing
-            return res.json({ message: "Event already exists", id: row.id });
+    const id = uuidv4();
+
+    const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl];
+
+    db.run(query, params, function (err) {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
         }
-
-        const id = uuidv4();
-        // Updated query to include imageUrl
-        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl];
-
-        db.run(query, params, function (err) {
-            if (err) {
-                // If error is about missing column, we might need migration (manual for now)
-                res.status(500).json({ error: err.message });
-                return;
-            }
-            res.json({
-                id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl
-            });
+        res.json({
+            id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl
         });
     });
 });

@@ -138,12 +138,29 @@ async function runScout() {
                     items.forEach((item, index) => {
                         // if (index > 15) return; // Removed limit
                         const rawText = item.innerText;
+
+                        // Extract Image
+                        let imgSrc = null;
+                        // 1. Try direct img tag
+                        const img = item.querySelector('img');
+                        if (img) imgSrc = img.src;
+
+                        // 2. Try background-image on div (common in modern cards)
+                        if (!imgSrc) {
+                            const bgDiv = item.querySelector('[style*="background-image"]');
+                            if (bgDiv) {
+                                const style = window.getComputedStyle(bgDiv);
+                                const urlMatch = style.backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
+                                if (urlMatch) imgSrc = urlMatch[1];
+                            }
+                        }
+
                         // For Facebook, link is tricky. Often valid link is in a timestamp or the post itself.
                         // We try to find the first anchor.
                         const link = isFb ? (item.querySelector('a')?.href || window.location.href) : item.href;
 
                         // Facebook posts are long, length check > 10 is fine.
-                        if (rawText && rawText.length > 10) found.push({ rawText, link });
+                        if (rawText && rawText.length > 10) found.push({ rawText, link, imgSrc });
                     });
                     return found;
                 }, selector, isFacebook);
@@ -156,7 +173,11 @@ async function runScout() {
                         const items = document.querySelectorAll("a[href*='/renginys/']");
                         items.forEach((item) => {
                             const rawText = item.innerText;
-                            if (rawText && rawText.length > 10) found.push({ rawText, link: item.href });
+                            let imgSrc = null;
+                            const img = item.querySelector('img');
+                            if (img) imgSrc = img.src;
+
+                            if (rawText && rawText.length > 10) found.push({ rawText, link: item.href, imgSrc });
                         });
                         return found;
                     });
@@ -183,6 +204,9 @@ async function runScout() {
                         } else {
                             parsed = parseEventText(raw.rawText);
                         }
+
+                        // Use extracted image, or null
+                        const imageUrl = raw.imgSrc || null;
 
                         let coords = { lat: 0, lng: 0 };
                         let wasCached = false; // Track cache hit
@@ -225,7 +249,8 @@ async function runScout() {
                             lat: coords.lat,
                             lng: coords.lng,
                             startTime: startTime.toISOString(),
-                            endTime: endTime.toISOString()
+                            endTime: endTime.toISOString(),
+                            imageUrl: imageUrl // Pass Image URL
                         });
 
                         // Optimize Dry Run: Return immediately after first valid event
