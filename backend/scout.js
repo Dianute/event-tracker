@@ -180,21 +180,17 @@ async function runScout() {
                             }
                         }
 
+                        if (window.location.href.includes('kakava.lt')) { /* ... existing kakava logic ... */ }
+
+                        // --- Bilietai.lt Specific Extraction ---
+                        if (window.location.href.includes('bilietai.lt')) {
+                            const locEl = item.querySelector('.concert_details_spec_content');
+                            if (locEl) specificLocation = locEl.innerText.trim();
+                        }
+
                         // Extract Image
                         let imgSrc = null;
-                        // 1. Try direct img tag
-                        const img = item.querySelector('img');
-                        if (img) imgSrc = img.src;
-
-                        // 2. Try background-image on div (common in modern cards)
-                        if (!imgSrc) {
-                            const bgDiv = item.querySelector('[style*="background-image"]');
-                            if (bgDiv) {
-                                const style = window.getComputedStyle(bgDiv);
-                                const urlMatch = style.backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
-                                if (urlMatch) imgSrc = urlMatch[1];
-                            }
-                        }
+                        // ... existing image extraction ...
 
                         // For Facebook...
                         const link = isFb ? (item.querySelector('a')?.href || window.location.href) : item.href;
@@ -204,11 +200,7 @@ async function runScout() {
                     return found;
                 }, selector, isFacebook);
 
-                // ... (Keep fallback logic if needed, but omitted for brevity in this replace block as it follows) ...
-                if (rawEvents.length === 0 && target.url.includes('kakava.lt') && !selector.includes('renginys')) {
-                    // ... (Existing fallback logic) ...
-                    // Actually let's assume rawEvents spans cover this.
-                }
+                // ... (fallback logic) ...
 
                 console.log(`✨ Extracted ${rawEvents.length} raw cards from ${target.name}.`);
 
@@ -220,8 +212,10 @@ async function runScout() {
                             baseParsed = parseFacebookPost(raw.rawText);
                         } else if (target.url.includes('kakava.lt')) {
                             baseParsed = parseKakavaEvent(raw.rawText);
-                            // OVERRIDE with Specifics if found
                             if (raw.specificTitle) baseParsed.title = raw.specificTitle;
+                            if (raw.specificLocation) baseParsed.location = raw.specificLocation;
+                        } else if (target.url.includes('bilietai.lt')) {
+                            baseParsed = parseEventText(raw.rawText);
                             if (raw.specificLocation) baseParsed.location = raw.specificLocation;
                         } else {
                             baseParsed = parseEventText(raw.rawText);
