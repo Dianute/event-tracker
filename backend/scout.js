@@ -136,138 +136,97 @@ async function runScout() {
                     const found = [];
                     const items = document.querySelectorAll(sel);
                     items.forEach((item, index) => {
+                        // if (index > 15) return; // Removed limit
                         const rawText = item.innerText;
-
-                        // --- Kakava Specific Extraction ---
-                        let specificTitle = null;
-                        let specificLocation = null;
-                        let additionalDates = [];
-
-                        if (window.location.href.includes('kakava.lt')) {
-                            // Title
-                            // Try common title classes
-                            const titleEl = item.querySelector('.event-card-title') || item.querySelector('.card-title') || item.querySelector('h3');
-                            if (titleEl) specificTitle = titleEl.innerText.trim();
-
-                            // Location
-                            const locEl = item.querySelector('.ticket-location');
-                            if (locEl) specificLocation = locEl.innerText.trim();
-
-                            // Image (.event-image)
-                            const specificImgEl = item.querySelector('.event-image');
-                            if (specificImgEl) {
-                                if (specificImgEl.tagName === 'IMG') imgSrc = specificImgEl.src;
-                                else {
-                                    const style = window.getComputedStyle(specificImgEl);
-                                    const urlMatch = style.backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
-                                    if (urlMatch) imgSrc = urlMatch[1];
-                                }
-                            }
-
-                            // Multi-Dates (.show-ticket-time)
-                            const timeElements = item.querySelectorAll('.show-ticket-time');
-                            if (timeElements.length > 0) {
-                                timeElements.forEach(el => {
-                                    // Extract day and time if possible
-                                    const dayEl = el.querySelector('.ticket-date-day');
-                                    const timeEl = el.querySelector('.ticket-date-time'); // Guessing class, fallback to text
-                                    const fullText = el.innerText.trim();
-
-                                    if (fullText) {
-                                        additionalDates.push(fullText);
-                                    }
-                                });
-                            }
-                        }
-
-                        if (window.location.href.includes('kakava.lt')) { /* ... existing kakava logic ... */ }
-
-                        // --- Bilietai.lt Specific Extraction ---
-                        if (window.location.href.includes('bilietai.lt')) {
-                            const locEl = item.querySelector('.concert_details_spec_content');
-                            if (locEl) specificLocation = locEl.innerText.trim();
-                        }
-
-                        // Extract Image
-                        let imgSrc = null;
-                        // ... existing image extraction ...
-
-                        // For Facebook...
+                        // For Facebook, link is tricky. Often valid link is in a timestamp or the post itself.
+                        // We try to find the first anchor.
                         const link = isFb ? (item.querySelector('a')?.href || window.location.href) : item.href;
 
-                        if (rawText && rawText.length > 10) found.push({ rawText, link, imgSrc, specificTitle, specificLocation, additionalDates });
+                        // Facebook posts are long, length check > 10 is fine.
+                        if (rawText && rawText.length > 10) found.push({ rawText, link });
                     });
                     return found;
                 }, selector, isFacebook);
 
-                // ... (fallback logic) ...
+                // Smart Fallback for Kakava
+                if (rawEvents.length === 0 && target.url.includes('kakava.lt') && !selector.includes('renginys')) {
+                    console.log("⚠️ Standard selector failed for Kakava. Trying fallback: a[href*='/renginys/']");
+                    const fallbackEvents = await page.evaluate(() => {
+                        const found = [];
+                        const items = document.querySelectorAll("a[href*='/renginys/']");
+                        items.forEach((item) => {
+                            const rawText = item.innerText;
+                            if (rawText && rawText.length > 10) found.push({ rawText, link: item.href });
+                        });
+                        return found;
+                    });
+                    if (fallbackEvents.length > 0) {
+                        console.log(`✨ Fallback success! Found ${fallbackEvents.length} events.`);
+                        rawEvents.push(...fallbackEvents);
+                    }
+                }
 
                 console.log(`✨ Extracted ${rawEvents.length} raw cards from ${target.name}.`);
 
                 const events = [];
                 for (const raw of rawEvents) {
                     try {
-                        let baseParsed;
+                        let parsed;
                         if (isFacebook) {
-                            baseParsed = parseFacebookPost(raw.rawText);
+                            parsed = parseFacebookPost(raw.rawText);
+                            if (!parsed.dateRaw) {
+                                // console.log("Skipping FB post (no date found):", parsed.title.substring(0, 50) + "...");
+                                continue;
+                            }
                         } else if (target.url.includes('kakava.lt')) {
-                            baseParsed = parseKakavaEvent(raw.rawText);
-                            if (raw.specificTitle) baseParsed.title = raw.specificTitle;
-                            if (raw.specificLocation) baseParsed.location = raw.specificLocation;
-                        } else if (target.url.includes('bilietai.lt')) {
-                            baseParsed = parseEventText(raw.rawText);
-                            if (raw.specificLocation) baseParsed.location = raw.specificLocation;
+                            parsed = parseKakavaEvent(raw.rawText);
                         } else {
-                            baseParsed = parseEventText(raw.rawText);
+                            parsed = parseEventText(raw.rawText);
                         }
 
-                        // Pre-calculate Lat/Lng once if location is static for all dates
                         let coords = { lat: 0, lng: 0 };
-                        let wasCached = false;
-                        if (baseParsed.location) {
-                            const cityContext = baseParsed.detectedCity || target.city;
-                            const geo = await geocodeAddress(baseParsed.location, cityContext);
+                        let wasCached = false; // Track cache hit
+
+                        if (parsed.location) {
+                            // Smart City Logic: Use detected city from text, fallback to target default
+                            const cityContext = parsed.detectedCity || target.city;
+
+                            const geoStart = Date.now();
+                            const geo = await geocodeAddress(parsed.location, cityContext);
+                            const geoDuration = Date.now() - geoStart;
+
+                            if (geoDuration < 100) wasCached = true; // Heuristic: Cache is fast
+
                             if (geo) {
                                 coords = { lat: parseFloat(geo.lat), lng: parseFloat(geo.lon) };
+                                console.log(`   📍 Geocoded: ${parsed.location} (${cityContext || 'No City'}) -> [${geo.lat}, ${geo.lon}] ${wasCached ? '(Cache)' : ''}`);
+                            } else {
+                                console.warn(`   ⚠️ Geocode Failed: ${parsed.location} (using fallback)`);
+                                // Fallback: Random scatter around a default center (Kaunas-ish)
+                                coords = {
+                                    lat: 54.8985 + (Math.random() * 0.05 - 0.025),
+                                    lng: 23.9036 + (Math.random() * 0.05 - 0.025)
+                                };
                             }
                         }
 
-                        // Determine Date List
-                        // If we have specific additional dates, use them. Otherwise use the single parsed date.
-                        let dateList = [];
-                        if (raw.additionalDates && raw.additionalDates.length > 0) {
-                            // Use the extracted multi-dates
-                            dateList = raw.additionalDates.map(d => ({ raw: d, time: null }));
-                        } else {
-                            // Use basic single date
-                            dateList = [{ raw: baseParsed.dateRaw, time: baseParsed.timeRaw }];
-                        }
+                        // Calculate Real Start Time
+                        const startTime = parseLithuanianDate(parsed.dateRaw, parsed.timeRaw || "19:00");
+                        // End time = Start + 3 hours (approximation)
+                        const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
 
-                        // Generate Event for EACH Date
-                        for (const dateItem of dateList) {
-                            const startTime = parseLithuanianDate(dateItem.raw, dateItem.time || "19:00");
-                            const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
-
-                            // Unique ID per date instance
-                            const eventId = crypto.randomUUID();
-
-                            events.push({
-                                id: eventId, // Client-side generation (optional, DB handles it usually but good for logging)
-                                title: baseParsed.title,
-                                venue: baseParsed.location,
-                                date: dateItem.raw, // Text representation
-                                link: raw.link,
-                                description: `Event from ${target.name}\n${baseParsed.location}\n${dateItem.raw}`,
-                                type: "music",
-                                lat: coords.lat,
-                                lng: coords.lng,
-                                startTime: startTime.toISOString(),
-                                endTime: endTime.toISOString(),
-                                imageUrl: raw.imgSrc || null
-                            });
-                        }
-
-                        // (Original loop end)
+                        events.push({
+                            title: parsed.title,
+                            venue: parsed.location,
+                            date: parsed.dateRaw,
+                            link: raw.link,
+                            description: `Event from ${target.name}\n${parsed.location}\n${parsed.dateRaw} @ ${parsed.timeRaw || "19:00"}`,
+                            type: "music",
+                            lat: coords.lat,
+                            lng: coords.lng,
+                            startTime: startTime.toISOString(),
+                            endTime: endTime.toISOString()
+                        });
 
                         // Optimize Dry Run: Return immediately after first valid event
                         if (isDryRun) {

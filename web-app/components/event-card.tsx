@@ -18,7 +18,6 @@ interface Event {
     venue?: string;
     date?: string;
     link?: string;
-    imageUrl?: string; // New Image URL
     createdAt?: string;
 }
 
@@ -120,7 +119,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         };
 
         updateStatus();
-        const interval = setInterval(updateStatus, 60000); // Update every minute
+        const interval = setInterval(updateStatus, 60000);
         return () => clearInterval(interval);
     }, [event]);
 
@@ -128,63 +127,55 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         ? `${formatDistance(getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng))} away`
         : 'Locating...';
 
-    // --- VARIANT 1: STANDARD WITH IMAGE SUPPORT (Image Removed) ---
+    // --- VARIANT 1: STANDARD (The one we just built) ---
     if (variant === 'standard') {
         return (
             <div
                 onClick={onClick}
                 className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 transition-all hover:scale-[1.02] hover:bg-black/70 group cursor-pointer w-full h-full relative overflow-hidden flex flex-col justify-between"
             >
-                <div className="p-0 h-full flex flex-col justify-between">
-                    {/* Status Badge */}
-                    <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10 shadow-sm
-                        ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
-                            status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
-                                status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' :
-                                    status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
-                        {status.label}
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                        {/* Only show Emoji if NO Image, or show it smaller overlay? Let's show it always as icon */}
-                        <div className={`shrink-0 pt-0.5 text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] ${event.imageUrl ? '-mt-8 z-10' : ''}`}>
-                            {getEmoji(event.type)}
-                        </div>
-
-                        <div className="flex-1 min-w-0 pr-8">
-                            <h4 className={`font-bold text-sm leading-snug line-clamp-2 transition-colors shadow-black drop-shadow-sm ${status.label === 'Ended' ? 'text-gray-500 line-through' : 'text-white group-hover:text-blue-200'}`}>
-                                {event.title}
-                            </h4>
-
-                            <div className="flex items-center gap-3 mt-1.5">
-                                <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1">
-                                    <Navigation size={10} /> {distanceText}
-                                </p>
-                                {status.timeText && (
-                                    <p className="text-[10px] text-gray-400 font-mono">
-                                        {status.timeText}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {status.progress !== undefined && (
-                        <div className="w-full bg-white/10 rounded-full h-0.5 mt-2 overflow-hidden">
-                            <div
-                                className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
-                                style={{ width: `${status.progress}%` }}
-                            ></div>
-                        </div>
-                    )}
+                <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10
+                    ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
+                        status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
+                            status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' :
+                                status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
+                    {status.label}
                 </div>
+
+                <div className="flex items-start gap-3">
+                    <div className="shrink-0 pt-0.5 text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                        {getEmoji(event.type)}
+                    </div>
+
+                    <div className="flex-1 min-w-0 pr-12">
+                        <h4 className={`font-bold text-sm leading-snug line-clamp-2 transition-colors shadow-black drop-shadow-sm ${status.label === 'Ended' ? 'text-gray-500 line-through' : 'text-white group-hover:text-blue-200'}`}>
+                            {event.title}
+                        </h4>
+
+                        <div className="flex items-center gap-3 mt-1.5">
+                            <p className="text-[10px] text-blue-300 font-semibold flex items-center gap-1">
+                                <Navigation size={10} /> {distanceText}
+                            </p>
+                            {status.timeText && (
+                                <p className="text-[10px] text-gray-400 font-mono">
+                                    {status.timeText}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {status.progress !== undefined && (
+                    <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
+                        <div
+                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
+                            style={{ width: `${status.progress}%` }}
+                        ></div>
+                    </div>
+                )}
             </div>
         );
     }
-
-    // ... (Variant 2 & 3 kept same, omitted for brevity in tool call but kept in file via partial replace if supported, but here I am doing REPLACE block, so I need to include them or use multi-replace to avoid deleting them. Wait, replace_file_content replaces range. I'll just include the other variants in range or let them be if outside range. 
-    // Actually, I am replacing from line 9 to line 238 to cover everything. I should include the other variants or use multi_replace.
-    // I will use standard Replace but include the variants.)
 
     // --- VARIANT 2: TICKER (Marquee Title) ---
     if (variant === 'ticker') {
@@ -217,11 +208,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                         <span>{distanceText}</span>
                     </div>
                 </div>
-                {event.imageUrl ? (
-                    <img src={event.imageUrl} className="w-8 h-8 rounded-md object-cover" />
-                ) : (
-                    <span className="text-lg">{getEmoji(event.type)}</span>
-                )}
+                <span className="text-lg">{getEmoji(event.type)}</span>
             </div>
         );
     }
@@ -230,20 +217,16 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
     if (variant === 'visual') {
         return (
             <div className="bg-black/40 backdrop-blur-md rounded-2xl p-0 border border-white/10 w-full relative overflow-hidden h-24 group">
-                {/* Background Image */}
-                {event.imageUrl ? (
-                    <img src={event.imageUrl} className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
-                ) : (
-                    <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-purple-900/50 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                )}
+                {/* Fake Background Image if none */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-purple-900/50 opacity-50 group-hover:opacity-70 transition-opacity"></div>
 
                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent">
                     <div className="flex justify-between items-end">
-                        <div className="max-w-[80%]">
-                            <h4 className="font-bold text-sm text-white leading-tight shadow-md truncate">{event.title}</h4>
+                        <div>
+                            <h4 className="font-bold text-sm text-white leading-tight shadow-md">{event.title}</h4>
                             <p className="text-[10px] text-gray-300">{status.timeText}</p>
                         </div>
-                        <span className="text-2xl drop-shadow-md">{getEmoji(event.type)}</span>
+                        <span className="text-2xl">{getEmoji(event.type)}</span>
                     </div>
                 </div>
 

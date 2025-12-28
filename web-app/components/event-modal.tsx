@@ -291,31 +291,14 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         onClick={() => setShowControls(!showControls)}
                     >
 
-                        {/* 1. Fullscreen Image Layer with Smart Letterbox */}
-                        <div className="absolute inset-0 z-0 bg-black">
+                        {/* 1. Fullscreen Image Layer */}
+                        <div className="absolute inset-0 z-0">
                             {imageUrl ? (
-                                <>
-                                    {/* Blurred Background (for ambience) */}
-                                    <div className="absolute inset-0 overflow-hidden">
-                                        <img
-                                            src={imageUrl}
-                                            alt=""
-                                            className="w-full h-full object-cover blur-2xl opacity-60 scale-110"
-                                        />
-                                        <div className="absolute inset-0 bg-black/20" /> {/* Dimmer */}
-                                    </div>
-
-                                    {/* Main Image (Fully Visible, Shifted Up) */}
-                                    <img
-                                        src={imageUrl}
-                                        alt={title}
-                                        className={`absolute left-0 right-0 w-full transition-all duration-300 z-10 
-                                            ${showControls
-                                                ? 'top-0 h-[60%] object-contain p-4' // Text visible: Image moves to top 60%, with padding
-                                                : 'inset-0 h-full object-contain'      // Text hidden: Full screen
-                                            }`}
-                                    />
-                                </>
+                                <img
+                                    src={imageUrl}
+                                    alt={title}
+                                    className={`w-full h-full transition-all duration-300 ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`}
+                                />
                             ) : (
                                 <div className={`w-full h-full flex items-center justify-center
                                     ${theme === 'light' ? 'bg-gradient-to-br from-gray-100 to-gray-200' :
