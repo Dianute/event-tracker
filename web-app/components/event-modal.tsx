@@ -305,11 +305,15 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         <div className="absolute inset-0 bg-black/20" /> {/* Dimmer */}
                                     </div>
 
-                                    {/* Main Image (Fully Visible) */}
+                                    {/* Main Image (Fully Visible, Shifted Up) */}
                                     <img
                                         src={imageUrl}
                                         alt={title}
-                                        className={`absolute inset-0 w-full h-full transition-all duration-300 z-10 ${showControls ? 'object-contain p-0' : 'object-contain scale-[1.02]'}`}
+                                        className={`absolute left-0 right-0 w-full transition-all duration-300 z-10 
+                                            ${showControls
+                                                ? 'top-0 h-[60%] object-contain p-4' // Text visible: Image moves to top 60%, with padding
+                                                : 'inset-0 h-full object-contain'      // Text hidden: Full screen
+                                            }`}
                                     />
                                 </>
                             ) : (
