@@ -153,6 +153,17 @@ async function runScout() {
                             const locEl = item.querySelector('.ticket-location');
                             if (locEl) specificLocation = locEl.innerText.trim();
 
+                            // Image (.event-image)
+                            const specificImgEl = item.querySelector('.event-image');
+                            if (specificImgEl) {
+                                if (specificImgEl.tagName === 'IMG') imgSrc = specificImgEl.src;
+                                else {
+                                    const style = window.getComputedStyle(specificImgEl);
+                                    const urlMatch = style.backgroundImage.match(/url\(['"]?(.*?)['"]?\)/);
+                                    if (urlMatch) imgSrc = urlMatch[1];
+                                }
+                            }
+
                             // Multi-Dates (.show-ticket-time)
                             const timeElements = item.querySelectorAll('.show-ticket-time');
                             if (timeElements.length > 0) {
