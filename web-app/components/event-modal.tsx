@@ -291,14 +291,27 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         onClick={() => setShowControls(!showControls)}
                     >
 
-                        {/* 1. Fullscreen Image Layer */}
-                        <div className="absolute inset-0 z-0">
+                        {/* 1. Fullscreen Image Layer with Smart Letterbox */}
+                        <div className="absolute inset-0 z-0 bg-black">
                             {imageUrl ? (
-                                <img
-                                    src={imageUrl}
-                                    alt={title}
-                                    className={`w-full h-full transition-all duration-300 ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`}
-                                />
+                                <>
+                                    {/* Blurred Background (for ambience) */}
+                                    <div className="absolute inset-0 overflow-hidden">
+                                        <img
+                                            src={imageUrl}
+                                            alt=""
+                                            className="w-full h-full object-cover blur-2xl opacity-60 scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-black/20" /> {/* Dimmer */}
+                                    </div>
+
+                                    {/* Main Image (Fully Visible) */}
+                                    <img
+                                        src={imageUrl}
+                                        alt={title}
+                                        className={`absolute inset-0 w-full h-full transition-all duration-300 z-10 ${showControls ? 'object-contain p-0' : 'object-contain scale-[1.02]'}`}
+                                    />
+                                </>
                             ) : (
                                 <div className={`w-full h-full flex items-center justify-center
                                     ${theme === 'light' ? 'bg-gradient-to-br from-gray-100 to-gray-200' :
