@@ -217,6 +217,25 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
   );
 }
 
+// Component to track map bounds
+function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLngBounds) => void }) {
+  const map = useMap();
+
+  useEffect(() => {
+    // Initial bounds
+    if (map) {
+      onBoundsChange(map.getBounds());
+    }
+  }, [map, onBoundsChange]);
+
+  useMapEvents({
+    moveend: () => onBoundsChange(map.getBounds()),
+    zoomend: () => onBoundsChange(map.getBounds()),
+  });
+
+  return null;
+}
+
 export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
   const [mounted, setMounted] = useState(false);
   // Filters
@@ -226,6 +245,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<L.LatLng | null>(null);
+  const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null);
+
 
   // Propagate user location to parent
   useEffect(() => {
@@ -281,6 +302,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       e.title.toLowerCase().includes(query) ||
       e.description.toLowerCase().includes(query) ||
       e.type.toLowerCase().includes(query);
+
+    // Viewport Filter Logic
+    if (mapBounds && !mapBounds.contains([e.lat, e.lng])) {
+      return false;
+    }
 
     return timeMatch && radiusMatch && searchMatch;
   });
@@ -379,6 +405,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
         ref={setMap}
       >
+        <MapBoundsHandler onBoundsChange={setMapBounds} />
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={tileUrl}
