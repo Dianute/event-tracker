@@ -429,23 +429,6 @@ app.post('/scout/run', (req, res) => {
     res.json({ message: "Scout Agent started!" });
 });
 
-// POST /tools/parse-link - Magic Link Parser
-app.post('/tools/parse-link', async (req, res) => {
-    const scout = require('./scout');
-    const { url } = req.body;
-
-    if (!url) return res.status(400).json({ error: "URL required" });
-    if (!scout.parseLink) return res.status(500).json({ error: "Scout module missing parseLink function" });
-
-    try {
-        const result = await scout.parseLink(url);
-        res.json(result);
-    } catch (e) {
-        console.error("Parse Link Error:", e);
-        res.status(500).json({ error: e.message });
-    }
-});
-
 // Import cron
 const cron = require('node-cron');
 

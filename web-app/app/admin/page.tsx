@@ -16,10 +16,6 @@ export default function AdminPage() {
     const [testError, setTestError] = useState<string | null>(null);
     const [testingId, setTestingId] = useState<string | null>(null);
 
-    // Magic Link State
-    const [magicUrl, setMagicUrl] = useState("");
-    const [magicLoading, setMagicLoading] = useState(false);
-
     const fetchHistory = () => {
         setLoading(true);
         fetch(`${API_URL}/scout/history`)
@@ -118,30 +114,6 @@ export default function AdminPage() {
             .finally(() => setLoading(false));
     };
 
-
-
-    const handleMagicLink = () => {
-        if (!magicUrl) return;
-        setMagicLoading(true);
-        fetch(`${API_URL}/tools/parse-link`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: magicUrl })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) throw new Error(data.error);
-                if (data.valid) {
-                    setPreviewEvent(data); // Open preview modal
-                    setMagicUrl(""); // Clear
-                } else {
-                    alert("Could not parse link.");
-                }
-            })
-            .catch(err => alert("Magic Parse Failed: " + err.message))
-            .finally(() => setMagicLoading(false));
-    };
-
     return (
         <main className="min-h-screen bg-gray-900 text-white p-6 font-mono">
             <div className="max-w-4xl mx-auto">
@@ -206,33 +178,6 @@ export default function AdminPage() {
                         <a href="/" className="text-gray-400 hover:text-white text-sm">Back to Map</a>
                     </div>
                 </header>
-
-
-
-                {/* Magic Link Creator */}
-                <section className="mb-10 bg-gradient-to-r from-purple-900/40 to-pink-900/40 p-6 rounded-xl border border-pink-500/30 shadow-lg">
-                    <h2 className="text-xl font-bold mb-2 text-pink-300 flex items-center gap-2">
-                        <span>✨ Magic Event Creator</span>
-                    </h2>
-                    <p className="text-gray-400 text-sm mb-4">Paste a Facebook event link (or any URL) to auto-extract details.</p>
-
-                    <div className="flex flex-col md:flex-row gap-4">
-                        <input
-                            type="text"
-                            placeholder="e.g. https://facebook.com/events/123456"
-                            value={magicUrl}
-                            onChange={(e) => setMagicUrl(e.target.value)}
-                            className="flex-1 bg-black/30 border border-pink-500/30 rounded px-4 py-3 text-white focus:outline-none focus:border-pink-500 transition-colors"
-                        />
-                        <button
-                            onClick={handleMagicLink}
-                            disabled={magicLoading || !magicUrl}
-                            className="px-6 py-3 bg-pink-600 hover:bg-pink-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-bold transition-all shadow-lg whitespace-nowrap flex items-center gap-2"
-                        >
-                            {magicLoading ? 'Analyzing...' : '🪄 Magic Fill'}
-                        </button>
-                    </div>
-                </section>
 
                 {/* Controls */}
                 <section className="mb-10 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
@@ -409,98 +354,57 @@ export default function AdminPage() {
                         </table>
                     </div>
                 </section>
-                {/* Preview / Edit Modal */}
+                {/* Preview Event Modal */}
                 {previewEvent && (
                     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
                         <div className="bg-gray-800 p-6 rounded-xl max-w-lg w-full border border-cyan-500/50 shadow-2xl animate-in zoom-in-95 duration-200">
                             <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-cyan-400">
-                                <span>🎉 Magic Edit & Save</span>
+                                <span>🎉 Target Successfully Parsed!</span>
                             </h3>
-
                             <div className="space-y-4 mb-6">
-                                {/* Title Input */}
                                 <div>
                                     <label className="text-xs font-bold text-gray-500 uppercase">Title</label>
-                                    <input
-                                        type="text"
-                                        className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white font-bold"
-                                        value={previewEvent.title || ""}
-                                        onChange={e => setPreviewEvent({ ...previewEvent, title: e.target.value })}
-                                    />
+                                    <p className="font-bold text-white text-lg">{previewEvent.title}</p>
                                 </div>
-
-                                {/* Date/Time Grid */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase">Start Time (ISO)</label>
-                                        <input
-                                            type="text"
-                                            className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white text-sm"
-                                            value={previewEvent.startTime || ""}
-                                            onChange={e => setPreviewEvent({ ...previewEvent, startTime: e.target.value })}
-                                        />
-                                        <p className="text-[10px] text-gray-500 mt-1">Format: YYYY-MM-DDTHH:mm:ss.000Z</p>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Start Time</label>
+                                        <p className="text-sm text-gray-300">{new Date(previewEvent.startTime).toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase">Venue / Location</label>
-                                        <input
-                                            type="text"
-                                            className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white text-sm"
-                                            value={previewEvent.venue || previewEvent.location || "Unknown"}
-                                            onChange={e => setPreviewEvent({ ...previewEvent, venue: e.target.value, location: e.target.value })}
-                                        />
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Venue</label>
+                                        <p className="text-sm text-gray-300">{previewEvent.venue || previewEvent.location}</p>
                                     </div>
                                 </div>
-
-                                {/* Link Check */}
-                                <div>
-                                    <label className="text-xs font-bold text-gray-500 uppercase">Source Link</label>
-                                    <p className="text-xs text-gray-400 truncate">{previewEvent.link}</p>
-                                </div>
-
-                                <div className="bg-black/40 rounded p-3 text-xs text-gray-400">
-                                    <p>ℹ️ <strong>Tip:</strong> If the date is wrong (e.g. image-only post), fix the "Start Time" above manually before saving!</p>
-                                </div>
+                                {previewEvent.lat && (
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500 uppercase">Coordinates</label>
+                                        <p className="text-sm text-gray-300 flex items-center gap-2">
+                                            {previewEvent.lat.toFixed(6)}, {previewEvent.lng.toFixed(6)}
+                                            <a
+                                                href={`https://www.google.com/maps?q=${previewEvent.lat},${previewEvent.lng}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="text-cyan-500 hover:underline"
+                                            >
+                                                (View Map)
+                                            </a>
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-
-                            <div className="flex gap-4">
-                                <button
-                                    onClick={() => setPreviewEvent(null)}
-                                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded font-bold transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        // Save Logic
-                                        fetch(`${API_URL}/events`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            body: JSON.stringify({
-                                                ...previewEvent,
-                                                // Ensure required fields
-                                                type: previewEvent.type || 'music',
-                                                startTime: previewEvent.startTime, // User edited
-                                                // Generate an endTime if missing (Start + 3h)
-                                                endTime: previewEvent.endTime || new Date(new Date(previewEvent.startTime).getTime() + 3 * 3600000).toISOString()
-                                            })
-                                        })
-                                            .then(res => res.json())
-                                            .then(data => {
-                                                if (data.error) alert("Error: " + data.error);
-                                                else {
-                                                    alert("Event Saved Successfully! 🚀");
-                                                    setPreviewEvent(null);
-                                                    fetchTargets(); // Refresh stats if any
-                                                }
-                                            })
-                                            .catch(err => alert("Save failed: " + err.message));
-                                    }}
-                                    className="flex-1 py-3 bg-green-600 hover:bg-green-500 rounded font-bold transition-colors shadow-lg shadow-green-500/20"
-                                >
-                                    💾 Save Event
-                                </button>
+                            <div className="bg-black/40 rounded p-3 mb-4">
+                                <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Raw Data</label>
+                                <pre className="text-[10px] text-gray-400 overflow-x-auto">
+                                    {JSON.stringify(previewEvent, null, 2)}
+                                </pre>
                             </div>
+                            <button
+                                onClick={() => setPreviewEvent(null)}
+                                className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded font-bold transition-colors shadow-lg shadow-cyan-500/20"
+                            >
+                                Close Preview
+                            </button>
                         </div>
                     </div>
                 )}
@@ -539,6 +443,6 @@ export default function AdminPage() {
                     </div>
                 )}
             </div>
-        </main >
+        </main>
     );
 }
