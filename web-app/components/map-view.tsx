@@ -234,6 +234,24 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     }
   }, [userLocation, onUserLocationUpdate]);
 
+
+  // Map Bounds State
+  const [bounds, setBounds] = useState<L.LatLngBounds | null>(null);
+
+  // Component to track map movements
+  function MapBoundsUpdater() {
+    const map = useMap();
+    useEffect(() => {
+      // Initial bounds
+      setBounds(map.getBounds());
+
+      const onMove = () => setBounds(map.getBounds());
+      map.on('moveend', onMove);
+      return () => { map.off('moveend', onMove); };
+    }, [map]);
+    return null;
+  }
+
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
@@ -248,6 +266,13 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const now = new Date();
 
   const filteredEvents = events.filter(e => {
+    // 1. Map Bounds Filter (The "Ranking" Fix)
+    // Only show events strictly inside the visible map area
+    if (bounds) {
+      const latLng = L.latLng(e.lat, e.lng);
+      if (!bounds.contains(latLng)) return false;
+    }
+
     // Time Filter Logic
     const start = e.startTime ? new Date(e.startTime) : new Date(0); // Default to past if missing
     const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000); // Default to far future
@@ -379,6 +404,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         className={`h-screen w-full z-0 bg-[#1a1a1a] ${isCyber ? 'cyberpunk-map' : ''}`}
         ref={setMap}
       >
+        <MapBoundsUpdater />
         <TileLayer
           attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={tileUrl}
@@ -535,20 +561,58 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         py-3 md:py-0
         max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
-        {displayList.slice(0, 20).map(event => (
-          <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
-            <EventCard
-              event={event}
-              userLocation={userLocation}
-              onClick={() => {
-                if (map) {
-                  map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
-                }
-                if (onEventSelect) onEventSelect(event);
-              }}
-            />
-          </div>
-        ))}
+
+        {(() => {
+          // Group events by Date String (YYYY-MM-DD or similar) for headers
+          const groups: { label: string; events: Event[] }[] = [];
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+
+          displayList.slice(0, 50).forEach(event => {
+            if (!event.startTime) return; // Skip invalid
+            const d = new Date(event.startTime);
+            const dateParams = { year: 'numeric', month: 'numeric', day: 'numeric' };
+            // Check if Today or Tomorrow
+            const dZero = new Date(d); dZero.setHours(0, 0, 0, 0);
+
+            let label = d.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+            if (dZero.getTime() === today.getTime()) label = "Today";
+            else if (dZero.getTime() === tomorrow.getTime()) label = "Tomorrow";
+
+            const lastGroup = groups[groups.length - 1];
+            if (lastGroup && lastGroup.label === label) {
+              lastGroup.events.push(event);
+            } else {
+              groups.push({ label, events: [event] });
+            }
+          });
+
+          return groups.map((group, groupIdx) => (
+            <div key={group.label} className="contents md:block">
+              {/* Date Header (Desktop Only - Sticky) */}
+              <div className="pointer-events-auto hidden md:block sticky top-0 z-10 bg-black/80 backdrop-blur-md px-4 py-1 text-xs font-bold text-blue-200 border-y border-white/10 mb-2 shadow-lg">
+                {group.label}
+              </div>
+
+              {group.events.map(event => (
+                <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+                  <EventCard
+                    event={event}
+                    userLocation={userLocation}
+                    onClick={() => {
+                      if (map) {
+                        map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                      }
+                      if (onEventSelect) onEventSelect(event);
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ));
+        })()}
       </div>
 
       {/* Mobile List Toggle Button (Right Side) */}
