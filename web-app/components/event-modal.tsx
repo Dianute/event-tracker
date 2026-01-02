@@ -354,6 +354,20 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 </div>
                             </div>
                             <div className="prose prose-invert prose-sm max-w-none"><p className="text-sm text-gray-200 leading-relaxed opacity-90 font-medium dropshadow-md">{description || 'No description provided.'}</p></div>
+
+                            {/* Action Button */}
+                            {event?.link && (
+                                <a
+                                    href={event.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full py-4 bg-white text-black font-black rounded-xl text-center shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 mt-2"
+                                >
+                                    <span>GET TICKETS</span>
+                                    <ExternalLink size={16} />
+                                </a>
+                            )}
                         </div>
                     </div>
                 ) : (
