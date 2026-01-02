@@ -168,6 +168,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 setType('social');
                 setImageUrl('');
                 setIsUploading(false);
+                setIsSearching(false);
 
                 // Default: Today
                 const now = new Date();
@@ -194,8 +195,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         .then(res => res.json())
                         .then(data => {
                             const formatted = formatAddress(data);
+                            setIsSearching(false);
                             if (formatted) setVenue(formatted);
-                            else if (data.display_name) setVenue(data.display_name.split(',').slice(0, 3).join(', '));
+                            else if (data.display_name) setVenue(data.display_name);
                         })
                         .catch(err => console.error("Reverse geocode failed", err));
                 } else {
