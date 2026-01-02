@@ -348,10 +348,28 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     {/* Ideally reuse formatDateRange logic properly or reconstruct */}
                                     <span className="drop-shadow-md">{date} • {timeStart} - {timeEnd} {isOvernight ? '(+1 day)' : ''}</span>
                                 </div>
-                                <div className="flex items-center gap-3 text-sm font-medium text-gray-100">
-                                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-md"><MapPin size={16} className="text-red-500" /></div>
-                                    <span>{venue ? venue.split(',')[0] : 'Unknown Location'}</span>
-                                </div>
+                                {/* Location Row (Clickable) */}
+                                <a
+                                    href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-3 text-sm font-medium text-gray-100 hover:text-white transition-colors group/loc"
+                                >
+                                    <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/loc:bg-white/20 transition-colors">
+                                        <MapPin size={16} className="text-red-500" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md truncate pr-4">
+                                            {venue ? venue.split(',')[0] : 'Unknown Location'}
+                                        </span>
+                                        {distanceString && (
+                                            <span className="text-[10px] font-bold text-blue-300 mt-0.5 animate-pulse">
+                                                {distanceString} away
+                                            </span>
+                                        )}
+                                    </div>
+                                </a>
                             </div>
                             <div className="prose prose-invert prose-sm max-w-none"><p className="text-sm text-gray-200 leading-relaxed opacity-90 font-medium dropshadow-md">{description || 'No description provided.'}</p></div>
 
