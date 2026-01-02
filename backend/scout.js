@@ -361,11 +361,18 @@ function parseEventText(text) {
     let titleIdx = 0;
 
     // Use the same regex we define below (move definition up)
-    const dateRegex = /(?:(\d{1,2})\s+)?(saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo|sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i;
+    // STRICT REGEX: Must Start with Month/Day or Day/Month, optional day name, minimal extra text.
+    // Matches: "JAN 15", "15 SAUSIO", "Fri, JAN 15", "JAN 15, 2024"
+    const dateRegex = /^\s*(?:(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*,?\s*)?(?:(\d{1,2})[\.\s]+)?(saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo|sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*([\.\s]+\d{1,2})?(?:[\.\s,]+\d{4})?\s*$/i;
 
-    if (lines.length > 0 && dateRegex.test(lines[0])) {
-        // Line 0 is likely a date ("JAN 15"), so Title is line 1
-        titleIdx = 1;
+
+    if (lines.length > 0) {
+        // DEBUG: Print what we are checking
+        // console.log(`[DEBUG] Line 0: "${lines[0]}" | Regex Match: ${dateRegex.test(lines[0])}`);
+        if (dateRegex.test(lines[0])) {
+            // Line 0 is likely a date ("JAN 15"), so Title is line 1
+            titleIdx = 1;
+        }
     }
 
     let title = lines[titleIdx] || "Unknown Title";
