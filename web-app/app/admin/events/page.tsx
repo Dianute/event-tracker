@@ -10,6 +10,7 @@ export default function AdminEventsPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('ALL');
 
     // Edit Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -78,10 +79,12 @@ export default function AdminEventsPage() {
             .catch(e => alert("Network error: " + e.message));
     };
 
-    const filteredEvents = events.filter(e =>
-        e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        e.venue?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredEvents = events.filter(e => {
+        const matchesSearch = e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            e.venue?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesType = filterType === 'ALL' || e.type === filterType;
+        return matchesSearch && matchesType;
+    });
 
     return (
         <main className="min-h-screen bg-gray-900 text-white p-6 font-mono">
@@ -100,13 +103,25 @@ export default function AdminEventsPage() {
                         </p>
                     </div>
 
-                    <div className="w-full md:w-auto">
+                    <div className="w-full md:w-auto flex gap-2">
+                        <select
+                            value={filterType}
+                            onChange={(e) => setFilterType(e.target.value)}
+                            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
+                        >
+                            <option value="ALL">All Categories</option>
+                            <option value="social">Social</option>
+                            <option value="music">Music</option>
+                            <option value="cultural">Cultural</option>
+                            <option value="sports">Sports</option>
+                            <option value="workshop">Workshop</option>
+                        </select>
                         <input
                             type="text"
-                            placeholder="Search by Title or Venue..."
+                            placeholder="Search..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full md:w-80 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors"
+                            className="w-full md:w-64 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors"
                         />
                     </div>
                 </header>

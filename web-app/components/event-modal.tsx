@@ -9,8 +9,9 @@ interface EventModalProps {
     onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
     initialLocation: { lat: number; lng: number } | null;
     userLocation?: { lat: number; lng: number } | null;
-    event?: any; // Event object for viewing
+    event?: any; // Event object for viewing or editing
     theme?: 'dark' | 'light' | 'cyberpunk';
+    readOnly?: boolean;
 }
 
 // Custom Helper: Haversine Distance
@@ -104,7 +105,7 @@ const formatAddress = (data: any, originalName?: string) => {
     return parts.join(', ');
 };
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark' }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false }: EventModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -247,7 +248,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     };
 
     if (!isOpen) return null;
-    const isReadOnly = !!event;
+
+    // Explicit ReadOnly check. If event exists but readOnly is false -> Edit Mode
+    const isReadOnly = !!event && readOnly;
+    const isEditMode = !!event && !readOnly;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
