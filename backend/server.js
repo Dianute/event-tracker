@@ -137,12 +137,22 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 app.post('/events', (req, res) => {
     const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
-    // Check for duplicates (same LINK or same TITLE+DATE)
-    const checkSql = `SELECT id FROM events WHERE link = ? OR (title = ? AND startTime = ?)`;
-    db.get(checkSql, [link || 'N/A', title, startTime], (err, row) => {
+    // Check for duplicates
+    // 1. If Link exists: Check Link OR (Title + Time)
+    // 2. If No Link (Manual): Check ONLY (Title + Time)
+    let checkSql, checkParams;
+
+    if (link) {
+        checkSql = `SELECT id FROM events WHERE link = ? OR (title = ? AND startTime = ?)`;
+        checkParams = [link, title, startTime];
+    } else {
+        checkSql = `SELECT id FROM events WHERE title = ? AND startTime = ?`;
+        checkParams = [title, startTime];
+    }
+
+    db.get(checkSql, checkParams, (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (row) {
-            // Already exists, return existing
             return res.json({ message: "Event already exists", id: row.id });
         }
 
@@ -161,6 +171,22 @@ app.post('/events', (req, res) => {
                 id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl
             });
         });
+    });
+});
+
+// PUT /events/:id - Update an event
+app.put('/events/:id', (req, res) => {
+    const { id } = req.params;
+    const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
+
+    const query = `UPDATE events SET title = ?, description = ?, type = ?, lat = ?, lng = ?, startTime = ?, endTime = ?, venue = ?, date = ?, link = ?, imageUrl = ? WHERE id = ?`;
+    const params = [title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, id];
+
+    db.run(query, params, function (err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ error: "Event not found" });
+
+        res.json({ success: true, message: "Event updated" });
     });
 });
 

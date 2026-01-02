@@ -304,8 +304,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       e.type.toLowerCase().includes(query);
 
     // Viewport Filter Logic
-    if (mapBounds && !mapBounds.contains([e.lat, e.lng])) {
-      return false;
+    if (mapBounds) {
+      if (typeof e.lat !== 'number' || typeof e.lng !== 'number') return false;
+      if (!mapBounds.contains([e.lat, e.lng])) {
+        return false;
+      }
     }
 
     return timeMatch && radiusMatch && searchMatch;
