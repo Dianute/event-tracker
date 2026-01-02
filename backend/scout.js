@@ -433,20 +433,39 @@ function parseKakavaEvent(text) {
     let titleIndex = 0;
 
     // Check line 0 for month
-    if (lines.length > 1 && months.some(m => lines[0].toLowerCase().includes(m)) && lines[1].match(/^\d+$/)) {
-        // Standard Date: "Lap" "19"
-        dateRaw = `${lines[0]} ${lines[1]}`;
-        titleIndex = 2;
+    // NEW: Allow month and day to be on same line OR split lines
+    // Case A: "Sausio 15" (One line)
+    // Case B: "Sau" \n "15" (Two lines)
 
-        // Check for range: "Lap" "19" "|" "Gruod" "31"
-        if (lines[2] === '|' && lines.length > 4) {
-            dateRaw += ` - ${lines[3]} ${lines[4]}`;
-            titleIndex = 5;
+    let monthLine = lines[0].toLowerCase();
+    let hasMonth = months.some(m => monthLine.includes(m));
+
+    if (lines.length > 1 && hasMonth) {
+        // Is the number in line 0?
+        let dayMatch = lines[0].match(/\d+/);
+        if (dayMatch) {
+            dateRaw = lines[0];
+            titleIndex = 1;
+        } else if (lines[1].match(/^\d+$/)) {
+            // Number is on line 1
+            dateRaw = `${lines[0]} ${lines[1]}`;
+            titleIndex = 2;
+        } else {
+            // Found a month word ("Sau") but no number near it. 
+            // It might be a Title starting with "Sau..."? 
+            // Or a bad scrape. Let's assume it IS the title if no number found.
+            titleIndex = 0;
+        }
+
+        // Check for range logic "Sau 15 | Vas 02"
+        if (lines[titleIndex] === '|' && lines.length > titleIndex + 2) {
+            dateRaw += ` - ${lines[titleIndex + 1]} ${lines[titleIndex + 2]}`;
+            titleIndex += 3;
         }
     } else {
-        // No date found at top (e.g. Card 1/2) -> Default or Search?
-        // Let's assume lines[0] is Title then.
+        // No month detected at start
         dateRaw = "";
+        titleIndex = 0;
     }
 
     // 2. Title
