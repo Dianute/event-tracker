@@ -161,6 +161,7 @@ export default function Home() {
         userLocation={userPos}
         event={selectedEvent}
         theme={currentTheme}
+        readOnly={true}
       />
 
     </main>
