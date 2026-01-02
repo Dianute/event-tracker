@@ -428,7 +428,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {/* Where */}
                             <div className="relative">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
-                                <input type="text" required value={venue} placeholder="Search address..." onChange={(e) => { setVenue(e.target.value); setIsSearching(true); }}
+                                <input type="text" required value={venue} placeholder="Search address..." onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCurrentLocation(null); }}
                                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
                                 <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
                                 {suggestions.length > 0 && (

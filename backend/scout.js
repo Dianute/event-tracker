@@ -781,7 +781,8 @@ function extractTime(text) {
     let clean = text.replace(/Doors:?/i, "").trim();
 
     // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00)
-    const timeRegex = /((?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:AM|PM))|((?:[0-1]?[0-9]|2[0-3]):[0-5][0-9])/i;
+    // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00). Support "@ 19:00"
+    const timeRegex = /((?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:AM|PM))|(@?\s*(?:[0-1]?[0-9]|2[0-3]):[0-5][0-9])/i;
     const match = clean.match(timeRegex);
 
     if (match) {
@@ -801,7 +802,7 @@ function extractTime(text) {
             if (h === 12) h = 0;
             return `${h}:${m.toString().padStart(2, '0')}`;
         }
-        return t; // Already 24h or simple
+        return t.replace('@', '').trim(); // Already 24h or simple
     }
     return null;
 }
