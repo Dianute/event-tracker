@@ -185,8 +185,7 @@ app.put('/events/:id', (req, res) => {
     db.run(query, params, function (err) {
         if (err) return res.status(500).json({ error: err.message });
         if (this.changes === 0) return res.status(404).json({ error: "Event not found" });
-
-        res.json({ success: true, message: "Event updated" });
+        res.json({ success: true });
     });
 });
 
