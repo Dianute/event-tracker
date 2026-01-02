@@ -585,11 +585,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
 
-        {showingFallback && displayList.length > 0 && (
-          <div className="w-full text-center text-xs text-blue-300 font-bold mb-2 md:mb-2 pointer-events-auto bg-black/50 backdrop-blur rounded-full py-1 border border-white/10 shadow-lg animate-pulse">
-            Nothing nearby... showing upcoming events 🌍
-          </div>
-        )}
 
         {displayList.slice(0, 20).map(event => (
           <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
