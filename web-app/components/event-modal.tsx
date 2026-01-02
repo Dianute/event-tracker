@@ -520,7 +520,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." rows={2}
                                 className={`w-full px-4 py-3 rounded-xl border outline-none text-sm resize-none ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
 
-                            <button type="submit" className="w-full py-4 bg-blue-600 font-bold rounded-xl text-white hover:bg-blue-500 transition-colors shadow-lg">Create Event</button>
+                            <button type="submit" className="w-full py-4 bg-blue-600 font-bold rounded-xl text-white hover:bg-blue-500 transition-colors shadow-lg">{isEditMode ? 'Update Event' : 'Create Event'}</button>
                         </form>
                     </>
                 )}
