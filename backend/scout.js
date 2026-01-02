@@ -131,6 +131,10 @@ async function runScout() {
                     console.log(`⚠️ Selector ${selector} not found (might be login wall or empty).`);
                 }
 
+                // Auto-Scroll to trigger lazy loading
+                console.log("📜 Auto-scrolling to load more events...");
+                await autoScroll(page);
+
                 // Extract raw data
                 const rawEvents = await page.evaluate((sel, isFb) => {
                     const found = [];
@@ -721,3 +725,29 @@ function parseLithuanianDate(dateStr, timeStr) {
 }
 
 runScout();
+
+async function autoScroll(page) {
+    await page.evaluate(async () => {
+        await new Promise((resolve) => {
+            let totalHeight = 0;
+            const distance = 100;
+            let scrolls = 0;
+            const maxScrolls = 200; // Limit to avoid infinite loops (approx 20s)
+
+            const timer = setInterval(() => {
+                const scrollHeight = document.body.scrollHeight;
+                window.scrollBy(0, distance);
+                totalHeight += distance;
+                scrolls++;
+
+                // Stop if we hit bottom consistently or max scrolls
+                if (scrolls >= maxScrolls || (totalHeight >= scrollHeight && scrolls > 50)) {
+                    clearInterval(timer);
+                    resolve();
+                }
+            }, 100); // Scroll every 100ms
+        });
+    });
+    // Wait a bit after scrolling for final items to settle
+    await new Promise(r => setTimeout(r, 2000));
+}
