@@ -355,7 +355,8 @@ function parseEventText(text) {
     let title = lines[0];
 
     // Improved Date Extraction: Scan for month names
-    const dateRegex = /(?:(\d{1,2})\s+)?(saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo|sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio)/i;
+    // Improved Date Extraction: Scan for month names (Lithuanian + English)
+    const dateRegex = /(?:(\d{1,2})\s+)?(saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo|sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i;
     let dateRaw = "";
 
     // Find line matching date regex
@@ -607,9 +608,33 @@ async function runSimulation() {
 
 
 function extractTime(text) {
-    const timeRegex = /([0-1]?[0-9]|2[0-3]):([0-5][0-9])/;
-    const match = text.match(timeRegex);
-    return match ? match[0] : null;
+    // Remove "Doors:" noise which might confuse things
+    let clean = text.replace(/Doors:?/i, "").trim();
+
+    // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00)
+    const timeRegex = /((?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:AM|PM))|((?:[0-1]?[0-9]|2[0-3]):[0-5][0-9])/i;
+    const match = clean.match(timeRegex);
+
+    if (match) {
+        let t = match[0];
+        // Normalize AM/PM to 24h
+        if (t.match(/PM/i)) {
+            // Extract hour
+            const parts = t.replace(/PM/i, "").trim().split(':');
+            let h = parseInt(parts[0], 10);
+            const m = parts[1] ? parseInt(parts[1], 10) : 0;
+            if (h !== 12) h += 12;
+            return `${h}:${m.toString().padStart(2, '0')}`;
+        } else if (t.match(/AM/i)) {
+            const parts = t.replace(/AM/i, "").trim().split(':');
+            let h = parseInt(parts[0], 10);
+            const m = parts[1] ? parseInt(parts[1], 10) : 0;
+            if (h === 12) h = 0;
+            return `${h}:${m.toString().padStart(2, '0')}`;
+        }
+        return t; // Already 24h or simple
+    }
+    return null;
 }
 
 function parseLithuanianDate(dateStr, timeStr) {
@@ -619,7 +644,10 @@ function parseLithuanianDate(dateStr, timeStr) {
         'sausio': 0, 'vasario': 1, 'kovo': 2, 'balandžio': 3, 'gegužės': 4, 'birželio': 5,
         'liepos': 6, 'rugpjūčio': 7, 'rugsėjo': 8, 'spalio': 9, 'lapkričio': 10, 'gruodžio': 11,
         'saus': 0, 'vas': 1, 'kov': 2, 'bal': 3, 'geg': 4, 'bir': 5,
-        'lie': 6, 'rgp': 7, 'rgs': 8, 'spa': 9, 'lap': 10, 'gruod': 11, 'gruo': 11
+        'lie': 6, 'rgp': 7, 'rgs': 8, 'spa': 9, 'lap': 10, 'gruod': 11, 'gruo': 11,
+        // English Support
+        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
     };
 
     const now = new Date();
