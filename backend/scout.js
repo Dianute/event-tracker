@@ -211,8 +211,10 @@ async function runScout() {
                                     }
                                 }
 
-                                // Rate Limit (Politeness)
-                                await new Promise(r => setTimeout(r, 1500));
+                                // Random "Human" Delay (2s - 5s)
+                                const randomDelay = Math.floor(Math.random() * (5000 - 2000 + 1) + 2000);
+                                // console.log(`   ☕ Resting for ${randomDelay}ms...`);
+                                await new Promise(r => setTimeout(r, randomDelay));
 
                             } catch (e) {
                                 console.warn(`   ⚠️ Deep scrape failed for ${raw.link}: ${e.message}`);
