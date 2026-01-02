@@ -93,6 +93,11 @@ const fs = require('fs');
     });
     console.log("🏷️ META DATA:", metaData);
 
+    // 7. Save Full HTML Dump
+    const html = await page.content();
+    fs.writeFileSync('debug_kakava_dump.html', html);
+    console.log("💾 Saved HTML dump to debug_kakava_dump.html");
+
     await browser.close();
 })();
 

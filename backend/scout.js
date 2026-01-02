@@ -196,53 +196,91 @@ async function runScout() {
                                     return null;
                                 });
 
-                                // Fallback: Meta Tags
-                                const metaData = await page.evaluate(() => {
-                                    const getMeta = (name) => document.querySelector(`meta[property="${name}"]`)?.content || document.querySelector(`meta[name="${name}"]`)?.content || null;
-                                    return {
-                                        title: getMeta('og:title'),
-                                        description: getMeta('og:description'),
-                                        image: getMeta('og:image'),
-                                        url: getMeta('og:url')
-                                    };
+                                // CSS DOM Extraction (Most Reliable for Kakava)
+                                const domData = await page.evaluate(() => {
+                                    const getText = (sel) => document.querySelector(sel)?.innerText?.trim() || "";
+                                    const getSrc = (sel) => document.querySelector(sel)?.src || "";
+
+                                    // Title: H1
+                                    const title = getText('h1');
+
+                                    // Location: .event-location (contains full address)
+                                    const location = getText('.event-location');
+
+                                    // Time: .show-ticket-time (e.g. "Renginio pradžia: 18:00")
+                                    const timeText = getText('.show-ticket-time');
+                                    const timeMatch = timeText.match(/(\d{2}:\d{2})/);
+                                    const time = timeMatch ? timeMatch[1] : "";
+
+                                    // Date: Try .ticket-date first, else fallback to description meta
+                                    // .ticket-date is often empty for vouchers, but populated for concerts
+                                    const dateText = getText('.ticket-date') || getText('.event-date') || "";
+
+                                    return { title, location, time, dateText };
                                 });
 
                                 if (ldData && ldData.startDate) {
                                     // JSON-LD found! Use it.
-                                    // Convert ISO date (2024-01-15T19:00) to "Saus 15" format for consistent UI
+                                    // Convert ISO date (2024-01-15T19:00) to "Saus 15" format
                                     const d = new Date(ldData.startDate);
                                     const litMonths = ['Saus', 'Vas', 'Kov', 'Bal', 'Geg', 'Bir', 'Lie', 'Rgp', 'Rgs', 'Spa', 'Lap', 'Gru'];
                                     const formattedDate = `${litMonths[d.getMonth()]} ${d.getDate()}`;
 
                                     parsed = {
                                         title: ldData.name || raw.rawText.split('\n')[1],
-                                        location: ldData.location?.name || ldData.location?.address?.streetAddress || "Unknown Location",
+                                        location: ldData.location?.name || domData.location || "Unknown Location", // Fallback to DOM location
                                         dateRaw: formattedDate, // "Saus 15"
-                                        timeRaw: ldData.startDate.split('T')[1]?.slice(0, 5) || "",
+                                        timeRaw: ldData.startDate.split('T')[1]?.slice(0, 5) || domData.time || "",
                                         detectedCity: ldData.location?.address?.addressLocality || null
                                     };
-                                } else if (metaData.title) {
-                                    // Meta Fallback
+                                } else {
+                                    // DOM / Meta Fallback
+                                    // Clean Title: "Event Name | kakava.lt" -> "Event Name"
+                                    let rawTitle = domData.title || pageMeta.title || pageMeta.docTitle || "Unknown Event";
+                                    rawTitle = rawTitle.replace(/\|.*kakava\.lt/i, "").trim();
+
                                     parsed = {
-                                        title: metaData.title,
-                                        location: "Unknown Location", // Meta usually lacks location
-                                        dateRaw: "", // Needs extraction from description
-                                        timeRaw: "",
+                                        title: rawTitle,
+                                        location: domData.location || "Unknown Location",
+                                        dateRaw: "",
+                                        timeRaw: domData.time || "",
                                         detectedCity: null
                                     };
-                                    // Try to extract date from description "Jan 15 @ 7PM"
-                                    const descDate = parseEventText(metaData.description || "");
-                                    if (descDate.dateRaw) parsed.dateRaw = descDate.dateRaw;
-                                    if (descDate.timeRaw) parsed.timeRaw = descDate.timeRaw;
-                                } else {
-                                    // Fallback: Scrape Body Text
-                                    const bodyText = await page.evaluate(() => document.body.innerText);
-                                    parsed = parseKakavaEvent(bodyText); // Use page text instead of card text
-                                    // Try to find specific time in body if parseKakava missed it
-                                    if (!parsed.timeRaw) {
-                                        parsed.timeRaw = extractTime(bodyText);
+
+                                    // Try to get date from DOM
+                                    if (domData.dateText) {
+                                        // Parse "Sausio 15 d." or similar if present
+                                        // For now, rely on parseEventText for messy DOM strings
+                                        const d = parseEventText(domData.dateText);
+                                        if (d.dateRaw) parsed.dateRaw = d.dateRaw;
+                                    }
+
+                                    // If DOM date failed, try description
+                                    if (!parsed.dateRaw) {
+                                        const pageMeta = await page.evaluate(() => {
+                                            const getMeta = (name) => document.querySelector(`meta[property="${name}"]`)?.content || document.querySelector(`meta[name="${name}"]`)?.content || null;
+                                            return {
+                                                title: getMeta('og:title'),
+                                                description: getMeta('og:description'),
+                                                image: getMeta('og:image'),
+                                                url: getMeta('og:url'),
+                                                docTitle: document.title
+                                            };
+                                        });
+                                        const descDate = parseEventText(pageMeta.description || "");
+                                        if (descDate.dateRaw) parsed.dateRaw = descDate.dateRaw;
+                                        if (!parsed.timeRaw && descDate.timeRaw) parsed.timeRaw = descDate.timeRaw;
+                                    }
+
+                                    // Last resort: Body Text
+                                    if (!parsed.dateRaw) {
+                                        const bodyText = await page.evaluate(() => document.body.innerText);
+                                        const bodyDate = parseKakavaEvent(bodyText);
+                                        if (bodyDate.dateRaw) parsed.dateRaw = bodyDate.dateRaw;
+                                        if (!parsed.timeRaw && bodyDate.timeRaw) parsed.timeRaw = bodyDate.timeRaw;
                                     }
                                 }
+
 
                                 // Random "Human" Delay (2s - 5s)
                                 const randomDelay = Math.floor(Math.random() * (5000 - 2000 + 1) + 2000);

@@ -431,7 +431,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
                                                 onMouseDown={(e) => e.preventDefault()}
                                                 onClick={() => {
-                                                    setVenue(item.display_name.split(',')[0]);
+                                                    setVenue(item.display_name);
                                                     setCurrentLocation({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                                                     setSuggestions([]);
                                                 }}>
