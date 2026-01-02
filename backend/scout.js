@@ -201,8 +201,9 @@ async function runScout() {
                                     const getText = (sel) => document.querySelector(sel)?.innerText?.trim() || "";
                                     const getSrc = (sel) => document.querySelector(sel)?.src || "";
 
-                                    // Title: H1
-                                    const title = getText('h1');
+                                    // Title: H1 (Target specific event header to avoid hidden 'Kakava' H1)
+                                    let title = getText('.event-single h1') || getText('.main-content h1') || getText('h1');
+                                    if (title === 'Kakava') title = ""; // Ignore branding H1
 
                                     // Location: .event-location (contains full address)
                                     const location = getText('.event-location');
