@@ -176,14 +176,55 @@ async function runScout() {
                 for (const raw of rawEvents) {
                     try {
                         let parsed;
-                        if (isFacebook) {
+
+                        // DEEP SCRAPE LOGIC (Kakava)
+                        if (target.url.includes('kakava.lt')) {
+                            try {
+                                // console.log(`   Detailed Scrape: ${raw.link}`);
+                                await page.goto(raw.link, { waitUntil: 'domcontentloaded', timeout: 15000 });
+
+                                // Parse JSON-LD for perfect data
+                                const ldData = await page.evaluate(() => {
+                                    const script = document.querySelector('script[type="application/ld+json"]');
+                                    if (script) {
+                                        try { return JSON.parse(script.innerText); } catch (e) { return null; }
+                                    }
+                                    return null;
+                                });
+
+                                if (ldData) {
+                                    // JSON-LD found! Use it.
+                                    parsed = {
+                                        title: ldData.name || raw.rawText.split('\n')[1], // Fallback to list title if LD name missing
+                                        location: ldData.location?.name || ldData.location?.address?.streetAddress || "Unknown Location",
+                                        dateRaw: ldData.startDate || "", // "2024-01-15T19:00"
+                                        timeRaw: ldData.startDate ? ldData.startDate.split('T')[1]?.slice(0, 5) : "",
+                                        detectedCity: ldData.location?.address?.addressLocality || null
+                                    };
+                                } else {
+                                    // Fallback: Scrape Body Text
+                                    const bodyText = await page.evaluate(() => document.body.innerText);
+                                    parsed = parseKakavaEvent(bodyText); // Use page text instead of card text
+                                    // Try to find specific time in body if parseKakava missed it
+                                    if (!parsed.timeRaw) {
+                                        parsed.timeRaw = extractTime(bodyText);
+                                    }
+                                }
+
+                                // Rate Limit (Politeness)
+                                await new Promise(r => setTimeout(r, 1500));
+
+                            } catch (e) {
+                                console.warn(`   ⚠️ Deep scrape failed for ${raw.link}: ${e.message}`);
+                                parsed = parseKakavaEvent(raw.rawText); // Fallback to list card data
+                            }
+
+                        } else if (isFacebook) {
                             parsed = parseFacebookPost(raw.rawText);
                             if (!parsed.dateRaw) {
                                 // console.log("Skipping FB post (no date found):", parsed.title.substring(0, 50) + "...");
                                 continue;
                             }
-                        } else if (target.url.includes('kakava.lt')) {
-                            parsed = parseKakavaEvent(raw.rawText);
                         } else {
                             parsed = parseEventText(raw.rawText);
                         }
@@ -215,14 +256,25 @@ async function runScout() {
                         }
 
                         // Calculate Real Start Time
-                        const startTime = parseLithuanianDate(parsed.dateRaw, parsed.timeRaw || "19:00");
+                        // If JSON-LD gave us a full ISO string ("2024-01-15T19:00"), parseLithuanianDate handles it gracefully?
+                        // Actually, parseLithuanianDate expects "Jan 15", "19:00".
+                        // If dateRaw is already ISO, we should just use it.
+                        let startTime;
+
+                        if (parsed.dateRaw && parsed.dateRaw.includes('T')) {
+                            // It's ISO!
+                            startTime = new Date(parsed.dateRaw);
+                        } else {
+                            startTime = parseLithuanianDate(parsed.dateRaw, parsed.timeRaw || "19:00");
+                        }
+
                         // End time = Start + 3 hours (approximation)
                         const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
 
                         events.push({
                             title: parsed.title,
                             venue: parsed.location,
-                            date: parsed.dateRaw,
+                            date: parsed.dateRaw, // Keep raw for debug
                             link: raw.link,
                             description: `Event from ${target.name}\n${parsed.location}\n${parsed.dateRaw} @ ${parsed.timeRaw || "19:00"}`,
                             type: "music",
