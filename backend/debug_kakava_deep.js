@@ -28,36 +28,48 @@ const fs = require('fs');
 
     // 2. Target a specific Kakava Event (User logic implies list first)
     // We'll scrape the LIST first to get a link, then DEEP SCRAPE that link.
-    const url = 'https://kakava.lt/renginiai/klaipeda';
+    const url = 'https://kakava.lt/renginiai/klaipeda/visi';
     console.log(`Navigating to list: ${url}`);
-    await page.goto(url, { waitUntil: 'networkidle2' });
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 60000 });
 
-    // 3. Get First Event Link
-    const firstLink = await page.evaluate(() => {
-        const item = document.querySelector('a.c-card'); // Try standard
-        if (item) return item.href;
-        const fallback = document.querySelector("a[href*='/renginys/']");
-        return fallback ? fallback.href : null;
+    // Explicit Wait for Rendering
+    console.log("⏳ Waiting 6s for hydration...");
+    await new Promise(r => setTimeout(r, 6000));
+
+    // 3. Inspect List Items (New Broad Selector)
+    console.log("🕵️‍♂️ Inspecting List Items with: a[href*='/renginys/']");
+    const foundItems = await page.evaluate(() => {
+        const items = Array.from(document.querySelectorAll("a[href*='/renginys/']"));
+        return items.map(a => ({
+            text: a.innerText.replace(/\n/g, ' | ').substring(0, 100), // Serialize text
+            href: a.href,
+            class: a.className
+        }));
     });
 
-    if (!firstLink) {
-        console.error("❌ Could not find ANY event link on list page.");
-        await page.screenshot({ path: 'debug_kakava_list.png' });
+    console.log(`Found ${foundItems.length} potential items.`);
+    foundItems.slice(0, 10).forEach((item, i) => {
+        console.log(`[${i}] Text: "${item.text}" | Link: ${item.href.slice(-30)}`);
+    });
 
-        // Dump all links
-        const links = await page.evaluate(() => Array.from(document.querySelectorAll('a')).map(a => a.href));
-        console.log("Found Links:", links.slice(0, 10)); // Show text
+    // 4. Test Deep Scrape on the FIRST meaningful item (length > 10)
+    const validItem = foundItems.find(i => i.text.length > 10);
+
+    if (!validItem) {
+        console.error("❌ No items with sufficient text found.");
+        const htmlDump = await page.evaluate(() => `Title: ${document.title}\nBody: ${document.body.innerText.slice(0, 500)}`);
+        console.log("📄 PAGE DUMP:\n" + htmlDump);
 
         await browser.close();
         return;
     }
 
-    console.log(`🔗 Found Event Link: ${firstLink}`);
-
-    // 4. Deep Scrape It
     console.log("------------------------------------------------");
-    console.log("🕵️‍♂️ DEEP SCRAPING...");
-    await page.goto(firstLink, { waitUntil: 'domcontentloaded' });
+    console.log(`🕵️‍♂️ DEEP SCRAPING Target: ${validItem.href}`);
+    await page.goto(validItem.href, { waitUntil: 'networkidle0', timeout: 60000 });
+
+    console.log("⏳ Waiting 6s for Detail Page hydration...");
+    await new Promise(r => setTimeout(r, 6000));
 
     // 5. Dump JSON-LD
     const ldData = await page.evaluate(() => {
@@ -68,10 +80,19 @@ const fs = require('fs');
     console.log("📜 JSON-LD DATA:");
     console.log(JSON.stringify(ldData, null, 2));
 
-    // 6. Test Body Text Fallback
-    const bodyText = await page.evaluate(() => document.body.innerText.slice(0, 500));
-    console.log("📄 BODY TEXT (First 500 chars):");
-    console.log(bodyText);
+    // 6. Dump Meta Tags (Open Graph)
+    const metaData = await page.evaluate(() => {
+        const getMeta = (name) => document.querySelector(`meta[property="${name}"]`)?.content || document.querySelector(`meta[name="${name}"]`)?.content || null;
+        return {
+            title: getMeta('og:title'),
+            description: getMeta('og:description'),
+            image: getMeta('og:image'),
+            url: getMeta('og:url'),
+            site_name: getMeta('og:site_name')
+        };
+    });
+    console.log("🏷️ META DATA:", metaData);
 
     await browser.close();
 })();
+

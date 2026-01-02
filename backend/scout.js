@@ -181,7 +181,11 @@ async function runScout() {
                         if (target.url.includes('kakava.lt')) {
                             try {
                                 // console.log(`   Detailed Scrape: ${raw.link}`);
-                                await page.goto(raw.link, { waitUntil: 'domcontentloaded', timeout: 15000 });
+                                // Huge wait for SPA hydration
+                                await page.goto(raw.link, { waitUntil: 'networkidle0', timeout: 30000 });
+
+                                // Explicit Hydration Wait
+                                await new Promise(r => setTimeout(r, 4000));
 
                                 // Parse JSON-LD for perfect data
                                 const ldData = await page.evaluate(() => {
@@ -190,6 +194,17 @@ async function runScout() {
                                         try { return JSON.parse(script.innerText); } catch (e) { return null; }
                                     }
                                     return null;
+                                });
+
+                                // Fallback: Meta Tags
+                                const metaData = await page.evaluate(() => {
+                                    const getMeta = (name) => document.querySelector(`meta[property="${name}"]`)?.content || document.querySelector(`meta[name="${name}"]`)?.content || null;
+                                    return {
+                                        title: getMeta('og:title'),
+                                        description: getMeta('og:description'),
+                                        image: getMeta('og:image'),
+                                        url: getMeta('og:url')
+                                    };
                                 });
 
                                 if (ldData && ldData.startDate) {
@@ -206,6 +221,19 @@ async function runScout() {
                                         timeRaw: ldData.startDate.split('T')[1]?.slice(0, 5) || "",
                                         detectedCity: ldData.location?.address?.addressLocality || null
                                     };
+                                } else if (metaData.title) {
+                                    // Meta Fallback
+                                    parsed = {
+                                        title: metaData.title,
+                                        location: "Unknown Location", // Meta usually lacks location
+                                        dateRaw: "", // Needs extraction from description
+                                        timeRaw: "",
+                                        detectedCity: null
+                                    };
+                                    // Try to extract date from description "Jan 15 @ 7PM"
+                                    const descDate = parseEventText(metaData.description || "");
+                                    if (descDate.dateRaw) parsed.dateRaw = descDate.dateRaw;
+                                    if (descDate.timeRaw) parsed.timeRaw = descDate.timeRaw;
                                 } else {
                                     // Fallback: Scrape Body Text
                                     const bodyText = await page.evaluate(() => document.body.innerText);
