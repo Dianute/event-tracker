@@ -110,11 +110,11 @@ export default function AdminEventsPage() {
                             className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
                         >
                             <option value="ALL">All Categories</option>
-                            <option value="social">Social</option>
-                            <option value="music">Music</option>
-                            <option value="cultural">Cultural</option>
-                            <option value="sports">Sports</option>
-                            <option value="workshop">Workshop</option>
+                            <option value="social">🍻 Social</option>
+                            <option value="food">🍔 Food</option>
+                            <option value="music">🎵 Music</option>
+                            <option value="arts">🎨 Arts</option>
+                            <option value="sports">⚽ Sports</option>
                         </select>
                         <input
                             type="text"
