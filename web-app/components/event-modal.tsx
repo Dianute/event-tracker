@@ -452,12 +452,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 )}
 
                                 {/* All Day Toggle */}
-                                <div className="flex items-center gap-3 py-1 cursor-pointer" onClick={() => setIsAllDay(!isAllDay)}>
+                                <button type="button" className="inline-flex items-center gap-3 py-1 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setIsAllDay(!isAllDay)}>
                                     <div className={`w-10 h-6 rounded-full p-1 transition-colors duration-300 ${isAllDay ? 'bg-blue-500' : 'bg-gray-600'}`}>
                                         <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isAllDay ? 'translate-x-4' : 'translate-x-0'}`} />
                                     </div>
-                                    <span className="text-sm font-medium text-gray-400">All Day Event</span>
-                                </div>
+                                    <span className="text-sm font-medium text-gray-400 select-none">All Day Event</span>
+                                </button>
                             </div>
                             {/* --- END DATE / TIME SECTION --- */}
 
