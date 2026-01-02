@@ -356,11 +356,21 @@ function parseEventText(text) {
 
 
     // 3. Title is usually the FIRST line (after filtering noise)
-    let title = lines[0];
+    // 3. Title is usually the FIRST line, but sometimes it's the DATE line (e.g. "JAN 15")
+    // We must check if line 0 is a date.
+    let titleIdx = 0;
 
-    // Improved Date Extraction: Scan for month names
-    // Improved Date Extraction: Scan for month names (Lithuanian + English)
+    // Use the same regex we define below (move definition up)
     const dateRegex = /(?:(\d{1,2})\s+)?(saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo|sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i;
+
+    if (lines.length > 0 && dateRegex.test(lines[0])) {
+        // Line 0 is likely a date ("JAN 15"), so Title is line 1
+        titleIdx = 1;
+    }
+
+    let title = lines[titleIdx] || "Unknown Title";
+
+
     let dateRaw = "";
 
     // Find line matching date regex
