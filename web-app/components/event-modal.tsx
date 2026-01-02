@@ -422,7 +422,20 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 {/* Date Row */}
                                 <div>
                                     <div className="flex justify-between items-center mb-1.5">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">When</label>
+                                        <div className="flex items-center gap-3">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">When</label>
+
+                                            {/* All Day Toggle (Moved Here) */}
+                                            <button type="button"
+                                                className={`inline-flex items-center gap-2 px-2 py-0.5 rounded-full border transition-all ${isAllDay ? 'bg-blue-500/10 border-blue-500/20 text-blue-500' : 'bg-transparent border-transparent text-gray-400 hover:bg-white/5'}`}
+                                                onClick={() => setIsAllDay(!isAllDay)}>
+                                                <div className={`w-6 h-3 rounded-full p-0.5 transition-colors duration-300 ${isAllDay ? 'bg-blue-500' : 'bg-gray-400'}`}>
+                                                    <div className={`w-2 h-2 bg-white rounded-full transition-transform duration-300 ${isAllDay ? 'translate-x-3' : 'translate-x-0'}`} />
+                                                </div>
+                                                <span className="text-[10px] font-bold uppercase tracking-wider">All Day</span>
+                                            </button>
+                                        </div>
+
                                         <div className="flex gap-2">
                                             <button type="button" onClick={() => handleQuickDate('today')} className="text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors uppercase">Today</button>
                                             <button type="button" onClick={() => handleQuickDate('tmrw')} className="text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors uppercase">Tmrw</button>
@@ -432,7 +445,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
                                 </div>
 
-                                {/* Timer / All Day Row */}
+                                {/* Timer Row (Only if Not All Day) */}
                                 {!isAllDay && (
                                     <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                         <div>
@@ -443,21 +456,13 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         <div>
                                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 flex justify-between">
                                                 <span>End Time</span>
-                                                {isOvernight && <span className="text-pink-500">+1 Day</span>}
+                                                {isOvernight && <span className="text-pink-500 text-[10px] font-bold">+1 Day</span>}
                                             </label>
                                             <input type="time" required value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)}
                                                 className={`w-full px-4 py-3 rounded-xl border outline-none text-lg font-bold text-center ${theme === 'light' ? 'bg-gray-50 text-gray-900' : 'bg-white/5 text-white'} ${isOvernight ? 'border-pink-500/50 text-pink-100' : ''}`} />
                                         </div>
                                     </div>
                                 )}
-
-                                {/* All Day Toggle */}
-                                <button type="button" className="inline-flex items-center gap-3 py-1 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setIsAllDay(!isAllDay)}>
-                                    <div className={`w-10 h-6 rounded-full p-1 transition-colors duration-300 ${isAllDay ? 'bg-blue-500' : 'bg-gray-600'}`}>
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isAllDay ? 'translate-x-4' : 'translate-x-0'}`} />
-                                    </div>
-                                    <span className="text-sm font-medium text-gray-400 select-none">All Day Event</span>
-                                </button>
                             </div>
                             {/* --- END DATE / TIME SECTION --- */}
 

@@ -144,7 +144,7 @@ async function runScout() {
                         const rawText = item.innerText;
                         // For Facebook, link is tricky. Often valid link is in a timestamp or the post itself.
                         // We try to find the first anchor.
-                        const link = isFb ? (item.querySelector('a')?.href || window.location.href) : item.href;
+                        const link = isFb ? (item.querySelector('a')?.href || window.location.href) : (item.href || item.querySelector('a')?.href);
 
                         // Facebook posts are long, length check > 10 is fine.
                         if (rawText && rawText.length > 10) found.push({ rawText, link });
@@ -472,10 +472,13 @@ function parseKakavaEvent(text) {
             dateRaw = `${lines[0]} ${lines[1]}`;
             titleIndex = 2;
         } else {
-            // Found a month word ("Sau") but no number near it. 
-            // It might be a Title starting with "Sau..."? 
-            // Or a bad scrape. Let's assume it IS the title if no number found.
-            titleIndex = 0;
+            // Found a month word ("Sau") but no number near it.
+            // Check if line 0 is JUST the month name (length < 10). If so, it's definitely a date line.
+            if (lines[0].length < 10) {
+                titleIndex = 1;
+            } else {
+                titleIndex = 0;
+            }
         }
 
         // Check for range logic "Sau 15 | Vas 02"
