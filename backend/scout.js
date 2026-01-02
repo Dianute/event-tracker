@@ -107,7 +107,7 @@ async function runScout() {
                 // Auto-determine selector if missing
                 if (!selector) {
                     if (target.url.includes('bilietai.lt')) selector = ".event_short";
-                    else if (target.url.includes('kakava.lt')) selector = "a.event-card";
+                    else if (target.url.includes('kakava.lt')) selector = "a[href*='/renginys/']";
                     else selector = "a[href*='/e/']"; // BandsInTown default
                 }
 
@@ -192,13 +192,18 @@ async function runScout() {
                                     return null;
                                 });
 
-                                if (ldData) {
+                                if (ldData && ldData.startDate) {
                                     // JSON-LD found! Use it.
+                                    // Convert ISO date (2024-01-15T19:00) to "Saus 15" format for consistent UI
+                                    const d = new Date(ldData.startDate);
+                                    const litMonths = ['Saus', 'Vas', 'Kov', 'Bal', 'Geg', 'Bir', 'Lie', 'Rgp', 'Rgs', 'Spa', 'Lap', 'Gru'];
+                                    const formattedDate = `${litMonths[d.getMonth()]} ${d.getDate()}`;
+
                                     parsed = {
-                                        title: ldData.name || raw.rawText.split('\n')[1], // Fallback to list title if LD name missing
+                                        title: ldData.name || raw.rawText.split('\n')[1],
                                         location: ldData.location?.name || ldData.location?.address?.streetAddress || "Unknown Location",
-                                        dateRaw: ldData.startDate || "", // "2024-01-15T19:00"
-                                        timeRaw: ldData.startDate ? ldData.startDate.split('T')[1]?.slice(0, 5) : "",
+                                        dateRaw: formattedDate, // "Saus 15"
+                                        timeRaw: ldData.startDate.split('T')[1]?.slice(0, 5) || "",
                                         detectedCity: ldData.location?.address?.addressLocality || null
                                     };
                                 } else {

@@ -10,7 +10,7 @@
     "id": "kakava-1",
     "name": "Kakava - Klaipeda",
     "url": "https://kakava.lt/renginiai/klaipeda/visi",
-    "selector": "a.event-card",
+    "selector": "a[href*='/renginys/']",
     "city": "Klaipėda"
   }
 ]
