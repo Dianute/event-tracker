@@ -629,7 +629,9 @@ function parseKakavaEvent(text) {
         "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys",
         "Alytus", "Marijampolė", "Mažeikiai", "Jonava", "Utena",
         "Kėdainiai", "Telšiai", "Visaginas", "Tauragė", "Ukmergė",
-        "Palanga", "Druskininkai", "Birštonas", "Trakai", "Neringa"
+        "Palanga", "Druskininkai", "Birštonas", "Trakai", "Neringa",
+        "Anykščiai", "Plungė", "Kretinga", "Šilutė", "Radviliškis",
+        "Gargždai", "Rokiškis"
     ];
 
     let detectedCity = null;
