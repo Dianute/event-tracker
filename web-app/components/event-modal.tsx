@@ -211,7 +211,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     // Forward Geocode Effect
     useEffect(() => {
-        if (event) return;
+
         const delayDebounceFn = setTimeout(async () => {
             if (venue.length > 2 && isSearching) {
                 try {
