@@ -727,6 +727,34 @@ async function geocodeAddress(address, defaultCity = null) {
     // Contextualize Query
     let query = cleanAddr;
 
+    // "Google Maps Logic" - Manual fixes for known tricky venues
+    const VENUE_FIXES = {
+        "geležinkelių muziejaus bėgių parkas": "Geležinkelių muziejus, Vilnius",
+        "geležinkelių muziejus": "Geležinkelių muziejus, Vilnius",
+        "vilniaus senasis teatras": "Jono Basanavičiaus g. 13, Vilnius",
+        "compensa koncertų salė": "Kernavės g. 84, Vilnius",
+        "compensa": "Kernavės g. 84, Vilnius",
+        "žalgirio arena": "Karaliaus Mindaugo pr. 50, Kaunas",
+        "švyturio arena": "Dubysos g. 10, Klaipėda",
+        "siemens arena": "Ozo g. 14, Vilnius",
+        "avio solutions group arena": "Ozo g. 14, Vilnius",
+        "loftas": "Švitrigailos g. 29, Vilnius",
+        "menų fabrikas loftas": "Švitrigailos g. 29, Vilnius",
+        "kablys": "Kauno g. 5, Vilnius",
+        "kablys + kultūra": "Kauno g. 5, Vilnius",
+        "tamsta": "A. Strazdelio g. 1, Vilnius",
+        "tamsta club": "A. Strazdelio g. 1, Vilnius"
+    };
+
+    const lowerAddr = cleanAddr.toLowerCase();
+    for (const [key, fix] of Object.entries(VENUE_FIXES)) {
+        if (lowerAddr.includes(key)) {
+            query = fix; // Override completely with known good address
+            console.log(`   💡 Applied Venue Fix: "${key}" -> "${fix}"`);
+            break;
+        }
+    }
+
     // If we have a city context, and the address doesn't already contain it, append it.
     if (defaultCity && !query.toLowerCase().includes(defaultCity.toLowerCase())) {
         query += `, ${defaultCity}`;
