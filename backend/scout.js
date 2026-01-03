@@ -718,183 +718,189 @@ function saveCache() {
 }
 
 async function geocodeAddress(address, defaultCity = "") {
-    // Clean address
-    let cleanAddr = address.trim();
-    if (!cleanAddr) return null;
+    async function geocodeAddress(address, defaultCity = null) {
+        if (!address) return null;
 
-    // Append default city if not present in address
-    if (defaultCity && !cleanAddr.toLowerCase().includes(defaultCity.toLowerCase())) {
-        cleanAddr = `${cleanAddr}, ${defaultCity}`;
-    }
+        let cleanAddr = address.replace(/[\n\r]+/g, ", ").trim();
 
-    // Append 'Lithuania' for context if not present
-    const query = cleanAddr.includes('Lietuva') ? cleanAddr : `${cleanAddr}, Lietuva`;
+        // Contextualize Query
+        let query = cleanAddr;
 
-    // CHECK CACHE
-    if (geocodeCache[query]) {
-        return geocodeCache[query];
-    }
-
-    try {
-        // Rate limit happens outcome-side, but let's be safe
-        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
-        const res = await axios.get(url, {
-            headers: {
-                'User-Agent': 'EventTrackerAntigravity/1.0 (contact@antigravity.dev)',
-                'Referer': 'http://localhost'
-            }
-        });
-        if (res.data && res.data.length > 0) {
-            const result = { lat: res.data[0].lat, lon: res.data[0].lon }; // Store only what we need
-            geocodeCache[query] = result;
-            return result;
+        // If we have a city context, and the address doesn't already contain it, append it.
+        if (defaultCity && !query.toLowerCase().includes(defaultCity.toLowerCase())) {
+            query += `, ${defaultCity}`;
         }
-    } catch (e) {
-        // Ignore errors
-        console.error("Geocode error:", e.message);
-    }
-    return null;
-}
 
-
-async function runSimulation() {
-    // Only run if real scraping fails
-    const SIMULATED_EVENTS = [
-        {
-            title: "Simulated: Jazz Night",
-            description: "Scraping fallback event",
-            type: "music",
-            lat: 55.7068,
-            lng: 21.1258,
-            startTime: new Date(Date.now() + 86400000).toISOString()
+        // Append 'Lithuania' for context if not present
+        if (!query.toLowerCase().includes('lietuva')) {
+            query += `, Lietuva`;
         }
-    ];
-    for (const event of SIMULATED_EVENTS) {
-        await axios.post(API_URL, event);
-        console.log(`✨ Discovered (Sim): ${event.title}`);
-    }
-}
 
-
-function extractTime(text) {
-    // Remove "Doors:" noise which might confuse things
-    let clean = text.replace(/Doors:?/i, "").trim();
-
-    // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00)
-    // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00). Support "@ 19:00"
-    const timeRegex = /((?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:AM|PM))|(@?\s*(?:[0-1]?[0-9]|2[0-3]):[0-5][0-9])/i;
-    const match = clean.match(timeRegex);
-
-    if (match) {
-        let t = match[0];
-        // Normalize AM/PM to 24h
-        if (t.match(/PM/i)) {
-            // Extract hour
-            const parts = t.replace(/PM/i, "").trim().split(':');
-            let h = parseInt(parts[0], 10);
-            const m = parts[1] ? parseInt(parts[1], 10) : 0;
-            if (h !== 12) h += 12;
-            return `${h}:${m.toString().padStart(2, '0')}`;
-        } else if (t.match(/AM/i)) {
-            const parts = t.replace(/AM/i, "").trim().split(':');
-            let h = parseInt(parts[0], 10);
-            const m = parts[1] ? parseInt(parts[1], 10) : 0;
-            if (h === 12) h = 0;
-            return `${h}:${m.toString().padStart(2, '0')}`;
+        // CHECK CACHE
+        if (geocodeCache[query]) {
+            return geocodeCache[query];
         }
-        return t.replace('@', '').trim(); // Already 24h or simple
-    }
-    return null;
-}
 
-function parseLithuanianDate(dateStr, timeStr) {
-    if (!dateStr) return new Date(); // Fallback
-
-    const months = {
-        'sausio': 0, 'vasario': 1, 'kovo': 2, 'balandžio': 3, 'gegužės': 4, 'birželio': 5,
-        'liepos': 6, 'rugpjūčio': 7, 'rugsėjo': 8, 'spalio': 9, 'lapkričio': 10, 'gruodžio': 11,
-        'saus': 0, 'vas': 1, 'kov': 2, 'bal': 3, 'geg': 4, 'bir': 5,
-        'lie': 6, 'rgp': 7, 'rgs': 8, 'spa': 9, 'lap': 10, 'gruod': 11, 'gruo': 11,
-        // English Support
-        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
-        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
-    };
-
-    const now = new Date();
-    let year = now.getFullYear();
-    let month = now.getMonth();
-    let day = now.getDate();
-
-    // Try to find month and day
-    const lower = dateStr.toLowerCase();
-
-    // Check for month name
-    let foundMonth = false;
-    for (const [mName, mIdx] of Object.entries(months)) {
-        if (lower.includes(mName)) {
-            month = mIdx;
-            foundMonth = true;
-            break;
-        }
-    }
-
-    // Extract day (number)
-    const dayMatch = lower.match(/(\d+)/);
-    if (dayMatch) {
-        day = parseInt(dayMatch[1], 10);
-    }
-
-    // Time parsing
-    let hours = 19;
-    let minutes = 0;
-    if (timeStr) {
-        const parts = timeStr.split(':');
-        hours = parseInt(parts[0], 10);
-        minutes = parseInt(parts[1], 10);
-    }
-
-    let d = new Date(year, month, day, hours, minutes);
-
-    // Future date correction (e.g. scraping in Dec for Jan)
-    // If the resulting date is in the past (by more than a day), assume it's next year
-    // Exception: It might be today or yesterday
-    if (d.getTime() < now.getTime() - 86400000 && foundMonth) {
-        // If we found a month, and the date is in the past, likely next year
-        // But trigger only if the month is "smaller" than current month?
-        // e.g. We are in Dec (11), event is Jan (0). Date(2024, 0, 15) is in past.
-        // We want 2025.
-        if (month < now.getMonth()) {
-            d.setFullYear(year + 1);
-        }
-    }
-
-    return d;
-}
-
-runScout();
-
-async function autoScroll(page) {
-    await page.evaluate(async () => {
-        await new Promise((resolve) => {
-            let totalHeight = 0;
-            const distance = 100;
-            let scrolls = 0;
-            const maxScrolls = 200; // Limit to avoid infinite loops (approx 20s)
-
-            const timer = setInterval(() => {
-                const scrollHeight = document.body.scrollHeight;
-                window.scrollBy(0, distance);
-                totalHeight += distance;
-                scrolls++;
-
-                // Stop if we hit bottom consistently or max scrolls
-                if (scrolls >= maxScrolls || (totalHeight >= scrollHeight && scrolls > 50)) {
-                    clearInterval(timer);
-                    resolve();
+        try {
+            // Rate limit happens outcome-side, but let's be safe
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`;
+            const res = await axios.get(url, {
+                headers: {
+                    'User-Agent': 'EventTrackerAntigravity/1.0 (contact@antigravity.dev)',
+                    'Referer': 'http://localhost'
                 }
-            }, 100); // Scroll every 100ms
+            });
+            if (res.data && res.data.length > 0) {
+                const result = { lat: res.data[0].lat, lon: res.data[0].lon }; // Store only what we need
+                geocodeCache[query] = result;
+                return result;
+            }
+        } catch (e) {
+            // Ignore errors
+            console.error("Geocode error:", e.message);
+        }
+        return null;
+    }
+
+
+    async function runSimulation() {
+        // Only run if real scraping fails
+        const SIMULATED_EVENTS = [
+            {
+                title: "Simulated: Jazz Night",
+                description: "Scraping fallback event",
+                type: "music",
+                lat: 55.7068,
+                lng: 21.1258,
+                startTime: new Date(Date.now() + 86400000).toISOString()
+            }
+        ];
+        for (const event of SIMULATED_EVENTS) {
+            await axios.post(API_URL, event);
+            console.log(`✨ Discovered (Sim): ${event.title}`);
+        }
+    }
+
+
+    function extractTime(text) {
+        // Remove "Doors:" noise which might confuse things
+        let clean = text.replace(/Doors:?/i, "").trim();
+
+        // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00)
+        // Match 12h (7 PM, 7:30 PM) FIRST, then 24h (19:00). Support "@ 19:00"
+        const timeRegex = /((?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:AM|PM))|(@?\s*(?:[0-1]?[0-9]|2[0-3]):[0-5][0-9])/i;
+        const match = clean.match(timeRegex);
+
+        if (match) {
+            let t = match[0];
+            // Normalize AM/PM to 24h
+            if (t.match(/PM/i)) {
+                // Extract hour
+                const parts = t.replace(/PM/i, "").trim().split(':');
+                let h = parseInt(parts[0], 10);
+                const m = parts[1] ? parseInt(parts[1], 10) : 0;
+                if (h !== 12) h += 12;
+                return `${h}:${m.toString().padStart(2, '0')}`;
+            } else if (t.match(/AM/i)) {
+                const parts = t.replace(/AM/i, "").trim().split(':');
+                let h = parseInt(parts[0], 10);
+                const m = parts[1] ? parseInt(parts[1], 10) : 0;
+                if (h === 12) h = 0;
+                return `${h}:${m.toString().padStart(2, '0')}`;
+            }
+            return t.replace('@', '').trim(); // Already 24h or simple
+        }
+        return null;
+    }
+
+    function parseLithuanianDate(dateStr, timeStr) {
+        if (!dateStr) return new Date(); // Fallback
+
+        const months = {
+            'sausio': 0, 'vasario': 1, 'kovo': 2, 'balandžio': 3, 'gegužės': 4, 'birželio': 5,
+            'liepos': 6, 'rugpjūčio': 7, 'rugsėjo': 8, 'spalio': 9, 'lapkričio': 10, 'gruodžio': 11,
+            'saus': 0, 'vas': 1, 'kov': 2, 'bal': 3, 'geg': 4, 'bir': 5,
+            'lie': 6, 'rgp': 7, 'rgs': 8, 'spa': 9, 'lap': 10, 'gruod': 11, 'gruo': 11,
+            // English Support
+            'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+            'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+        };
+
+        const now = new Date();
+        let year = now.getFullYear();
+        let month = now.getMonth();
+        let day = now.getDate();
+
+        // Try to find month and day
+        const lower = dateStr.toLowerCase();
+
+        // Check for month name
+        let foundMonth = false;
+        for (const [mName, mIdx] of Object.entries(months)) {
+            if (lower.includes(mName)) {
+                month = mIdx;
+                foundMonth = true;
+                break;
+            }
+        }
+
+        // Extract day (number)
+        const dayMatch = lower.match(/(\d+)/);
+        if (dayMatch) {
+            day = parseInt(dayMatch[1], 10);
+        }
+
+        // Time parsing
+        let hours = 19;
+        let minutes = 0;
+        if (timeStr) {
+            const parts = timeStr.split(':');
+            hours = parseInt(parts[0], 10);
+            minutes = parseInt(parts[1], 10);
+        }
+
+        let d = new Date(year, month, day, hours, minutes);
+
+        // Future date correction (e.g. scraping in Dec for Jan)
+        // If the resulting date is in the past (by more than a day), assume it's next year
+        // Exception: It might be today or yesterday
+        if (d.getTime() < now.getTime() - 86400000 && foundMonth) {
+            // If we found a month, and the date is in the past, likely next year
+            // But trigger only if the month is "smaller" than current month?
+            // e.g. We are in Dec (11), event is Jan (0). Date(2024, 0, 15) is in past.
+            // We want 2025.
+            if (month < now.getMonth()) {
+                d.setFullYear(year + 1);
+            }
+        }
+
+        return d;
+    }
+
+    runScout();
+
+    async function autoScroll(page) {
+        await page.evaluate(async () => {
+            await new Promise((resolve) => {
+                let totalHeight = 0;
+                const distance = 100;
+                let scrolls = 0;
+                const maxScrolls = 200; // Limit to avoid infinite loops (approx 20s)
+
+                const timer = setInterval(() => {
+                    const scrollHeight = document.body.scrollHeight;
+                    window.scrollBy(0, distance);
+                    totalHeight += distance;
+                    scrolls++;
+
+                    // Stop if we hit bottom consistently or max scrolls
+                    if (scrolls >= maxScrolls || (totalHeight >= scrollHeight && scrolls > 50)) {
+                        clearInterval(timer);
+                        resolve();
+                    }
+                }, 100); // Scroll every 100ms
+            });
         });
-    });
-    // Wait a bit after scrolling for final items to settle
-    await new Promise(r => setTimeout(r, 2000));
-}
+        // Wait a bit after scrolling for final items to settle
+        await new Promise(r => setTimeout(r, 2000));
+    }
