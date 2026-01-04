@@ -342,6 +342,11 @@ async function runScout() {
                             startTime = parseLithuanianDate(parsed.dateRaw, parsed.timeRaw || "19:00");
                         }
 
+                        if (!startTime) {
+                            console.warn(`   ⚠️ Skipping event (Invalid Date): ${parsed.title}`);
+                            continue;
+                        }
+
                         // End time = Start + 3 hours (approximation)
                         const endTime = new Date(startTime.getTime() + 3 * 60 * 60 * 1000);
 
@@ -616,6 +621,22 @@ function parseKakavaEvent(text) {
         // No month detected at start
         dateRaw = "";
         titleIndex = 0;
+    }
+
+    // FALLBACK: Global Scan for Date if precise logic failed
+    if (!dateRaw) {
+        // Regex: (Month) (Day)
+        const globalDateRegex = /(sausio|vasario|kovo|balandžio|gegužės|birželio|liepos|rugpjūčio|rugsėjo|spalio|lapkričio|gruodžio|saus|vas|kov|bal|geg|bir|lie|rgp|rgs|spa|lap|gruo)\s+(\d{1,2})/i;
+
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].match(globalDateRegex)) {
+                dateRaw = lines[i];
+                // Heuristic: If we found date at line i, maybe title is i-1 or i+1?
+                // For safety, let's just keep titleIndex=0 (or adjust if needed)
+                // Often date is disjoint, so we just grab the date and trust title logic to clean itself up.
+                break;
+            }
+        }
     }
 
     // 2. Title
@@ -901,7 +922,7 @@ function extractTime(text) {
 }
 
 function parseLithuanianDate(dateStr, timeStr) {
-    if (!dateStr) return new Date(); // Fallback
+    if (!dateStr) return null; // No date found
 
     const months = {
         'sausio': 0, 'vasario': 1, 'kovo': 2, 'balandžio': 3, 'gegužės': 4, 'birželio': 5,
