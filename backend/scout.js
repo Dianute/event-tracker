@@ -13,6 +13,7 @@ const RUN_ID = crypto.randomUUID();
 // Main Execution
 async function runScout() {
     console.log(`🕵️‍♂️ Scout Agent Starting (Run ID: ${RUN_ID})...`);
+    const overallStart = Date.now();
 
     // Parse Args First
     const args = process.argv.slice(2);
@@ -435,7 +436,13 @@ async function runScout() {
 
 
         // Log SUCCESS
-        await updateLog('SUCCESS', 'Mission Complete', totalEventsFound);
+        const durationSeconds = (Date.now() - overallStart) / 1000;
+        const minutes = Math.floor(durationSeconds / 60);
+        const seconds = Math.floor(durationSeconds % 60);
+
+        console.log(`✅ Scout Mission Complete. Duration: ${minutes}m ${seconds}s`);
+
+        await updateLog('SUCCESS', `Mission Complete in ${minutes}m ${seconds}s`, totalEventsFound);
         // Final update to set EndTime? The server updates existing rows, but explicitly sending endTime might be needed if server doesn't auto-set it on update.
         // Actually, let's send a specific payload for completion
         await axios.post(`${API_URL}/scout/log`, {
@@ -452,7 +459,7 @@ async function runScout() {
         await updateLog('FAILED', err.message);
     } finally {
         await browser.close();
-        console.log("✅ Scout Mission Complete.");
+        // console.log("✅ Scout Mission Complete."); // Moved up
     }
 }
 
