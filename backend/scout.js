@@ -625,20 +625,39 @@ function parseKakavaEvent(text) {
     let venue = lines[titleIndex + 1] || "Unknown Venue";
 
     // Smart City Detection
-    const LITHUANIAN_CITIES = [
-        "Vilnius", "Kaunas", "Klaipėda", "Šiauliai", "Panevėžys",
-        "Alytus", "Marijampolė", "Mažeikiai", "Jonava", "Utena",
-        "Kėdainiai", "Telšiai", "Visaginas", "Tauragė", "Ukmergė",
-        "Palanga", "Druskininkai", "Birštonas", "Trakai", "Neringa",
-        "Anykščiai", "Plungė", "Kretinga", "Šilutė", "Radviliškis",
-        "Gargždai", "Rokiškis"
-    ];
+    // Smart City Detection (Handle inflections: Vilniaus -> Vilnius)
+    const CITY_MAPPINGS = {
+        "vilnius": "Vilnius", "vilniaus": "Vilnius",
+        "kaunas": "Kaunas", "kauno": "Kaunas",
+        "klaipėda": "Klaipėda", "klaipėdos": "Klaipėda",
+        "šiauliai": "Šiauliai", "šiaulių": "Šiauliai",
+        "panevėžys": "Panevėžys", "panevėžio": "Panevėžys",
+        "alytus": "Alytus", "alytaus": "Alytus",
+        "marijampolė": "Marijampolė", "marijampolės": "Marijampolė",
+        "jonavos": "Jonava", "jonava": "Jonava",
+        "utenos": "Utena", "utena": "Utena",
+        "kėdainiai": "Kėdainiai", "kėdainių": "Kėdainiai",
+        "telšiai": "Telšiai", "telšių": "Telšiai",
+        "tauragė": "Tauragė", "tauragės": "Tauragė",
+        "ukmergė": "Ukmergė", "ukmergės": "Ukmergė",
+        "palanga": "Palanga", "palangos": "Palanga",
+        "druskininkai": "Druskininkai", "druskininkų": "Druskininkai",
+        "birštonas": "Birštonas", "birštono": "Birštonas",
+        "trakai": "Trakai", "trakų": "Trakai",
+        "neringa": "Neringa", "neringos": "Neringa",
+        "anykščiai": "Anykščiai", "anykščių": "Anykščiai",
+        "plungė": "Plungė", "plungės": "Plungė",
+        "kretinga": "Kretinga", "kretingos": "Kretinga",
+        "šilutė": "Šilutė", "šilutės": "Šilutė"
+    };
 
     let detectedCity = null;
     const fullText = text.toLowerCase();
-    for (const city of LITHUANIAN_CITIES) {
-        if (fullText.includes(city.toLowerCase())) {
-            detectedCity = city;
+
+    // Check for any known city form
+    for (const [key, baseCity] of Object.entries(CITY_MAPPINGS)) {
+        if (fullText.includes(key)) {
+            detectedCity = baseCity;
             break;
         }
     }
