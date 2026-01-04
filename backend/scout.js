@@ -856,9 +856,15 @@ async function geocodeAddress(address, defaultCity = null, browser = null) {
 
 async function scrapeGoogleMapsCoords(query, browser) {
     const page = await browser.newPage();
+    // Optimize: Block images/fonts
+    await page.setRequestInterception(true);
+    page.on('request', (req) => {
+        if (['image', 'stylesheet', 'font'].includes(req.resourceType())) req.abort();
+        else req.continue();
+    });
     try {
         // Navigate to search
-        await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, { waitUntil: 'networkidle2', timeout: 20000 });
+        await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, { waitUntil: 'domcontentloaded', timeout: 15000 });
 
         // Wait for URL to update with coordinates
         // Url format: https://www.google.com/maps/place/..../@54.6872,25.2797,14z/...
