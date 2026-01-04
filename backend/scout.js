@@ -356,7 +356,7 @@ async function runScout() {
                             venue: parsed.location,
                             date: parsed.dateRaw, // Keep raw for debug
                             link: raw.link,
-                            description: `Event from ${target.name}\n${parsed.location}\n${parsed.dateRaw} @ ${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`,
+                            description: `Event from ${target.name}\n${parsed.location}\n${parsed.dateRaw} @ ${startTime.toLocaleTimeString('lt-LT', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Vilnius' })}`,
                             type: "music",
                             lat: coords.lat,
                             lng: coords.lng,
