@@ -859,8 +859,11 @@ async function scrapeGoogleMapsCoords(query, browser) {
     // Optimize: Block images/fonts
     await page.setRequestInterception(true);
     page.on('request', (req) => {
-        if (['image', 'stylesheet', 'font'].includes(req.resourceType())) req.abort();
-        else req.continue();
+        if (['image', 'stylesheet', 'font'].includes(req.resourceType())) {
+            req.abort().catch(() => { }); // Ignore errors if page closed
+        } else {
+            req.continue().catch(() => { });
+        }
     });
     try {
         // Navigate to search
