@@ -311,7 +311,7 @@ async function runScout() {
                             const cityContext = parsed.detectedCity || target.city;
 
                             const geoStart = Date.now();
-                            const geo = await geocodeAddress(parsed.location, cityContext);
+                            const geo = await geocodeAddress(parsed.location, cityContext, browser);
                             const geoDuration = Date.now() - geoStart;
 
                             if (geoDuration < 100) wasCached = true; // Heuristic: Cache is fast
@@ -738,7 +738,7 @@ function saveCache() {
     }
 }
 
-async function geocodeAddress(address, defaultCity = null) {
+async function geocodeAddress(address, defaultCity = null, browser = null) {
     if (!address) return null;
 
     let cleanAddr = address.replace(/[\n\r]+/g, ", ").trim();
@@ -807,7 +807,46 @@ async function geocodeAddress(address, defaultCity = null) {
         // Ignore errors
         console.error("Geocode error:", e.message);
     }
+
+    // FALLBACK: Google Maps Direct Scrape
+    if (browser) {
+        console.log(`   🔍 Nominatim failed for "${query}". Trying Google Maps...`);
+        try {
+            const googleCoords = await scrapeGoogleMapsCoords(query, browser);
+            if (googleCoords) {
+                console.log(`   ✅ Google Maps Found: [${googleCoords.lat}, ${googleCoords.lon}]`);
+                geocodeCache[query] = googleCoords;
+                return googleCoords;
+            }
+        } catch (err) {
+            console.error(`   ❌ Google Maps failed: ${err.message}`);
+        }
+    }
+
     return null;
+}
+
+async function scrapeGoogleMapsCoords(query, browser) {
+    const page = await browser.newPage();
+    try {
+        // Navigate to search
+        await page.goto(`https://www.google.com/maps/search/${encodeURIComponent(query)}`, { waitUntil: 'networkidle2', timeout: 20000 });
+
+        // Wait for URL to update with coordinates
+        // Url format: https://www.google.com/maps/place/..../@54.6872,25.2797,14z/...
+        try {
+            await page.waitForFunction(() => window.location.href.includes('@'), { timeout: 5000 });
+        } catch (e) { /* Ignore timeout, check URL anyway */ }
+
+        const url = page.url();
+        const coordsMatch = url.match(/@([-\d.]+),([-\d.]+)/);
+        if (coordsMatch) {
+            return { lat: coordsMatch[1], lon: coordsMatch[2] };
+        }
+        return null;
+    } finally {
+        await page.close();
+    }
 }
 
 
