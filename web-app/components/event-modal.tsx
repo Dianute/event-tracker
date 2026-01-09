@@ -218,7 +218,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         const delayDebounceFn = setTimeout(async () => {
             if (venue.length > 2 && isSearching) {
                 try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(venue)}&limit=5`);
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(venue)}&limit=5&addressdetails=1`);
                     const data = await res.json();
                     setSuggestions(data);
                 } catch (e) {
@@ -458,11 +458,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
                                                 onMouseDown={(e) => e.preventDefault()}
                                                 onClick={() => {
-                                                    setVenue(item.display_name);
+                                                    const cleanParams = formatAddress(item);
+                                                    setVenue(cleanParams);
                                                     setCurrentLocation({ lat: parseFloat(item.lat), lng: parseFloat(item.lon) });
                                                     setSuggestions([]);
                                                 }}>
-                                                <MapPin size={12} /> {item.display_name}
+                                                <MapPin size={12} /> {formatAddress(item)}
                                             </div>
                                         ))}
                                     </div>
