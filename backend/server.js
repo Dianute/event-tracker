@@ -55,6 +55,28 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
 
 // Routes
 
+// AUTHENTICATION
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+console.log(`🔐 Admin Password Set: ${process.env.ADMIN_PASSWORD ? '***' : 'Default (admin123)'}`);
+
+const requireAuth = (req, res, next) => {
+    const authHeader = req.headers['x-admin-password'];
+    if (authHeader === ADMIN_PASSWORD) {
+        return next();
+    }
+    return res.status(401).json({ error: 'Unauthorized: Invalid Password' });
+};
+
+// POST /api/auth/verify - Verify password from frontend
+app.post('/api/auth/verify', (req, res) => {
+    const { password } = req.body;
+    if (password === ADMIN_PASSWORD) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ error: 'Invalid password' });
+    }
+});
+
 // GET / - Health Check
 app.get('/', (req, res) => {
     res.send('<h1>Event Tracker Backend is Running 🟢</h1><p>Go to <a href="/events">/events</a> to see data.</p>');
@@ -104,7 +126,7 @@ app.get('/events', (req, res) => {
 });
 
 // POST /upload - Handle Image Upload
-app.post('/upload', upload.single('image'), async (req, res) => {
+app.post('/upload', requireAuth, upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     try {
@@ -161,7 +183,7 @@ const downloadImage = async (url) => {
 };
 
 // POST /events - Create a new event
-app.post('/events', async (req, res) => {
+app.post('/events', requireAuth, async (req, res) => {
     let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
     // AUTO-DOWNLOAD: If imageUrl is external, download it
@@ -212,7 +234,7 @@ app.post('/events', async (req, res) => {
 });
 
 // PUT /events/:id - Update an event
-app.put('/events/:id', (req, res) => {
+app.put('/events/:id', requireAuth, (req, res) => {
     const { id } = req.params;
     const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
@@ -227,7 +249,7 @@ app.put('/events/:id', (req, res) => {
 });
 
 // DELETE /events/:id - Delete an event
-app.delete('/events/:id', (req, res) => {
+app.delete('/events/:id', requireAuth, (req, res) => {
     const { id } = req.params;
 
     // First get the event to check for image
@@ -273,7 +295,7 @@ app.delete('/events/:id', (req, res) => {
 const { exec } = require('child_process');
 
 // API: Preview Link (Scrape on demand)
-app.post('/api/preview-link', (req, res) => {
+app.post('/api/preview-link', requireAuth, (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ error: 'URL is required' });
 
@@ -302,7 +324,7 @@ app.post('/api/preview-link', (req, res) => {
 
 // TARGETS API (DB-Based)
 // GET /targets - Get all scout targets
-app.get('/targets', (req, res) => {
+app.get('/targets', requireAuth, (req, res) => {
     db.all("SELECT * FROM targets", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
@@ -310,7 +332,7 @@ app.get('/targets', (req, res) => {
 });
 
 // POST /targets - Add new target
-app.post('/targets', (req, res) => {
+app.post('/targets', requireAuth, (req, res) => {
     const { name, url, city, selector } = req.body;
     const id = uuidv4();
     const sql = "INSERT INTO targets (id, name, url, city, selector) VALUES (?, ?, ?, ?, ?)";
@@ -321,7 +343,7 @@ app.post('/targets', (req, res) => {
 });
 
 // DELETE /targets/:id - Remove a target
-app.delete('/targets/:id', (req, res) => {
+app.delete('/targets/:id', requireAuth, (req, res) => {
     const { id } = req.params;
     db.run("DELETE FROM targets WHERE id = ?", [id], function (err) {
         if (err) return res.status(500).json({ error: err.message });
