@@ -105,7 +105,11 @@ const formatAddress = (data: any, originalName?: string) => {
     return parts.join(', ');
 };
 
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false }: EventModalProps) {
+
+
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
@@ -310,13 +314,18 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     return (
         <div className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             {/* FULL SCREEN IMAGE OVERLAY */}
+            {/* FULL SCREEN IMAGE OVERLAY */}
             {isFullImage && imageUrl && (
-                <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200 cursor-zoom-out"
-                    onClick={(e) => { e.stopPropagation(); setIsFullImage(false); }}>
-                    <button className="absolute top-4 right-4 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 backdrop-blur-md transition-colors">
-                        <X size={24} />
+                <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200">
+                    <button onClick={(e) => { e.stopPropagation(); setIsFullImage(false); }}
+                        className="absolute top-6 right-6 z-[3010] p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform">
+                        <X size={28} />
                     </button>
-                    <img src={imageUrl} alt={title} className="w-full h-full object-contain p-2" />
+                    <TransformWrapper initialScale={1} minScale={1} maxScale={5} centerOnInit>
+                        <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                            <img src={imageUrl} alt={title} className="max-w-full max-h-full object-contain p-2" />
+                        </TransformComponent>
+                    </TransformWrapper>
                 </div>
             )}
 
