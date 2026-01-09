@@ -115,18 +115,39 @@ async function scrapePreview(url) {
         }
 
         // --- Venue Extraction ---
-        // Construct address from meta parts if available
+        // Construct address from meta parts with CLEANING
         let venue = "Unknown Location";
+
+        const clean = (s) => s ? s.replace('undefined', '').trim() : '';
+        let address = clean(meta.address);
+        let city = clean(meta.city);
+        let zip = clean(meta.postalCode);
+        let country = clean(meta.country);
+
+        // CLEANUP: 
+        // 1. Remove ZIP if it appears in City (e.g. "92128 Klaipėda")
+        if (zip && city.startsWith(zip)) {
+            city = city.replace(zip, '').trim();
+        }
+        // 2. Remove "m. sav." or "r. sav." (Municipality suffixes)
+        city = city.replace(/\s+m\.\s*sav\.?/i, '').replace(/\s+r\.\s*sav\.?/i, '');
+
+        // 3. Assemble
         const parts = [];
-        if (meta.address) parts.push(meta.address);
-        if (meta.city) parts.push(meta.city);
-        if (meta.postalCode) parts.push(meta.postalCode);
-        if (meta.country) parts.push(meta.country);
+        if (address) parts.push(address);
+        // Only add city if it's not already in address
+        if (city && !address.includes(city)) parts.push(city);
+        // Add Zip if needed? Actually simpler is better for Nominatim. 
+        // Let's Skip ZIP in the string if we have City, often cleaner. 
+        // Or append it at the end.
+        // if (zip) parts.push(zip); // Skip zip to avoid confusion? No, lets keep it but clean.
+
+        // 4. Country
+        // if (country) parts.push(country);
 
         if (parts.length > 0) {
             venue = parts.join(', ');
         } else {
-            // Fallback to Site Name or heuristics
             venue = meta.siteName || "Unknown Location";
         }
 
