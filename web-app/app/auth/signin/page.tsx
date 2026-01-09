@@ -36,6 +36,7 @@ export default function SignIn() {
                         <span>Continue with Google</span>
                     </button>
 
+                    {/* 
                     <div className="relative">
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-gray-800" />
@@ -46,7 +47,8 @@ export default function SignIn() {
                     </div>
 
                     {/* Email Login */}
-                    <form onSubmit={handleEmailLogin} className="space-y-4">
+                    {/* (Disabled for Vercel/JWT mode - enable when DB is cloud-hosted) */}
+                    {/* <form onSubmit={handleEmailLogin} className="space-y-4 opacity-50 cursor-not-allowed">
                         <div className="relative group">
                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-blue-500 transition-colors" size={20} />
                             <input
@@ -73,6 +75,9 @@ export default function SignIn() {
                                 </>
                             )}
                         </button>
+                    </form> */}
+                    <form className="space-y-4 opacity-50 cursor-not-allowed">
+                        <div className="text-center text-xs text-gray-500">Magic Link requires Cloud DB</div>
                     </form>
                 </div>
             </div>
