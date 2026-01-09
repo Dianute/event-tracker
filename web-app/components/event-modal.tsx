@@ -66,7 +66,7 @@ const toLocalISOString = (dateStr: string) => {
 
 // Helper: Strict Address Formatter
 const formatAddress = (data: any, originalName?: string) => {
-    if (!data || !data.address) return '';
+    if (!data || !data.address) return data.display_name?.split(',').slice(0, 3).join(',') || '';
 
     const parts = [];
 
@@ -79,24 +79,22 @@ const formatAddress = (data: any, originalName?: string) => {
         else parts.push(road);
     }
 
-    // 2. City
+    // 2. City & Zip
     const city = data.address.city || data.address.town || data.address.village || data.address.hamlet;
-    if (city) parts.push(city);
+    const zip = data.address.postcode;
 
-    // 3. Country (Optional, but user seems to like it)
-    // if (data.address.country) parts.push(data.address.country);
+    if (city) {
+        // User requested: "LT92286 Klaipeda"
+        if (zip) parts.push(`${zip} ${city}`);
+        else parts.push(city);
+    }
 
-    // 4. Zip (Optional)
-    // if (data.address.postcode) parts.push(data.address.postcode);
+    // 3. Country
+    if (data.address.country) parts.push(data.address.country);
 
-    // If we have Street + City, that's enough for a "Nice" address
-    if (parts.length >= 2) return parts.join(', ');
-
-    // Fallback: Use display_name but cut it short
-    if (data.display_name) {
-        const segments = data.display_name.split(',').map((s: string) => s.trim());
-        // Return first 3 segments usually covers Street, City, Country/Region
-        return segments.slice(0, 3).join(', ');
+    // Fallback logic
+    if (parts.length === 0 && data.display_name) {
+        return data.display_name.split(',').slice(0, 3).join(', ');
     }
 
     return parts.join(', ');
