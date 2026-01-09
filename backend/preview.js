@@ -55,6 +55,13 @@ async function scrapePreview(url) {
                 image: getMeta('og:image'),
                 url: getMeta('og:url') || window.location.href,
                 siteName: getMeta('og:site_name'),
+                // Deep Address Extraction
+                address: getMeta('og:street-address') || getMeta('business:contact_data:street_address'),
+                city: getMeta('og:locality') || getMeta('business:contact_data:locality'),
+                postalCode: getMeta('og:postal-code') || getMeta('business:contact_data:postal_code'),
+                country: getMeta('og:country-name') || getMeta('business:contact_data:country_name'),
+                lat: getMeta('place:location:latitude'),
+                lng: getMeta('place:location:longitude'),
                 bodyText: document.body.innerText
             };
         });
@@ -108,9 +115,23 @@ async function scrapePreview(url) {
         }
 
         // --- Venue Extraction ---
-        // Heuristic: Facebook often puts location in specific spans or near "at"
-        // For now, we reuse the Location logic or default to Page Name if it looks like a place
-        let venue = meta.siteName || "Unknown Location";
+        // Construct address from meta parts if available
+        let venue = "Unknown Location";
+        const parts = [];
+        if (meta.address) parts.push(meta.address);
+        if (meta.city) parts.push(meta.city);
+        if (meta.postalCode) parts.push(meta.postalCode);
+        if (meta.country) parts.push(meta.country);
+
+        if (parts.length > 0) {
+            venue = parts.join(', ');
+        } else {
+            // Fallback to Site Name or heuristics
+            venue = meta.siteName || "Unknown Location";
+        }
+
+        // Clean up common Facebook noise
+        if (venue === "Facebook") venue = "Online / Facebook";
 
         // Clean result
         const result = {
