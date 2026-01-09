@@ -70,36 +70,33 @@ const formatAddress = (data: any, originalName?: string) => {
 
     const parts = [];
 
-    // 1. Venue Name (Only if explicitly provided and not redundant)
-    if (originalName) {
-        // clean up name
-        const nameNode = originalName.split(',')[0];
-        if (nameNode !== data.address.road && nameNode !== data.address.city &&
-            nameNode !== data.address.town && nameNode !== data.address.pedestrian) {
-            parts.push(nameNode);
-        }
+    // 1. Street + Number
+    let road = data.address.road || data.address.pedestrian || data.address.footway || data.address.path;
+    const number = data.address.house_number;
+
+    if (road) {
+        if (number) parts.push(`${road} ${number}`);
+        else parts.push(road);
     }
 
-    // 2. Road / Street (with House Number)
-    let road = data.address.road || data.address.pedestrian;
-    if (road && data.address.house_number) {
-        road = `${road} ${data.address.house_number}`;
-    }
-    if (road) parts.push(road);
-
-    // 3. City / Town
+    // 2. City
     const city = data.address.city || data.address.town || data.address.village || data.address.hamlet;
     if (city) parts.push(city);
 
-    // 4. ZIP (Requested by user)
-    if (data.address.postcode) parts.push(data.address.postcode);
+    // 3. Country (Optional, but user seems to like it)
+    // if (data.address.country) parts.push(data.address.country);
 
-    // 5. Country
-    if (data.address.country) parts.push(data.address.country);
+    // 4. Zip (Optional)
+    // if (data.address.postcode) parts.push(data.address.postcode);
 
-    // Fallback if parts is empty but we have a display_name
-    if (parts.length === 0 && data.display_name) {
-        return data.display_name.split(',').slice(0, 3).join(',');
+    // If we have Street + City, that's enough for a "Nice" address
+    if (parts.length >= 2) return parts.join(', ');
+
+    // Fallback: Use display_name but cut it short
+    if (data.display_name) {
+        const segments = data.display_name.split(',').map((s: string) => s.trim());
+        // Return first 3 segments usually covers Street, City, Country/Region
+        return segments.slice(0, 3).join(', ');
     }
 
     return parts.join(', ');
