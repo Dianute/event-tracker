@@ -133,9 +133,46 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     }
 });
 
+// Helper: Download External Image
+const downloadImage = async (url) => {
+    try {
+        const axios = require('axios'); // Lazy load
+        const response = await axios({ url, responseType: 'arraybuffer' });
+        const buffer = Buffer.from(response.data);
+
+        const filename = `${uuidv4()}.webp`;
+        const outputPath = path.join(__dirname, 'public', 'uploads', filename);
+
+        // Ensure dir exists
+        const dir = path.dirname(outputPath);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+
+        // Compress
+        await sharp(buffer)
+            .resize({ width: 1200, withoutEnlargement: true })
+            .webp({ quality: 80 })
+            .toFile(outputPath);
+
+        return `/uploads/${filename}`;
+    } catch (e) {
+        console.error("Failed to download image:", url, e.message);
+        return null; // Keep original URL if download fails? Or null? Let's return null to keep original.
+    }
+};
+
 // POST /events - Create a new event
-app.post('/events', (req, res) => {
-    const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
+app.post('/events', async (req, res) => {
+    let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
+
+    // AUTO-DOWNLOAD: If imageUrl is external, download it
+    if (imageUrl && imageUrl.startsWith('http') && !imageUrl.includes('localhost') && !imageUrl.includes('127.0.0.1')) {
+        console.log(`📥 Auto-Downloading Image: ${imageUrl}`);
+        const localPath = await downloadImage(imageUrl);
+        if (localPath) {
+            imageUrl = `http://${req.get('host')}${localPath}`;
+            console.log(`✅ Saved to: ${imageUrl}`);
+        }
+    }
 
     // Check for duplicates
     // 1. If Link exists: Check Link OR (Title + Time)
@@ -233,8 +270,37 @@ app.delete('/events/:id', (req, res) => {
     });
 });
 
-// TARGETS API (DB-Based)
+const { exec } = require('child_process');
 
+// API: Preview Link (Scrape on demand)
+app.post('/api/preview-link', (req, res) => {
+    const { url } = req.body;
+    if (!url) return res.status(400).json({ error: 'URL is required' });
+
+    console.log(`🔎 Previewing Link: ${url}`);
+
+    // Validate URL to prevent command injection (basic check)
+    if (!url.startsWith('http')) return res.status(400).json({ error: 'Invalid URL' });
+
+    // Run preview.js
+    const scriptPath = path.join(__dirname, 'preview.js');
+    exec(`node "${scriptPath}" "${url}"`, { timeout: 45000 }, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Preview Error: ${error.message}`);
+            return res.status(500).json({ error: 'Failed to preview link', details: stderr });
+        }
+        try {
+            const data = JSON.parse(stdout.trim());
+            console.log("✅ Preview success:", data.title);
+            res.json(data);
+        } catch (e) {
+            console.error("JSON Parse Error:", e);
+            res.status(500).json({ error: 'Invalid response from scraper' });
+        }
+    });
+});
+
+// TARGETS API (DB-Based)
 // GET /targets - Get all scout targets
 app.get('/targets', (req, res) => {
     db.all("SELECT * FROM targets", [], (err, rows) => {

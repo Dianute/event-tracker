@@ -16,6 +16,10 @@ export default function AdminEventsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
 
+    // Import State
+    const [importUrl, setImportUrl] = useState('');
+    const [isImporting, setIsImporting] = useState(false);
+
     const fetchEvents = () => {
         setLoading(true);
         // We'll just fetch /events. Ideally we'd have /events/all if /events filters by date.
@@ -55,8 +59,63 @@ export default function AdminEventsPage() {
         setIsModalOpen(true);
     };
 
+    const handleImport = async () => {
+        if (!importUrl) return;
+        setIsImporting(true);
+        try {
+            const res = await fetch(`${API_URL}/api/preview-link`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: importUrl })
+            });
+            const data = await res.json();
+            if (data.error) {
+                alert("Import failed: " + data.error);
+            } else {
+                // Open Modal with Pre-filled Data
+                // We treat it as a "New Event" but with initial data
+                // We assume start time is today/tomorrow based on raw data or defaults
+
+                // Construct a partial event object
+                const previewEvent = {
+                    title: data.title,
+                    description: data.description || `Imported from ${data.sourceUrl}`,
+                    imageUrl: data.imageUrl,
+                    venue: data.location,
+                    startTime: data.dateRaw ? new Date(data.dateRaw + 'T' + (data.timeRaw || '12:00')).toISOString() : new Date().toISOString(),
+                    endTime: data.dateRaw ? new Date(data.dateRaw + 'T' + (data.timeRaw ? String(parseInt(data.timeRaw.split(':')[0]) + 2).padStart(2, '0') + ':00' : '14:00')).toISOString() : new Date().toISOString(),
+                    type: 'social', // Default
+                    // Missing lat/lng - Modal will ask user to find them
+                    link: data.sourceUrl
+                };
+                setSelectedEvent(previewEvent);
+                setIsModalOpen(true);
+            }
+        } catch (e) {
+            alert("Import error");
+        } finally {
+            setIsImporting(false);
+            setImportUrl('');
+        }
+    };
+
     const handleUpdate = (updatedData: any) => {
-        if (!selectedEvent) return;
+        // If no ID, it's a CREATE (from Import)
+        if (!selectedEvent?.id) {
+            fetch(`${API_URL}/events`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            })
+                .then(async res => {
+                    if (res.ok) {
+                        setIsModalOpen(false);
+                        setSelectedEvent(null);
+                        fetchEvents();
+                    } else alert("Create failed");
+                });
+            return;
+        }
 
         // Merge updated fields with original ID
         const payload = { ...selectedEvent, ...updatedData };
@@ -101,6 +160,25 @@ export default function AdminEventsPage() {
                         <p className="text-gray-400 text-sm mt-1">
                             {events.length} active events in database
                         </p>
+                    </div>
+
+                    {/* Import Section */}
+                    <div className="flex gap-2 items-center bg-gray-800 p-2 rounded-xl border border-gray-700">
+                        <input
+                            type="text"
+                            placeholder="Paste Facebook Link..."
+                            value={importUrl}
+                            onChange={(e) => setImportUrl(e.target.value)}
+                            className="bg-transparent text-sm w-48 px-2 outline-none text-white placeholder-gray-500"
+                        />
+                        <button
+                            onClick={handleImport}
+                            disabled={isImporting}
+                            className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                        >
+                            {isImporting ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ExternalLink size={14} />}
+                            Import
+                        </button>
                     </div>
 
                     <div className="w-full md:w-auto flex gap-2">
