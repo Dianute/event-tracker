@@ -123,6 +123,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showControls, setShowControls] = useState(true);
+    const [isFullImage, setIsFullImage] = useState(false);
 
     // Derived distance
     const distanceString = (event && userLocation && event.lat && event.lng)
@@ -135,6 +136,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     // Effect to reset or populate form
     useEffect(() => {
         if (isOpen) {
+            setIsFullImage(false); // Reset zoom on open
             if (event) {
                 // VIEW / EDIT MODE
                 setTitle(event.title);
@@ -307,6 +309,17 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            {/* FULL SCREEN IMAGE OVERLAY */}
+            {isFullImage && imageUrl && (
+                <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200 cursor-zoom-out"
+                    onClick={(e) => { e.stopPropagation(); setIsFullImage(false); }}>
+                    <button className="absolute top-4 right-4 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 backdrop-blur-md transition-colors">
+                        <X size={24} />
+                    </button>
+                    <img src={imageUrl} alt={title} className="w-full h-full object-contain p-2" />
+                </div>
+            )}
+
             {/* Main Modal Container */}
             <div className={`w-full h-[95vh] md:h-[85vh] md:max-h-[800px] md:max-w-[450px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
                 ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30' :
@@ -325,7 +338,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         {/* 1. Fullscreen Image Layer */}
                         <div className="absolute inset-0 z-0">
                             {imageUrl ? (
-                                <img src={imageUrl} alt={title} className={`w-full h-full transition-all duration-300 ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`} />
+                                <img src={imageUrl} alt={title}
+                                    onClick={(e) => { e.stopPropagation(); setIsFullImage(true); }}
+                                    className={`w-full h-full transition-all duration-300 cursor-zoom-in ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`} />
                             ) : (
                                 <div className={`w-full h-full flex items-center justify-center ${theme === 'light' ? 'bg-gray-100' : 'bg-zinc-900'}`}>
                                     <ImageIcon size={48} className="text-white/20" />
