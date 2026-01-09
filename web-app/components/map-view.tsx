@@ -3,8 +3,9 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef } from 'react';
+import { useSession, signIn } from "next-auth/react";
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -237,6 +238,7 @@ function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLn
 }
 
 export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
+  const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
@@ -604,6 +606,32 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           >
             <RotateCw size={16} />
           </button>
+
+          <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+          {session ? (
+            <a
+              href="/admin"
+              className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95"
+              title={`Logged in as ${session.user?.name || 'User'}`}
+            >
+              {session.user?.image ? (
+                <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                  {session.user?.name?.[0] || 'U'}
+                </div>
+              )}
+            </a>
+          ) : (
+            <button
+              onClick={() => signIn()}
+              className="w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10"
+              title="Sign In"
+            >
+              <User size={18} />
+            </button>
+          )}
 
         </div>
       </div>
