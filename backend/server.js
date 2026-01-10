@@ -90,7 +90,9 @@ app.get('/api/health-db', async (req, res) => {
     } catch (err) {
         // Serialize full error object including non-enumerable properties like 'message', 'stack', 'errors'
         const errorDetails = JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err)));
-        res.status(500).json({ status: 'error', details: errorDetails });
+        const envStatus = process.env.DATABASE_URL ? 'Set' : 'MISSING (Defaults to localhost)';
+
+        res.status(500).json({ status: 'error', env: envStatus, details: errorDetails });
     }
 });
 
