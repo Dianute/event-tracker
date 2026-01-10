@@ -134,42 +134,42 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 onClick={onClick}
                 className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-sm border border-white/10 transition-all hover:bg-white/10 group cursor-pointer w-full h-full flex flex-col justify-between"
             >
-                <div className="flex justify-between items-start">
-                    <div className="text-2xl filter drop-shadow-md">
+                {status.label && (
+                    <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10
+                        ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
+                            status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
+                                status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' :
+                                    status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
+                        {status.label}
+                    </div>
+                )}
+
+                <div className="relative z-10 flex items-start gap-3 mt-1">
+                    <div className="shrink-0 pt-0.5 text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                         {getEmoji(event.type)}
                     </div>
-                    {status.label && (
-                        <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border
-                            ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
-                                status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
-                                    status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
-                                        status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
-                            {status.label}
-                        </div>
-                    )}
-                </div>
 
-                <div className="mt-1">
-                    <h3 className="font-bold text-white text-sm leading-tight line-clamp-2 mb-1">{event.title}</h3>
+                    <div className="flex-1 min-w-0 pr-8">
+                        <h4 className={`font-bold text-sm leading-snug line-clamp-2 transition-colors shadow-black drop-shadow-sm ${status.label === 'Ended' ? 'text-gray-500 line-through' : 'text-white group-hover:text-blue-200'}`}>
+                            {event.title}
+                        </h4>
 
-                    <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <div className="flex items-center gap-1">
-                            <Clock size={10} className={status.color === 'gray' ? 'text-gray-500' : 'text-blue-400'} />
-                            <span className={status.color === 'green' ? 'text-green-400' : ''}>
-                                {status.color === 'green' ? 'Now' :
-                                    status.color === 'orange' ? 'Soon' :
-                                        status.color === 'gray' ? 'Ended' : status.timeText}
-                            </span>
-                        </div>
-                        <div className="w-0.5 h-0.5 rounded-full bg-gray-600" />
-                        <div className="flex items-center gap-1">
-                            {userLocation ? (
-                                <>
-                                    <Navigation size={10} className="text-blue-500" />
-                                    <span>{distanceText}</span>
-                                </>
-                            ) : (
-                                <span>{event.venue ? event.venue.split(',')[0] : 'Map'}</span>
+                        <div className="flex items-center gap-2 mt-1.5 text-[10px] font-medium">
+                            {/* Time */}
+                            <div className="flex items-center gap-1 text-gray-400">
+                                <Clock size={10} className={status.color === 'gray' ? 'text-gray-500' : 'text-blue-400'} />
+                                <span className={status.color === 'green' ? 'text-green-400' : ''}>
+                                    {status.color === 'green' ? 'Now' :
+                                        status.color === 'orange' ? 'Soon' :
+                                            status.color === 'gray' ? 'Ended' : status.timeText}
+                                </span>
+                            </div>
+
+                            {/* Distance */}
+                            {userLocation && (
+                                <p className="text-blue-300 flex items-center gap-1">
+                                    <Navigation size={10} /> {distanceText}
+                                </p>
                             )}
                         </div>
                     </div>
