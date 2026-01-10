@@ -556,7 +556,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 ) : (
                     <div
                         ref={scrollRef}
-                        className="w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth no-scrollbar"
+                        className="w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth hide-scrollbar"
                     >
                         {activeFeed.map((evt) => (
                             <div key={evt.id} id={`slide-${evt.id}`} className="w-full h-full snap-start flex-shrink-0 relative">
