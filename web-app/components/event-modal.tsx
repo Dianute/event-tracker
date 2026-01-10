@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -88,7 +88,7 @@ const formatAddress = (data: any, originalName?: string) => {
 };
 
 // Helper Component: Single Slide in the Feed
-function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: string, onClose: () => void, onZoom: (url: string) => void }) {
+function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event: any, theme: string, onClose: () => void, onZoom: (url: string) => void, userLocation?: { lat: number, lng: number } | null }) {
     const [showControls, setShowControls] = useState(true);
 
     const title = event.title;
@@ -107,6 +107,11 @@ function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: 
     const timeStart = formatTime(startObj);
     const timeEnd = formatTime(endObj);
     const isOvernight = timeEnd < timeStart;
+
+    // Derived Distance
+    const distanceText = (userLocation && event.lat && event.lng)
+        ? getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng)
+        : null;
 
     return (
         <div className="w-full h-full relative bg-black group cursor-pointer overflow-hidden" onClick={() => setShowControls(!showControls)}>
@@ -165,9 +170,14 @@ function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: 
                             <MapPin size={16} className="text-red-500" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md truncate pr-4">
-                                {venue ? venue.split(',')[0] : 'Unknown Location'}
+                            <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md pr-4 leading-snug">
+                                {venue || 'Unknown Location'}
                             </span>
+                            {distanceText && (
+                                <span className="text-xs font-bold text-blue-400 flex items-center gap-1 mt-0.5">
+                                    <Navigation size={10} /> {distanceText} away
+                                </span>
+                            )}
                         </div>
                     </a>
                 </div>
@@ -594,6 +604,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <EventFeedSlide
                                     event={evt}
                                     theme={theme}
+                                    userLocation={userLocation}
                                     onClose={onClose}
                                     onZoom={(url) => { setZoomedImage(url); setIsFullImage(true); }}
                                 />
