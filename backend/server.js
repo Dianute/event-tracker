@@ -126,7 +126,7 @@ app.get('/events', (req, res) => {
 });
 
 // POST /upload - Handle Image Upload
-app.post('/upload', requireAuth, upload.single('image'), async (req, res) => {
+app.post('/upload', upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     try {
@@ -183,7 +183,7 @@ const downloadImage = async (url) => {
 };
 
 // POST /events - Create a new event
-app.post('/events', requireAuth, async (req, res) => {
+app.post('/events', async (req, res) => {
     let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
     // AUTO-DOWNLOAD: If imageUrl is external, download it

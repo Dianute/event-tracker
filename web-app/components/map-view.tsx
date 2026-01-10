@@ -339,8 +339,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
 
 
-  // Smart Sort: Distance if radius filter active, otherwise Time (but PRIORITIZE LOCAL if location known)
-  const smartSortBy = radiusFilter ? 'distance' : 'time';
+  // Smart Sort: Distance if user location known, otherwise Time
+  const smartSortBy = userLocation || radiusFilter ? 'distance' : 'time';
 
   let displayList = Array.from(uniqueEvents.values());
 
