@@ -413,14 +413,35 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             {/* GLOBAL ZOOM OVERLAY */}
             {isFullImage && (zoomedImage || imageUrl) && (
                 <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200">
-                    <button onClick={(e) => { e.stopPropagation(); setIsFullImage(false); setZoomedImage(''); }}
-                        className="absolute top-6 right-6 z-[3010] p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform">
-                        <X size={28} />
-                    </button>
-                    <TransformWrapper initialScale={1} minScale={1} maxScale={5} centerOnInit>
-                        <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
-                            <img src={zoomedImage || imageUrl} alt="Zoom" className="max-w-full max-h-full object-contain p-2" />
-                        </TransformComponent>
+
+                    <TransformWrapper
+                        initialScale={1}
+                        minScale={1}
+                        maxScale={5}
+                        centerOnInit
+                        doubleClick={{ mode: 'reset' }}
+                    >
+                        {({ zoomIn, zoomOut, resetTransform }) => (
+                            <>
+                                <div className="absolute top-6 right-6 z-[3010] flex gap-2">
+                                    <button onClick={(e) => { e.stopPropagation(); zoomOut(); }}
+                                        className="p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-white/10 hidden md:block">
+                                        <Minus size={24} />
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); zoomIn(); }}
+                                        className="p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-white/10 hidden md:block">
+                                        <Plus size={24} />
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); resetTransform(); setIsFullImage(false); setZoomedImage(''); }}
+                                        className="p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-red-500/50">
+                                        <X size={28} />
+                                    </button>
+                                </div>
+                                <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                                    <img src={zoomedImage || imageUrl} alt="Zoom" className="max-w-full max-h-full object-contain p-2" />
+                                </TransformComponent>
+                            </>
+                        )}
                     </TransformWrapper>
                 </div>
             )}
