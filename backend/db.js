@@ -11,7 +11,8 @@ const pool = new Pool({
 pool.connect((err, client, release) => {
     if (err) {
         console.error('❌ FATAL: Database Connection Failed:', err.message);
-        console.error('Context: Ensure DATABASE_URL is set in Railway Variables.');
+        if (err.errors) console.error('🔍 Aggregate Errors:', err.errors); // Log inner errors
+        console.error('Context: Ensure DATABASE_URL is set correctly.');
     } else {
         client.query('SELECT NOW()', (err, result) => {
             release();

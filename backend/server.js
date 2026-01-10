@@ -88,7 +88,9 @@ app.get('/api/health-db', async (req, res) => {
         const result = await db.query('SELECT NOW() as now');
         res.json({ status: 'ok', time: result.rows[0].now, env: process.env.DATABASE_URL ? 'Set' : 'Missing' });
     } catch (err) {
-        res.status(500).json({ status: 'error', message: err.message, stack: err.stack });
+        // Serialize full error object including non-enumerable properties like 'message', 'stack', 'errors'
+        const errorDetails = JSON.parse(JSON.stringify(err, Object.getOwnPropertyNames(err)));
+        res.status(500).json({ status: 'error', details: errorDetails });
     }
 });
 
