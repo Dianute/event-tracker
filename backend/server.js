@@ -82,6 +82,16 @@ app.get('/', (req, res) => {
     res.send('<h1>Event Tracker Backend is Running 🟢 (Postgres)</h1><p>Go to <a href="/events">/events</a> to see data.</p>');
 });
 
+// GET /api/health-db - Explicit DB Check
+app.get('/api/health-db', async (req, res) => {
+    try {
+        const result = await db.query('SELECT NOW() as now');
+        res.json({ status: 'ok', time: result.rows[0].now, env: process.env.DATABASE_URL ? 'Set' : 'Missing' });
+    } catch (err) {
+        res.status(500).json({ status: 'error', message: err.message, stack: err.stack });
+    }
+});
+
 // Helper to check if event is active (ends in future or ended < 15 mins ago)
 const isEventActive = (endTimeStr) => {
     if (!endTimeStr) return true; // No end time? Keep it.
