@@ -608,8 +608,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             <RotateCw size={16} />
           </button>
 
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
+        </div>
 
+        {/* User Profile Pill (Separate to avoid overflow clipping) */}
+        <div className="ml-2 flex items-center justify-center pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg shrink-0 z-[2200]">
           {session ? (
             <div className="relative">
               <button
@@ -627,25 +629,35 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               </button>
 
               {showUserMenu && (
-                <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden py-1 flex flex-col animate-in fade-in zoom-in-95 duration-200">
-                  <div className="px-4 py-2 border-b border-gray-800">
-                    <p className="text-xs text-gray-400">Signed in as</p>
-                    <p className="font-bold text-white truncate text-sm">{session.user?.name || 'User'}</p>
+                <div className="absolute top-full right-0 mt-3 w-56 bg-[#0a0a0a] border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden py-2 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-black/50">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
+                    <p className="font-bold text-white text-sm truncate">{session.user?.name || 'User'}</p>
+                    <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
                   </div>
-                  <a
-                    href="/admin"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
-                  >
-                    <LayoutDashboard size={16} className="text-blue-400" />
-                    Admin Panel
-                  </a>
-                  <button
-                    onClick={() => signOut()}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors w-full text-left"
-                  >
-                    <LogOut size={16} />
-                    Sign Out
-                  </button>
+                  <div className="p-1">
+                    <a
+                      href="/admin"
+                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group"
+                    >
+                      <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                        <LayoutDashboard size={16} />
+                      </div>
+                      Admin Panel
+                    </a>
+                  </div>
+                  <div className="border-t border-gray-800 mx-2 my-1"></div>
+                  <div className="p-1">
+                    <button
+                      onClick={() => signOut()}
+                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors w-full text-left group"
+                    >
+                      <div className="p-1.5 rounded-md bg-red-500/10 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                        <LogOut size={16} />
+                      </div>
+                      Sign Out
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -658,7 +670,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               <User size={18} />
             </button>
           )}
-
         </div>
       </div>
 
