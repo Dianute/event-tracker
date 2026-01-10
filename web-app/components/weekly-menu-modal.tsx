@@ -68,7 +68,13 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
         const formData = new FormData();
         formData.append('image', file);
         try {
-            const res = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+            const res = await fetch(`${API_URL}/upload`, {
+                method: 'POST',
+                headers: {
+                    'x-admin-password': localStorage.getItem('admin_secret') || ''
+                },
+                body: formData
+            });
             const data = await res.json();
             if (data.success) {
                 const newImages = [...images];
