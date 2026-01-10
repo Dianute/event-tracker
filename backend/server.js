@@ -167,31 +167,23 @@ app.get('/events', async (req, res) => {
     }
 });
 
-// POST /upload - Handle Image Upload (PUBLIC)
+// POST /upload - Handle Image Upload (PUBLIC) -> TO BASE 64 (PERSISTENT)
 app.post('/upload', upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     try {
-        const filename = `${uuidv4()}.webp`;
-        const outputPath = path.join(__dirname, 'public', 'uploads', filename);
-
-        // Ensure dir exists
-        const dir = path.dirname(outputPath);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-        // Compress
-        await sharp(req.file.buffer)
+        // Optimize Image (Resize & Convert to WebP buffer)
+        const buffer = await sharp(req.file.buffer)
             .rotate()
-            .resize({ width: 1200, withoutEnlargement: true })
-            .webp({ quality: 80 })
-            .toFile(outputPath);
+            .resize({ width: 800, withoutEnlargement: true }) // Downscale to 800px max
+            .webp({ quality: 65 }) // Medium quality for DB storage size
+            .toBuffer();
 
-        const forwardedProto = req.get('x-forwarded-proto') || 'http';
-        const host = req.get('host');
-        // Force HTTPS on production (Railway) to avoid Mixed Content
-        const protocol = host.includes('localhost') ? 'http' : 'https';
-        const imageUrl = `${protocol}://${host}/uploads/${filename}`;
+        // Convert to Base64 Data URI
+        const base64 = buffer.toString('base64');
+        const imageUrl = `data:image/webp;base64,${base64}`;
 
+        // Return Base64 String (Saved directly to DB later)
         res.json({ success: true, imageUrl });
     } catch (err) {
         console.error("Image processing failed:", err);
@@ -199,25 +191,20 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     }
 });
 
-// Helper: Download External Image
+// Helper: Download External Image -> RETURN BASE64
 const downloadImage = async (url) => {
     try {
         const axios = require('axios'); // Lazy load
         const response = await axios({ url, responseType: 'arraybuffer' });
         const buffer = Buffer.from(response.data);
 
-        const filename = `${uuidv4()}.webp`;
-        const outputPath = path.join(__dirname, 'public', 'uploads', filename);
+        // Process to Base64
+        const processedBuffer = await sharp(buffer)
+            .resize({ width: 600, withoutEnlargement: true }) // Smaller for auto-scraped content
+            .webp({ quality: 60 })
+            .toBuffer();
 
-        const dir = path.dirname(outputPath);
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-
-        await sharp(buffer)
-            .resize({ width: 1200, withoutEnlargement: true })
-            .webp({ quality: 80 })
-            .toFile(outputPath);
-
-        return `/uploads/${filename}`;
+        return `data:image/webp;base64,${processedBuffer.toString('base64')}`;
     } catch (e) {
         console.error("Failed to download image:", url, e.message);
         return null;
@@ -229,14 +216,12 @@ app.post('/events', async (req, res) => {
     let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
 
     // AUTO-DOWNLOAD
-    if (imageUrl && imageUrl.startsWith('http') && !imageUrl.includes('localhost') && !imageUrl.includes('127.0.0.1')) {
+    if (imageUrl && imageUrl.startsWith('http') && !imageUrl.includes('data:image')) {
         console.log(`📥 Auto-Downloading Image: ${imageUrl}`);
-        const localPath = await downloadImage(imageUrl);
-        if (localPath) {
-            const host = req.get('host');
-            const protocol = host.includes('localhost') ? 'http' : 'https';
-            imageUrl = `${protocol}://${host}${localPath}`;
-            console.log(`✅ Saved to: ${imageUrl}`);
+        const base64Image = await downloadImage(imageUrl);
+        if (base64Image) {
+            imageUrl = base64Image;
+            console.log(`✅ Converted to Base64 (${imageUrl.length} chars)`);
         }
     }
 
