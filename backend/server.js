@@ -15,6 +15,24 @@ if (!process.env.DATABASE_URL) {
     console.log("✅ DATABASE_URL is present.");
 }
 
+// Helper to convert snake_case (Postgres defaults) to camelCase
+const toCamelCase = (row) => {
+    const newRow = {};
+    for (const key in row) {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase()) // snake_to_camel if needed
+            .replace(/starttime/g, 'startTime')
+            .replace(/endtime/g, 'endTime')
+            .replace(/imageurl/g, 'imageUrl')
+            .replace(/createdat/g, 'createdAt');
+        newRow[camelKey] = row[key];
+    }
+    // Backup: If explicit replacement missed, we can rely on manual aliases in queries in future, 
+    // but for now, let's just fix the specific ones we know broke.
+    // Actually, Postgres lowercases 'startTime' to 'starttime'.
+    // So we just need to map 'starttime' -> 'startTime'.
+    return newRow;
+};
+
 // Multer Setup for Image Uploads
 const multer = require('multer');
 const sharp = require('sharp');
@@ -135,9 +153,13 @@ app.get('/events', async (req, res) => {
         // Fetch all events (Simplified for Postgres compatibility/safety)
         const { rows } = await db.query("SELECT * FROM events");
 
-        // Javascript Filtering
-        const activeEvents = rows.filter(ev => isEventActive(ev.endTime));
+        // Convert casing for Frontend
+        const formattedRows = rows.map(toCamelCase);
 
+        // Javascript Filtering matches legacy logic
+        const activeEvents = formattedRows.filter(ev => isEventActive(ev.endTime));
+
+        res.json(activeEvents);
     } catch (err) {
         console.error("GET /events error:", err);
         // Ensure we send a string even if err.message is missing
@@ -239,7 +261,7 @@ app.post('/events', async (req, res) => {
         const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl];
 
         const { rows: newEvent } = await db.query(query, params);
-        res.json(newEvent[0]);
+        res.json(toCamelCase(newEvent[0]));
 
     } catch (err) {
         res.status(500).json({ error: err.message });
