@@ -11,6 +11,8 @@ const PORT = process.env.PORT || 8080;
 
 if (!process.env.DATABASE_URL) {
     console.warn("⚠️ WARNING: DATABASE_URL is missing! Database connections will fail.");
+} else {
+    console.log("✅ DATABASE_URL is present.");
 }
 
 // Multer Setup for Image Uploads
@@ -35,6 +37,15 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password']
 }));
 app.use(bodyParser.json());
+
+// Request Logging Middleware
+app.use((req, res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+    res.header("Access-Control-Allow-Origin", "*"); // FORCE CORS
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-password");
+    next();
+});
+
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
