@@ -66,6 +66,7 @@ interface MapViewProps {
   onEventSelect?: (event: Event) => void;
   onThemeChange?: (theme: 'dark' | 'light' | 'cyberpunk') => void;
   onUserLocationUpdate?: (lat: number, lng: number) => void;
+  onViewEventsChange?: (events: Event[]) => void;
 }
 
 // ... (keep helpers)
@@ -237,7 +238,7 @@ function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLn
   return null;
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate, onViewEventsChange }: MapViewProps) {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -453,6 +454,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
   const activeList = selectedCluster || displayList;
+
+  // Propagate active list to parent for Feed View
+  useEffect(() => {
+    if (onViewEventsChange) onViewEventsChange(activeList);
+  }, [activeList, onViewEventsChange]);
 
   return (
     <>

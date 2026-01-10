@@ -59,10 +59,26 @@ export default function VerifyAdminAuth({ children }: { children: React.ReactNod
             // Scenario 2: Email matches Admin
             if (session.user?.email === adminEmail) {
                 // Correct User.
-                // WE DO NOT auto-set isAuthenticated(true) here.
-                // We let the "checkAuth" (Master Password) logic handle the actual unlocking.
-                // This ensures localStorage is populated with the backend secret.
-                console.log("Admin Identity Verified. Checking Master Password...");
+                // UX Improvement: Try to auto-unlock with default 'admin123' to save them a step.
+                // If they changed the backend password, this will fail and show the lock screen (desired).
+                const tryAutoUnlock = async () => {
+                    try {
+                        const res = await fetch(`${API_URL}/api/auth/verify`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: 'admin123' })
+                        });
+                        if (res.ok) {
+                            localStorage.setItem('admin_secret', 'admin123');
+                            setIsAuthenticated(true);
+                        }
+                    } catch (e) { console.error("Auto-unlock failed", e); }
+                };
+
+                // Only try if we don't already have a stored secret
+                if (!localStorage.getItem('admin_secret')) {
+                    tryAutoUnlock();
+                }
             } else {
                 // Scenario 3: Authenticated but NOT Admin -> Redirect to User Dashboard
                 console.log("Redirecting non-admin to user dashboard...");

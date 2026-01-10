@@ -37,6 +37,7 @@ export default function Home() {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
+  const [feedEvents, setFeedEvents] = useState<Event[]>([]);
 
   // Load events from Backend on mount
   // Load events from Backend
@@ -143,6 +144,7 @@ export default function Home() {
           onEventSelect={handleEventSelect}
           onThemeChange={setCurrentTheme}
           onUserLocationUpdate={handleUserLocationUpdate}
+          onViewEventsChange={setFeedEvents}
         />
       </div>
 
@@ -162,6 +164,7 @@ export default function Home() {
         event={selectedEvent}
         theme={currentTheme}
         readOnly={true}
+        feed={feedEvents}
       />
 
     </main>
