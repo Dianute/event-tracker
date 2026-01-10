@@ -174,6 +174,15 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                         </div>
                     </div>
                 </div>
+
+                {status.progress !== undefined && (
+                    <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
+                        <div
+                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
+                            style={{ width: `${status.progress}%` }}
+                        ></div>
+                    </div>
+                )}
             </div>
         );
     }
