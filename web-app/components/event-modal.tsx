@@ -304,7 +304,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     useEffect(() => {
         if (isOpen && readOnly && event && scrollRef.current) {
             const el = document.getElementById(`slide-${event.id}`);
-            if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+            if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
         }
     }, [isOpen, readOnly, event]);
 
@@ -556,7 +556,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 ) : (
                     <div
                         ref={scrollRef}
-                        className="w-full h-full overflow-y-auto snap-y snap-mandatory scroll-smooth hide-scrollbar"
+                        className="w-full h-full overflow-y-auto snap-y snap-mandatory hide-scrollbar"
                     >
                         {activeFeed.map((evt) => (
                             <div key={evt.id} id={`slide-${evt.id}`} className="w-full h-full snap-start flex-shrink-0 relative">
