@@ -134,46 +134,58 @@ export default function AdminEventsPage() {
 
     return (
         <VerifyAdminAuth>
-            <div className="min-h-screen p-6 pb-32 transition-colors duration-300 bg-[#050510]">
+            <div className="min-h-screen p-6 pb-32 transition-colors duration-300 bg-[#050510] font-sans">
                 <div className="max-w-6xl mx-auto">
                     {/* Header */}
-                    <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-gray-700 pb-6">
-                        <div>
-                            <a href="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-2 transition-colors text-sm font-bold uppercase tracking-wider">
-                                <ArrowLeft size={16} /> Back to Scout
-                            </a>
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
-                                Event Manager 🎹
-                            </h1>
-                            <p className="text-gray-400 text-sm mt-1">
-                                {events.length} active events in database
-                            </p>
+                    <header className="mb-8">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-gray-800 pb-6">
+                            <div>
+                                <a href="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-3 transition-colors text-xs font-bold uppercase tracking-wider bg-white/5 px-3 py-1.5 rounded-full hover:bg-white/10">
+                                    <ArrowLeft size={14} /> Back to Dashboard
+                                </a>
+                                <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 animate-gradient-x">
+                                    Event Manager 🎹
+                                </h1>
+                                <p className="text-gray-400 text-sm mt-2 font-medium">
+                                    Database contains <span className="text-white font-bold">{events.length}</span> active events
+                                </p>
+                            </div>
+
+                            {/* Import Section (Compact) */}
+                            <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700/50 self-start md:self-auto w-full md:w-auto">
+                                <input
+                                    type="text"
+                                    placeholder="Paste Facebook/Ticket Link..."
+                                    value={importUrl}
+                                    onChange={(e) => setImportUrl(e.target.value)}
+                                    className="bg-transparent text-sm w-full md:w-64 px-3 py-2 outline-none text-white placeholder-gray-600 font-medium"
+                                />
+                                <button
+                                    onClick={handleImport}
+                                    disabled={isImporting || !importUrl}
+                                    className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20 active:scale-95 shrink-0"
+                                >
+                                    {isImporting ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ExternalLink size={14} />}
+                                    Import
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Import Section */}
-                        <div className="flex gap-2 items-center bg-gray-800 p-2 rounded-xl border border-gray-700">
-                            <input
-                                type="text"
-                                placeholder="Paste Facebook Link..."
-                                value={importUrl}
-                                onChange={(e) => setImportUrl(e.target.value)}
-                                className="bg-transparent text-sm w-48 px-2 outline-none text-white placeholder-gray-500"
-                            />
-                            <button
-                                onClick={handleImport}
-                                disabled={isImporting}
-                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-                            >
-                                {isImporting ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ExternalLink size={14} />}
-                                Import
-                            </button>
-                        </div>
-
-                        <div className="w-full md:w-auto flex gap-2">
+                        {/* Filters */}
+                        <div className="flex flex-col md:flex-row gap-3">
+                            <div className="relative flex-1">
+                                <input
+                                    type="text"
+                                    placeholder="Search events by title or venue..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full bg-gray-900/50 border border-gray-700/50 rounded-xl pl-4 pr-4 py-3 text-white focus:outline-none focus:border-purple-500/50 focus:bg-gray-800 transition-all font-medium placeholder-gray-600"
+                                />
+                            </div>
                             <select
                                 value={filterType}
                                 onChange={(e) => setFilterType(e.target.value)}
-                                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
+                                className="bg-gray-900/50 border border-gray-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-500/50 transition-all cursor-pointer font-bold text-sm appearance-none min-w-[160px]"
                             >
                                 <option value="ALL">All Categories</option>
                                 <option value="social">🍻 Social</option>
@@ -182,13 +194,6 @@ export default function AdminEventsPage() {
                                 <option value="arts">🎨 Arts</option>
                                 <option value="sports">⚽ Sports</option>
                             </select>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full md:w-64 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-purple-500 transition-colors"
-                            />
                         </div>
                     </header>
 

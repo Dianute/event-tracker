@@ -149,38 +149,54 @@ export default function AdminPage() {
         <VerifyAdminAuth>
             <div className="min-h-screen bg-gray-900 text-white p-6 font-mono">
                 <div className="max-w-4xl mx-auto">
-                    <header className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-cyan-500">
-                            Scout Command Center 🕵️‍♂️
-                        </h1>
-                        <div className="flex gap-4 mb-6">
-                            {/* Export Button */}
+                    <header className="mb-8 border-b border-gray-700 pb-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+                            <div>
+                                <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 animate-gradient-x mb-2">
+                                    Scout Command Center 🕵️‍♂️
+                                </h1>
+                                <p className="text-gray-400 text-sm">Manage scraping targets & monitor missions</p>
+                            </div>
+
+                            <div className="flex items-center gap-4 self-start md:self-auto bg-gray-800/50 p-2 rounded-xl border border-gray-700">
+                                <div className={`px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2 ${status === 'RUNNING' ? 'bg-yellow-500/20 text-yellow-500 animate-pulse border border-yellow-500/30' : 'bg-green-500/20 text-green-500 border border-green-500/30'}`}>
+                                    <span className={`w-2 h-2 rounded-full ${status === 'RUNNING' ? 'bg-yellow-500' : 'bg-green-500'}`} />
+                                    {status}
+                                </div>
+                                <a href="/" className="text-gray-400 hover:text-white text-sm font-bold flex items-center gap-1 transition-colors px-2">
+                                    Map <span className="text-xs">↗</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Action Grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <a
+                                href="/admin/events"
+                                className="col-span-2 md:col-span-1 flex flex-col items-center justify-center gap-2 p-4 bg-purple-600/10 hover:bg-purple-600/20 border border-purple-500/30 hover:border-purple-500/50 text-purple-200 rounded-xl transition-all group active:scale-[0.98]"
+                            >
+                                <span className="text-2xl group-hover:-translate-y-1 transition-transform">🎹</span>
+                                <span className="font-bold text-sm">Manage Events</span>
+                            </a>
+
                             <button
                                 onClick={() => {
                                     const link = document.createElement('a');
-                                    // Export might need auth too? It's a GET, so it opens in browser. 
-                                    // If protected, this won't work easily. I left GET /export public/unprotected in backend for now as I didn't explicitly protect it.
                                     link.href = `${API_URL}/targets/export`;
                                     link.download = 'targets_backup.json';
                                     document.body.appendChild(link);
                                     link.click();
                                     document.body.removeChild(link);
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors shadow-md text-sm font-bold"
+                                className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 rounded-xl transition-all active:scale-[0.98]"
                             >
-                                <Download size={18} /> Backup Targets (JSON)
+                                <Download size={20} />
+                                <span className="font-bold text-xs uppercase">Backup</span>
                             </button>
 
-                            <a
-                                href="/admin/events"
-                                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-md text-sm font-bold animate-in fade-in"
-                            >
-                                🎹 Manage Events
-                            </a>
-
-                            {/* Import Button */}
-                            <label className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-md cursor-pointer text-sm font-bold">
-                                <Upload size={18} /> Restore Targets
+                            <label className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 rounded-xl transition-all cursor-pointer active:scale-[0.98]">
+                                <Upload size={20} />
+                                <span className="font-bold text-xs uppercase">Restore</span>
                                 <input
                                     type="file"
                                     accept=".json"
@@ -214,12 +230,6 @@ export default function AdminPage() {
                                     }}
                                 />
                             </label>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <div className={`px-3 py-1 rounded-full text-xs font-bold ${status === 'RUNNING' ? 'bg-yellow-500/20 text-yellow-500 animate-pulse' : 'bg-green-500/20 text-green-500'}`}>
-                                {status}
-                            </div>
-                            <a href="/" className="text-gray-400 hover:text-white text-sm">Back to Map</a>
                         </div>
                     </header>
 
