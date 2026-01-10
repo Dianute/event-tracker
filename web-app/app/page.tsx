@@ -163,7 +163,7 @@ export default function Home() {
         userLocation={userPos}
         event={selectedEvent}
         theme={currentTheme}
-        readOnly={true}
+        readOnly={!!selectedEvent}
         feed={feedEvents}
       />
 
