@@ -3,21 +3,21 @@ CREATE TABLE IF NOT EXISTS events (
     title TEXT NOT NULL,
     description TEXT,
     type TEXT,
-    lat REAL,
-    lng REAL,
+    lat DOUBLE PRECISION,
+    lng DOUBLE PRECISION,
     startTime TEXT,
     endTime TEXT,
     venue TEXT,
     date TEXT,
     link TEXT,
     imageUrl TEXT,
-    createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    createdAt TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS scout_logs (
     id TEXT PRIMARY KEY,
-    startTime DATETIME DEFAULT CURRENT_TIMESTAMP,
-    endTime DATETIME,
+    startTime TIMESTAMP DEFAULT NOW(),
+    endTime TIMESTAMP,
     status TEXT, -- 'RUNNING', 'SUCCESS', 'FAILED'
     eventsFound INTEGER DEFAULT 0,
     logSummary TEXT
@@ -30,5 +30,5 @@ CREATE TABLE IF NOT EXISTS targets (
     city TEXT,
     selector TEXT,
     lastEventsFound INTEGER DEFAULT 0,
-    lastScrapedAt DATETIME
+    lastScrapedAt TIMESTAMP
 );
