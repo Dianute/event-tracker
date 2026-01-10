@@ -124,6 +124,9 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
         return e.latlng;
       });
       onLocationFound(e.latlng);
+      // Save for next reload
+      localStorage.setItem('last_lat', e.latlng.lat.toString());
+      localStorage.setItem('last_lng', e.latlng.lng.toString());
     }
 
     function onLocationError(e: L.ErrorEvent) {
@@ -266,8 +269,18 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
   const [showList, setShowList] = useState(false);
 
+  const [defaultCenter, setDefaultCenter] = useState<[number, number] | null>(null);
+
   useEffect(() => {
     setMounted(true);
+    // instant load from storage
+    const lat = localStorage.getItem('last_lat');
+    const lng = localStorage.getItem('last_lng');
+    if (lat && lng) {
+      setDefaultCenter([parseFloat(lat), parseFloat(lng)]);
+    } else {
+      setDefaultCenter([54.8985, 23.9036]); // Default Kaunas
+    }
   }, []);
 
 
@@ -467,12 +480,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     }
   }, [activeList, onViewEventsChange]);
 
-  if (!mounted) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
+  if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   return (
     <>
       <MapContainer
-        center={[54.8985, 23.9036]}
+        center={defaultCenter}
         zoom={13}
         scrollWheelZoom={true}
         zoomControl={false}
