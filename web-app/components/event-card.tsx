@@ -129,45 +129,30 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         : 'Locating...';
 
     if (variant === 'standard') {
-        const hasImage = !!event.imageUrl;
-
         return (
             <div
                 onClick={onClick}
-                className="bg-black/60 backdrop-blur-md rounded-xl p-2 shadow-sm border border-white/10 transition-all hover:bg-white/10 group cursor-pointer w-full h-full flex flex-row items-center gap-3 overflow-hidden"
+                className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-sm border border-white/10 transition-all hover:bg-white/10 group cursor-pointer w-full h-full flex flex-col justify-between"
             >
-                {/* Left: Thumbnail or Emoji Placeholder */}
-                <div className="w-16 h-16 shrink-0 relative rounded-lg overflow-hidden bg-black/40 border border-white/5 flex items-center justify-center">
-                    {hasImage ? (
-                        <>
-                            <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
-                            {/* Mini Emoji Badge on Thumbnail */}
-                            <div className="absolute top-0.5 right-0.5 bg-black/60 backdrop-blur-sm rounded-md p-0.5 text-xs shadow-sm border border-white/10">
-                                {getEmoji(event.type)}
-                            </div>
-                        </>
-                    ) : (
-                        <span className="text-2xl filter drop-shadow-lg">{getEmoji(event.type)}</span>
+                <div className="flex justify-between items-start">
+                    <div className="text-2xl filter drop-shadow-md">
+                        {getEmoji(event.type)}
+                    </div>
+                    {status.label && (
+                        <div className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border
+                            ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
+                                status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
+                                    status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
+                                        status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
+                            {status.label}
+                        </div>
                     )}
                 </div>
 
-                {/* Right: Content */}
-                <div className="flex flex-col justify-center flex-1 min-w-0 h-full py-0.5">
-                    <div className="flex justify-between items-start gap-2">
-                        <h3 className="font-bold text-white text-sm truncate leading-tight">{event.title}</h3>
-                        {status.label && (
-                            <div className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border
-                                ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/30' :
-                                    status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/30' :
-                                        status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30' :
-                                            status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
-                                {status.label}
-                            </div>
-                        )}
-                    </div>
+                <div className="mt-1">
+                    <h3 className="font-bold text-white text-sm leading-tight line-clamp-2 mb-1">{event.title}</h3>
 
-                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
-                        {/* Time */}
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
                         <div className="flex items-center gap-1">
                             <Clock size={10} className={status.color === 'gray' ? 'text-gray-500' : 'text-blue-400'} />
                             <span className={status.color === 'green' ? 'text-green-400' : ''}>
@@ -176,10 +161,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                                         status.color === 'gray' ? 'Ended' : status.timeText}
                             </span>
                         </div>
-
                         <div className="w-0.5 h-0.5 rounded-full bg-gray-600" />
-
-                        {/* Distance */}
                         <div className="flex items-center gap-1">
                             {userLocation ? (
                                 <>
