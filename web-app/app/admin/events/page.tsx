@@ -35,12 +35,12 @@ export default function AdminEventsPage() {
                     setEvents(sorted);
                 } else {
                     console.error("Invalid API response:", data);
-                    alert("Failed to load events: " + (data.error || "Unknown error"));
+                    // alert("Failed to load events: " + (data.error || "Unknown error")); // Silent fail to avoid spam
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert("Network error loading events.");
+                // alert("Network error loading events.");
             })
             .finally(() => setLoading(false));
     };
@@ -192,6 +192,22 @@ export default function AdminEventsPage() {
                                 <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 animate-gradient-x">
                                     Event Manager 🎹
                                 </h1>
+                                <button
+                                    onClick={() => {
+                                        alert("Testing Connection...");
+                                        fetch(`${API_URL}/api/health-db`)
+                                            .then(res => res.text())
+                                            .then(txt => alert("DB Health: " + txt))
+                                            .catch(err => alert("DB Health Error: " + err));
+
+                                        fetch(`${API_URL}/events`)
+                                            .then(res => alert("Events Endpoint: " + res.status + " " + res.statusText))
+                                            .catch(err => alert("Events Endpoint Network Error: " + err));
+                                    }}
+                                    className="text-[10px] bg-red-900/50 text-red-200 px-2 py-1 rounded border border-red-500/30 hover:bg-red-900 mt-2"
+                                >
+                                    ⚠️ Test Connection
+                                </button>
                                 <p className="text-gray-400 text-sm mt-2 font-medium">
                                     Database contains <span className="text-white font-bold">{events.length}</span> active events
                                 </p>
