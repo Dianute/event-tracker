@@ -56,13 +56,15 @@ export default function VerifyAdminAuth({ children }: { children: React.ReactNod
                 return;
             }
 
-            // Scenario 2: Email matches Admin or "algis.stankus0@gmail.com" (Hardcoded Backup)
-            // (You should use the Env Var mainly, adding the hardcode simply as a fallback reference or removal).
+            // Scenario 2: Email matches Admin
             if (session.user?.email === adminEmail) {
-                setIsAuthenticated(true);
+                // Correct User.
+                // WE DO NOT auto-set isAuthenticated(true) here.
+                // We let the "checkAuth" (Master Password) logic handle the actual unlocking.
+                // This ensures localStorage is populated with the backend secret.
+                console.log("Admin Identity Verified. Checking Master Password...");
             } else {
                 // Scenario 3: Authenticated but NOT Admin -> Redirect to User Dashboard
-                // This component PROTECTS the Admin Panel. So if you are not Admin, you get kicked out.
                 console.log("Redirecting non-admin to user dashboard...");
                 router.replace('/dashboard');
             }
