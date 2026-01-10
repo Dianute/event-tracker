@@ -109,67 +109,69 @@ function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: 
     const isOvernight = timeEnd < timeStart;
 
     return (
-        <div className="w-full h-full relative bg-black group cursor-pointer flex flex-col overflow-y-auto scrollbar-none" onClick={() => setShowControls(!showControls)}>
+        <div className="w-full h-full relative bg-black group cursor-pointer overflow-hidden" onClick={() => setShowControls(!showControls)}>
 
-            {/* 1. Image Section (Top, Scrollable) */}
-            <div className="relative w-full shrink-0">
+            {/* 1. Image Layer (Absolute, Fixed, Top Aligned) */}
+            <div className="absolute inset-0 z-0 flex items-start justify-center bg-black">
                 {imageUrl ? (
                     <>
-                        {/* Blurred Background for Aspect Ratio padding if needed, or just black */}
-                        <div className="absolute inset-0 bg-white/5 blur-3xl" />
+                        {/* Ambient Blur Background */}
+                        <div className="absolute inset-0 z-0">
+                            <img src={imageUrl} alt="" className="w-full h-full object-cover blur-3xl opacity-40 scale-110" />
+                        </div>
 
+                        {/* Main Image - Top Aligned, Contained */}
                         <img src={imageUrl} alt={title}
                             onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
-                            className="relative z-10 w-full h-auto object-contain cursor-zoom-in"
+                            className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 ${showControls ? 'object-contain object-top p-0 md:p-4' : 'object-contain object-center bg-black/90'}`}
                         />
                     </>
                 ) : (
-                    // Fallback height if no image
-                    <div className={`w-full h-64 flex items-center justify-center ${theme === 'light' ? 'bg-gray-100' : 'bg-zinc-900 border-b border-white/10'}`}>
+                    <div className={`w-full h-full flex items-center justify-center ${theme === 'light' ? 'bg-gray-100' : 'bg-zinc-900'}`}>
                         <ImageIcon size={48} className="text-white/20" />
                     </div>
                 )}
-                {/* Top Controls Overlay (Absolute over image) */}
-                <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50">
-                    <div onClick={(e) => e.stopPropagation()} className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white bg-black/50`}>
-                        <span className="drop-shadow-md">{type}</span>
-                    </div>
-                </div>
+
+                {/* Gradient Helper for Text legibility - Stronger Fade */}
+                <div className={`absolute bottom-0 left-0 right-0 h-4/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none transition-opacity duration-300 z-20 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
             </div>
 
-            {/* Close Button Fixed to Viewport (so it doesn't scroll away) */}
-            <button onClick={(e) => { e.stopPropagation(); onClose(); }}
-                className="absolute top-6 right-6 z-[60] p-2.5 rounded-full bg-black/50 backdrop-blur-xl text-white border border-white/10 hover:bg-white/20 transition-all active:scale-95 flex items-center justify-center shadow-lg">
-                <X size={22} />
-            </button>
+            {/* 2. Top Controls */}
+            <div className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div onClick={(e) => e.stopPropagation()} className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white bg-black/50`}>
+                    <span className="drop-shadow-md">{type}</span>
+                </div>
+                <button onClick={(e) => { e.stopPropagation(); onClose(); }}
+                    className="pointer-events-auto p-2.5 rounded-full bg-black/20 backdrop-blur-xl text-white border border-white/10 hover:bg-white/20 transition-all active:scale-95 text-center flex items-center justify-center shadow-lg">
+                    <X size={22} />
+                </button>
+            </div>
 
-            {/* 2. Content Section (Below Image) */}
-            <div className={`relative p-6 pb-20 md:pb-8 text-white flex flex-col gap-5 ${theme === 'light' ? 'bg-white' : 'bg-black'} min-h-[300px]`}>
-                <div><h1 className={`text-3xl font-black leading-tight mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{title}</h1></div>
+            {/* 3. Bottom Content (Absolute Overlays) */}
+            <div className={`absolute bottom-0 left-0 right-0 z-40 p-6 pb-20 md:pb-8 text-white flex flex-col gap-4 max-h-[60%] overflow-y-auto scrollbar-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                <div><h1 className="text-3xl font-black leading-tight drop-shadow-xl mb-1 text-white">{title}</h1></div>
                 <div className="flex flex-col gap-2 shrink-0">
-                    <div className={`flex items-center gap-3 text-sm font-medium ${theme === 'light' ? 'text-gray-600' : 'text-gray-300'}`}>
-                        <div className={`p-2 rounded-full ${theme === 'light' ? 'bg-gray-100' : 'bg-white/10'} backdrop-blur-md`}><Clock size={16} className="text-blue-400" /></div>
-                        <span>{date} • {timeStart} - {timeEnd} {isOvernight ? '(+1 day)' : ''}</span>
+                    <div className="flex items-center gap-3 text-sm font-medium text-gray-200">
+                        <div className="p-2 rounded-full bg-white/10 backdrop-blur-md"><Clock size={16} className="text-blue-400" /></div>
+                        <span className="drop-shadow-md">{date} • {timeStart} - {timeEnd} {isOvernight ? '(+1 day)' : ''}</span>
                     </div>
                     {/* Location Row (Clickable) */}
                     <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className={`flex items-center gap-3 text-sm font-medium ${theme === 'light' ? 'text-gray-600 hover:text-blue-600' : 'text-gray-300 hover:text-white'} transition-colors group/loc`}
+                        className="flex items-center gap-3 text-sm font-medium text-gray-200 hover:text-white transition-colors group/loc"
                     >
-                        <div className={`p-2 rounded-full ${theme === 'light' ? 'bg-gray-100' : 'bg-white/10'} backdrop-blur-md group-hover/loc:bg-white/20 transition-colors`}>
+                        <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/loc:bg-white/20 transition-colors">
                             <MapPin size={16} className="text-red-500" />
                         </div>
                         <div className="flex flex-col">
-                            <span className={`underline decoration-white/30 underline-offset-4 truncate pr-4 ${theme === 'light' ? 'decoration-gray-300' : ''}`}>
+                            <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md truncate pr-4">
                                 {venue ? venue.split(',')[0] : 'Unknown Location'}
                             </span>
                         </div>
                     </a>
                 </div>
-                <div className="prose prose-invert prose-sm max-w-none"><p className={`text-sm leading-relaxed font-medium ${theme === 'light' ? 'text-gray-600' : 'text-gray-400'}`}>{description || 'No description provided.'}</p></div>
+                <div className="prose prose-invert prose-sm max-w-none"><p className="text-sm text-gray-300 leading-relaxed font-medium drop-shadow-md">{description || 'No description provided.'}</p></div>
 
                 {/* Action Button */}
                 {event?.link && (
@@ -178,7 +180,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: 
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className={`w-full py-4 ${theme === 'light' ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:scale-[1.02]'} font-black rounded-xl text-center shadow-lg transition-all flex items-center justify-center gap-2 mt-4 shrink-0`}
+                        className="w-full py-3.5 bg-white text-black font-black rounded-xl text-center shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 mt-2 shrink-0"
                     >
                         <span>GET TICKETS</span>
                         <ExternalLink size={16} />
