@@ -45,7 +45,10 @@ export default function Home() {
     console.log("🔌 Connecting to Backend:", API_URL);
     fetch(`${API_URL}/events`)
       .then(res => res.json())
-      .then(data => setEvents(data))
+      .then(data => {
+        if (Array.isArray(data)) setEvents(data);
+        else console.error("Invalid API response:", data);
+      })
       .catch(err => console.error("Failed to fetch events:", err));
   };
 

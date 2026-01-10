@@ -38,7 +38,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 (async () => {
     try {
         const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-        await db.pool.query(schema);
+        // Split by semicolon to execute statements individually (pg restriction)
+        const statements = schema.split(';').filter(s => s.trim());
+        for (const stmt of statements) {
+            await db.pool.query(stmt);
+        }
         console.log('✅ Schema initialized (PostgreSQL).');
     } catch (err) {
         console.error('❌ Error initializing schema:', err);
@@ -99,10 +103,8 @@ const isEventActive = (endTimeStr) => {
 // GET /events - Fetch all active events
 app.get('/events', async (req, res) => {
     try {
-        // Optimization: Don't load ancient history
-        // Postgres: substr syntax is similar, or convert
-        // For simplicity, let's just fetch all and filter in JS like before, or optimize slightly
-        const { rows } = await db.query("SELECT * FROM events WHERE substr(endTime, 1, 4) >= '2024'");
+        // Fetch all events (Simplified for Postgres compatibility/safety)
+        const { rows } = await db.query("SELECT * FROM events");
 
         // Javascript Filtering
         const activeEvents = rows.filter(ev => isEventActive(ev.endTime));
