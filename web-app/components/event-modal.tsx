@@ -120,10 +120,10 @@ function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: 
                             <img src={imageUrl} alt="" className="w-full h-full object-cover blur-3xl opacity-40 scale-110" />
                         </div>
 
-                        {/* Main Image - Top Aligned, Contained */}
+                        {/* Main Image - Top Aligned, Contained, No Padding */}
                         <img src={imageUrl} alt={title}
                             onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
-                            className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 ${showControls ? 'object-contain object-top p-0 md:p-4' : 'object-contain object-center bg-black/90'}`}
+                            className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 ${showControls ? 'object-contain object-top' : 'object-contain object-center bg-black/90'}`}
                         />
                     </>
                 ) : (
