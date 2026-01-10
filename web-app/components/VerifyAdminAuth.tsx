@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Lock, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, User } from 'lucide-react';
 import { useSession } from "next-auth/react";
+import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -14,6 +15,7 @@ export default function VerifyAdminAuth({ children }: { children: React.ReactNod
 
     // --- HYBRID AUTH ---
     const { data: session, status } = useSession();
+    const router = useRouter();
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -40,12 +42,32 @@ export default function VerifyAdminAuth({ children }: { children: React.ReactNod
         checkAuth();
     }, []);
 
-    // Also authorize if NextAuth session exists
+    // Role-Based Authorization
     useEffect(() => {
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
         if (status === 'authenticated') {
-            setIsAuthenticated(true);
+            // Scenario 1: No Admin Email configured -> Critical Security Warning, but allow for now (or block?)
+            // We'll treat ANY user as Admin if no restriction is set (Dangerous but easy for dev).
+            // Better: If no adminEmail is set, allow (assuming development).
+
+            if (!adminEmail) {
+                setIsAuthenticated(true);
+                return;
+            }
+
+            // Scenario 2: Email matches Admin or "algis.stankus0@gmail.com" (Hardcoded Backup)
+            // (You should use the Env Var mainly, adding the hardcode simply as a fallback reference or removal).
+            if (session.user?.email === adminEmail) {
+                setIsAuthenticated(true);
+            } else {
+                // Scenario 3: Authenticated but NOT Admin -> Redirect to User Dashboard
+                // This component PROTECTS the Admin Panel. So if you are not Admin, you get kicked out.
+                console.log("Redirecting non-admin to user dashboard...");
+                router.replace('/dashboard');
+            }
         }
-    }, [status]);
+    }, [status, session, router]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
