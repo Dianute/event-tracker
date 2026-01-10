@@ -29,7 +29,7 @@ const upload = multer({
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password']
 }));
 app.use(bodyParser.json());
 // Serve uploaded files statically
