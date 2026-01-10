@@ -113,16 +113,25 @@ function EventFeedSlide({ event, theme, onClose, onZoom }: { event: any, theme: 
             {/* 1. Fullscreen Image Layer */}
             <div className="absolute inset-0 z-0">
                 {imageUrl ? (
-                    <img src={imageUrl} alt={title}
-                        onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
-                        className={`w-full h-full transition-all duration-300 cursor-zoom-in ${showControls ? 'object-cover' : 'object-contain bg-black/50'}`} />
+                    <>
+                        {/* Ambient Background (Blurred) */}
+                        <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-3xl opacity-50 scale-110" />
+
+                        {/* Main Image (Contained) */}
+                        <img src={imageUrl} alt={title}
+                            onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
+                            className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 ${showControls ? 'object-contain p-0 md:p-4' : 'object-contain bg-black/80'}`}
+                        />
+                    </>
                 ) : (
                     <div className={`w-full h-full flex items-center justify-center ${theme === 'light' ? 'bg-gray-100' : 'bg-zinc-900'}`}>
                         <ImageIcon size={48} className="text-white/20" />
                     </div>
                 )}
-                <div className={`absolute inset-0 bg-gradient-to-b from-black/60 via-transparent h-32 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
-                <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent top-1/3 pointer-events-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
+
+                {/* Gradient Overlays (Only when controls visible, ensuring text readability over image) */}
+                <div className={`absolute inset-0 bg-gradient-to-b from-black/80 via-transparent h-40 pointer-events-none transition-opacity duration-300 z-20 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
+                <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent top-1/2 pointer-events-none transition-opacity duration-300 z-20 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
             </div>
 
             {/* 2. Top Controls */}
