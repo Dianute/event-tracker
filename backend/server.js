@@ -9,6 +9,10 @@ const db = require('./db'); // NEW: PostgreSQL Pool
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+if (!process.env.DATABASE_URL) {
+    console.warn("⚠️ WARNING: DATABASE_URL is missing! Database connections will fail.");
+}
+
 // Multer Setup for Image Uploads
 const multer = require('multer');
 const sharp = require('sharp');
@@ -109,9 +113,10 @@ app.get('/events', async (req, res) => {
         // Javascript Filtering
         const activeEvents = rows.filter(ev => isEventActive(ev.endTime));
 
-        res.json(activeEvents);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error("GET /events error:", err);
+        // Ensure we send a string even if err.message is missing
+        res.status(500).json({ error: String(err.message || err) });
     }
 });
 
