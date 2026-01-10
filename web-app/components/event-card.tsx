@@ -144,6 +144,13 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                     </div>
                 )}
 
+                {event.imageUrl && (
+                    <div className="absolute inset-0 z-0 opacity-20">
+                        <img src={event.imageUrl} alt="" className="w-full h-full object-cover grayscale" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+                    </div>
+                )}
+
                 <div className="relative z-10 flex items-start gap-3 mt-1">
                     <div className="shrink-0 pt-0.5 text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                         {getEmoji(event.type)}
