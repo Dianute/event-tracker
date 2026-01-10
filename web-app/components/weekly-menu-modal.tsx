@@ -76,12 +76,18 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                 body: formData
             });
             const data = await res.json();
+            console.log("Upload response:", data);
             if (data.success) {
                 const newImages = [...images];
                 newImages[index] = data.imageUrl;
                 setImages(newImages);
+            } else {
+                alert("Upload error from server: " + (data.error || "Unknown"));
             }
-        } catch (err) { alert("Upload failed"); }
+        } catch (err: any) {
+            console.error("Upload failed", err);
+            alert("Upload failed: " + err.message);
+        }
         finally { setUploadingIndex(null); }
     };
 
