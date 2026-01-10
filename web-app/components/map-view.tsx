@@ -259,6 +259,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     }
   }, [userLocation, onUserLocationUpdate]);
 
+
+
   const [map, setMap] = useState<L.Map | null>(null);
   const [mapTheme, setMapTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
   const [selectedCluster, setSelectedCluster] = useState<Event[] | null>(null);
@@ -268,7 +270,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     setMounted(true);
   }, []);
 
-  if (!mounted) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
+
 
   const now = new Date();
 
@@ -455,10 +457,17 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   const activeList = selectedCluster || displayList;
 
-  // Propagate active list to parent for Feed View
+  // Propagate active list to parent for Feed View (Debounced)
+  const prevFeedIds = useRef('');
   useEffect(() => {
-    if (onViewEventsChange) onViewEventsChange(activeList);
+    const currentIds = activeList.map(e => e.id).join(',');
+    if (onViewEventsChange && currentIds !== prevFeedIds.current) {
+      onViewEventsChange(activeList);
+      prevFeedIds.current = currentIds;
+    }
   }, [activeList, onViewEventsChange]);
+
+  if (!mounted) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   return (
     <>
