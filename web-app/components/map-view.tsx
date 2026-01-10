@@ -3,9 +3,9 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef } from 'react';
-import { useSession, signIn } from "next-auth/react";
+import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -240,6 +240,7 @@ function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLn
 export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate }: MapViewProps) {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
@@ -610,19 +611,44 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           <div className="w-px h-6 bg-white/20 mx-1"></div>
 
           {session ? (
-            <a
-              href="/admin"
-              className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95"
-              title={`Logged in as ${session.user?.name || 'User'}`}
-            >
-              {session.user?.image ? (
-                <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                  {session.user?.name?.[0] || 'U'}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95"
+                title={`Logged in as ${session.user?.name || 'User'}`}
+              >
+                {session.user?.image ? (
+                  <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                    {session.user?.name?.[0] || 'U'}
+                  </div>
+                )}
+              </button>
+
+              {showUserMenu && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden py-1 flex flex-col animate-in fade-in zoom-in-95 duration-200">
+                  <div className="px-4 py-2 border-b border-gray-800">
+                    <p className="text-xs text-gray-400">Signed in as</p>
+                    <p className="font-bold text-white truncate text-sm">{session.user?.name || 'User'}</p>
+                  </div>
+                  <a
+                    href="/admin"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <LayoutDashboard size={16} className="text-blue-400" />
+                    Admin Panel
+                  </a>
+                  <button
+                    onClick={() => signOut()}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors w-full text-left"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </button>
                 </div>
               )}
-            </a>
+            </div>
           ) : (
             <button
               onClick={() => signIn()}
