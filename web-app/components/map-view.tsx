@@ -528,148 +528,153 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
       {/* Top Controls */}
       <div className="fixed top-4 left-0 right-0 z-[2100] flex justify-center px-4 pointer-events-none">
-        <div className="flex items-center gap-2 pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg transition-all max-w-full overflow-x-auto hide-scrollbar">
+        {/* Unified Pill Container */}
+        <div className="flex items-center pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg max-w-full">
 
-          {/* List Toggle */}
-          <button
-            onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
-            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
-            title="List View"
-          >
-            <List size={20} />
-          </button>
+          {/* Scrollable Section (Filters & Search) */}
+          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar max-w-full">
+            {/* List Toggle */}
+            <button
+              onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
+              className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
+              title="List View"
+            >
+              <List size={20} />
+            </button>
 
-          <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
+            <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
 
-          {/* Search */}
-          <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-full md:w-64 px-2' : 'w-10 justify-center'}`}>
-            {isSearchOpen ? (
-              <div className="flex items-center w-full">
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder="Search events..."
-                  className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onBlur={() => !searchQuery && setIsSearchOpen(false)}
-                />
-                {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white ml-1">×</button>}
+            {/* Search */}
+            <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
+              {isSearchOpen ? (
+                <div className="flex items-center w-full">
+                  <input
+                    autoFocus
+                    type="text"
+                    placeholder="Search..."
+                    className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400 min-w-0"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onBlur={() => !searchQuery && setIsSearchOpen(false)}
+                  />
+                  {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white ml-1">×</button>}
+                </div>
+              ) : (
+                <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
+                  <SearchIcon size={20} />
+                </button>
+              )}
+            </div>
+
+            <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+            {/* Theme */}
+            <button
+              onClick={handleThemeChange}
+              className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:bg-white/10 shrink-0`}
+              title="Toggle Theme"
+            >
+              {mapTheme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+            </button>
+
+            <div className="w-px h-6 bg-white/20 mx-1"></div>
+
+            {/* Radius Filter */}
+            <button
+              key="radius-btn"
+              onClick={cycleRadiusFilters}
+              className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap shrink-0
+                    ${radiusFilter ? 'text-blue-300 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
+              title="Filter by Radius"
+            >
+              {getRadiusLabel()}
+            </button>
+
+            {/* Time Filter */}
+            <button
+              key="time-btn"
+              onClick={cycleTimeFilters}
+              className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
+                    ${timeFilter !== 'all' ? 'text-green-300 border-green-500/30 bg-green-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
+              title="Filter by Time"
+            >
+              {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
+              {getTimeLabel()}
+            </button>
+
+            {/* Refresh */}
+            <button
+              onClick={onRefresh}
+              className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10 shrink-0`}
+              title="Refresh Events"
+            >
+              <RotateCw size={16} />
+            </button>
+          </div>
+
+          <div className="w-px h-6 bg-white/20 mx-1 md:mx-2 shrink-0"></div>
+
+          {/* User Profile (Static Side) */}
+          <div className="relative shrink-0 z-[2200]">
+            {session ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95"
+                  title={`Logged in as ${session.user?.name || 'User'}`}
+                >
+                  {session.user?.image ? (
+                    <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                      {session.user?.name?.[0] || 'U'}
+                    </div>
+                  )}
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute top-full right-0 mt-3 w-56 bg-[#0a0a0a] border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden py-2 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-black/50">
+                    <div className="px-4 py-3 border-b border-gray-800">
+                      <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
+                      <p className="font-bold text-white text-sm truncate">{session.user?.name || 'User'}</p>
+                      <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
+                    </div>
+                    <div className="p-1">
+                      <a
+                        href="/admin"
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group"
+                      >
+                        <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                          <LayoutDashboard size={16} />
+                        </div>
+                        Admin Panel
+                      </a>
+                    </div>
+                    <div className="border-t border-gray-800 mx-2 my-1"></div>
+                    <div className="p-1">
+                      <button
+                        onClick={() => signOut()}
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors w-full text-left group"
+                      >
+                        <div className="p-1.5 rounded-md bg-red-500/10 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors">
+                          <LogOut size={16} />
+                        </div>
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
-                <SearchIcon size={20} />
+              <button
+                onClick={() => signIn()}
+                className="w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10"
+                title="Sign In"
+              >
+                <User size={18} />
               </button>
             )}
           </div>
-
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
-
-          {/* Theme */}
-          <button
-            onClick={handleThemeChange}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:bg-white/10`}
-            title="Toggle Theme"
-          >
-            {mapTheme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-          </button>
-
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
-
-          {/* New RADIUS Filter Button (Pill) */}
-          <button
-            key="radius-btn"
-            onClick={cycleRadiusFilters}
-            className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap
-                ${radiusFilter ? 'text-blue-300 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
-            title="Filter by Radius"
-          >
-            {getRadiusLabel()}
-          </button>
-
-          {/* New TIME Filter Button (Pill) */}
-          <button
-            key="time-btn"
-            onClick={cycleTimeFilters}
-            className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5
-                ${timeFilter !== 'all' ? 'text-green-300 border-green-500/30 bg-green-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
-            title="Filter by Time"
-          >
-            {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
-            {getTimeLabel()}
-          </button>
-
-          {/* Refresh */}
-          <button
-            onClick={onRefresh}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10`}
-            title="Refresh Events"
-          >
-            <RotateCw size={16} />
-          </button>
-
-        </div>
-
-        {/* User Profile Pill (Separate to avoid overflow clipping) */}
-        <div className="ml-2 flex items-center justify-center pointer-events-auto bg-black/60 backdrop-blur-md p-2 rounded-full border border-white/10 shadow-lg shrink-0 z-[2200]">
-          {session ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="w-8 h-8 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95"
-                title={`Logged in as ${session.user?.name || 'User'}`}
-              >
-                {session.user?.image ? (
-                  <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                    {session.user?.name?.[0] || 'U'}
-                  </div>
-                )}
-              </button>
-
-              {showUserMenu && (
-                <div className="absolute top-full right-0 mt-3 w-56 bg-[#0a0a0a] border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden py-2 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-black/50">
-                  <div className="px-4 py-3 border-b border-gray-800">
-                    <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
-                    <p className="font-bold text-white text-sm truncate">{session.user?.name || 'User'}</p>
-                    <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
-                  </div>
-                  <div className="p-1">
-                    <a
-                      href="/admin"
-                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group"
-                    >
-                      <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                        <LayoutDashboard size={16} />
-                      </div>
-                      Admin Panel
-                    </a>
-                  </div>
-                  <div className="border-t border-gray-800 mx-2 my-1"></div>
-                  <div className="p-1">
-                    <button
-                      onClick={() => signOut()}
-                      className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors w-full text-left group"
-                    >
-                      <div className="p-1.5 rounded-md bg-red-500/10 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors">
-                        <LogOut size={16} />
-                      </div>
-                      Sign Out
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={() => signIn()}
-              className="w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10"
-              title="Sign In"
-            >
-              <User size={18} />
-            </button>
-          )}
         </div>
       </div>
 
