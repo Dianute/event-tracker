@@ -30,10 +30,18 @@ export default function AdminEventsPage() {
         fetch(`${API_URL}/events`)
             .then(res => res.json())
             .then(data => {
-                const sorted = data.sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-                setEvents(sorted);
+                if (Array.isArray(data)) {
+                    const sorted = data.sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+                    setEvents(sorted);
+                } else {
+                    console.error("Invalid API response:", data);
+                    alert("Failed to load events: " + (data.error || "Unknown error"));
+                }
             })
-            .catch(err => console.error(err))
+            .catch(err => {
+                console.error(err);
+                alert("Network error loading events.");
+            })
             .finally(() => setLoading(false));
     };
 

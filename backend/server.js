@@ -166,7 +166,9 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 
         const forwardedProto = req.get('x-forwarded-proto') || 'http';
         const host = req.get('host');
-        const imageUrl = `${forwardedProto}://${host}/uploads/${filename}`;
+        // Force HTTPS on production (Railway) to avoid Mixed Content
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const imageUrl = `${protocol}://${host}/uploads/${filename}`;
 
         res.json({ success: true, imageUrl });
     } catch (err) {
@@ -209,7 +211,9 @@ app.post('/events', async (req, res) => {
         console.log(`📥 Auto-Downloading Image: ${imageUrl}`);
         const localPath = await downloadImage(imageUrl);
         if (localPath) {
-            imageUrl = `http://${req.get('host')}${localPath}`;
+            const host = req.get('host');
+            const protocol = host.includes('localhost') ? 'http' : 'https';
+            imageUrl = `${protocol}://${host}${localPath}`;
             console.log(`✅ Saved to: ${imageUrl}`);
         }
     }
