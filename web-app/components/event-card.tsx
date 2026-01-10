@@ -18,6 +18,7 @@ interface Event {
     venue?: string;
     date?: string;
     link?: string;
+    imageUrl?: string;
     createdAt?: string;
 }
 
@@ -142,7 +143,17 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                     {status.label}
                 </div>
 
-                <div className="flex items-start gap-3">
+                {/* Background Image if available */}
+                {event.imageUrl ? (
+                    <>
+                        <div className="absolute inset-0 z-0">
+                            <img src={event.imageUrl} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" />
+                        </div>
+                        <div className="absolute inset-0 z-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent" />
+                    </>
+                ) : null}
+
+                <div className="relative z-10 flex items-start gap-3">
                     <div className="shrink-0 pt-0.5 text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
                         {getEmoji(event.type)}
                     </div>
