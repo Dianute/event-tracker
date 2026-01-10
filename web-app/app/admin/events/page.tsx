@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Edit, Trash2, ArrowLeft, ExternalLink, Calendar as CalendarIcon, MapPin } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, ExternalLink, Calendar as CalendarIcon, MapPin, Plus, Utensils } from 'lucide-react';
 import EventModal from '@/components/event-modal';
+import WeeklyMenuModal from '@/components/weekly-menu-modal';
 import VerifyAdminAuth from '@/components/VerifyAdminAuth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -16,6 +17,9 @@ export default function AdminEventsPage() {
     // Edit Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+
+    // Weekly Menu Modal State
+    const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
 
     // Import State
     const [importUrl, setImportUrl] = useState('');
@@ -60,6 +64,40 @@ export default function AdminEventsPage() {
     const handleEdit = (event: any) => {
         setSelectedEvent(event);
         setIsModalOpen(true);
+    };
+
+    const handleCreateNew = () => {
+        setSelectedEvent(null);
+        setIsModalOpen(true);
+    };
+
+    const handleBatchCreate = async (newEvents: any[]) => {
+        // Send all events in parallel
+        setLoading(true);
+        try {
+            const adminPass = localStorage.getItem('admin_secret') || '';
+
+            // Promise.allSettled is safer, but for now Promise.all is okay
+            const promises = newEvents.map(evt =>
+                fetch(`${API_URL}/events`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-password': adminPass
+                    },
+                    body: JSON.stringify(evt)
+                })
+            );
+
+            await Promise.all(promises);
+            // Refresh
+            fetchEvents();
+            setIsMenuModalOpen(false);
+        } catch (e) {
+            console.error(e);
+            alert("Error creating batch events");
+            setLoading(false);
+        }
     };
 
     const handleImport = async () => {
@@ -151,23 +189,42 @@ export default function AdminEventsPage() {
                                 </p>
                             </div>
 
-                            {/* Import Section (Compact) */}
-                            <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700/50 self-start md:self-auto w-full md:w-auto">
-                                <input
-                                    type="text"
-                                    placeholder="Paste Facebook/Ticket Link..."
-                                    value={importUrl}
-                                    onChange={(e) => setImportUrl(e.target.value)}
-                                    className="bg-transparent text-sm w-full md:w-64 px-3 py-2 outline-none text-white placeholder-gray-600 font-medium"
-                                />
-                                <button
-                                    onClick={handleImport}
-                                    disabled={isImporting || !importUrl}
-                                    className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20 active:scale-95 shrink-0"
-                                >
-                                    {isImporting ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ExternalLink size={14} />}
-                                    Import
-                                </button>
+                            {/* Right Side: Actions & Import */}
+                            <div className="flex flex-col items-end gap-3 w-full md:w-auto">
+                                {/* Actions Group */}
+                                <div className="flex flex-col md:flex-row items-stretch gap-3 w-full md:w-auto">
+                                    <button
+                                        onClick={handleCreateNew}
+                                        className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 active:scale-95"
+                                    >
+                                        <Plus size={16} /> New Event
+                                    </button>
+                                    <button
+                                        onClick={() => setIsMenuModalOpen(true)}
+                                        className="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-xs font-bold px-5 py-3 rounded-xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                                    >
+                                        <Utensils size={16} className="text-orange-400" /> Add Weekly Menu
+                                    </button>
+                                </div>
+
+                                {/* Import Section (Restored) */}
+                                <div className="flex items-center gap-2 bg-gray-900/50 p-1.5 rounded-xl border border-gray-700/50 w-full md:w-auto">
+                                    <input
+                                        type="text"
+                                        placeholder="Paste Facebook/Ticket Link..."
+                                        value={importUrl}
+                                        onChange={(e) => setImportUrl(e.target.value)}
+                                        className="bg-transparent text-sm w-full md:w-48 px-3 py-1 outline-none text-white placeholder-gray-600 font-medium"
+                                    />
+                                    <button
+                                        onClick={handleImport}
+                                        disabled={isImporting || !importUrl}
+                                        className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-[10px] font-bold px-3 py-2 rounded-lg transition-all flex items-center gap-2 shrink-0"
+                                    >
+                                        {isImporting ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ExternalLink size={12} />}
+                                        Import
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -291,6 +348,13 @@ export default function AdminEventsPage() {
                     initialLocation={selectedEvent ? { lat: selectedEvent.lat, lng: selectedEvent.lng } : null}
                     event={selectedEvent}
                     theme="dark"
+                />
+
+                {/* Weekly Menu Modal */}
+                <WeeklyMenuModal
+                    isOpen={isMenuModalOpen}
+                    onClose={() => setIsMenuModalOpen(false)}
+                    onSubmit={handleBatchCreate}
                 />
             </div>
         </VerifyAdminAuth>
