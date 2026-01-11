@@ -14,6 +14,10 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Derived Stats
+    const [totalViews, setTotalViews] = useState(0);
+    const [totalClicks, setTotalClicks] = useState(0);
+
     // Edit Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
@@ -29,6 +33,12 @@ export default function DashboardPage() {
                     const userEvents = data.filter((e: any) => e.userEmail === session.user?.email);
                     const sorted = userEvents.sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
                     setEvents(sorted);
+
+                    // Calc Stats
+                    const views = userEvents.reduce((acc: number, curr: any) => acc + (curr.views || 0), 0);
+                    const clicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks || 0), 0);
+                    setTotalViews(views);
+                    setTotalClicks(clicks);
                 }
             })
             .catch(err => console.error(err))
@@ -130,7 +140,7 @@ export default function DashboardPage() {
         return new Date(ev.endTime) > new Date();
     }).length;
 
-    const simulatedReach = (events.length * 42) + (activeEventsCount * 15);
+    const simulatedReach = totalViews + (totalClicks * 5); // Simple formula: Views + 5x for Clicks
 
     return (
         <div className="min-h-screen p-6 pb-32 transition-colors duration-300 bg-[#050510] font-sans text-white">
@@ -193,9 +203,9 @@ export default function DashboardPage() {
                                 <div className="p-3 bg-green-500/10 text-green-400 rounded-2xl">
                                     <Activity size={24} />
                                 </div>
-                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Active Now</span>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Impressions</span>
                             </div>
-                            <div className="text-4xl font-black text-white">{activeEventsCount}</div>
+                            <div className="text-4xl font-black text-white">{totalViews}</div>
                         </div>
 
                         <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-purple-500/30 transition-all">
@@ -204,11 +214,11 @@ export default function DashboardPage() {
                                 <div className="p-3 bg-purple-500/10 text-purple-400 rounded-2xl">
                                     <BarChart3 size={24} />
                                 </div>
-                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Profile Reach</span>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Interactions</span>
                             </div>
                             <div className="flex items-baseline gap-2">
-                                <div className="text-4xl font-black text-white">{simulatedReach}</div>
-                                <span className="text-green-400 text-xs font-bold">+12%</span>
+                                <div className="text-4xl font-black text-white">{totalClicks}</div>
+                                <span className="text-green-400 text-xs font-bold text-opacity-50">Clicks</span>
                             </div>
                         </div>
                     </div>
@@ -235,6 +245,7 @@ export default function DashboardPage() {
                                     <th className="p-5 border-b border-gray-700/50">Thumbnail</th>
                                     <th className="p-5 border-b border-gray-700/50">Event Details</th>
                                     <th className="p-5 border-b border-gray-700/50">Scheduled</th>
+                                    <th className="p-5 border-b border-gray-700/50">Performance</th>
                                     <th className="p-5 border-b border-gray-700/50">Venue</th>
                                     <th className="p-5 border-b border-gray-700/50 text-right">Actions</th>
                                 </tr>
@@ -266,6 +277,18 @@ export default function DashboardPage() {
                                             </div>
                                             <div className="text-xs text-gray-500 pl-6 mt-0.5">
                                                 {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                        </td>
+                                        <td className="p-5">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+                                                    {event.views || 0} Views
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                    <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
+                                                    {event.clicks || 0} Clicks
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="p-5">

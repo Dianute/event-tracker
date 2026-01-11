@@ -245,6 +245,9 @@ function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLn
 export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate, onViewEventsChange }: MapViewProps) {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
+  // Analytics State
+  const viewedEventsRef = useRef<Set<string>>(new Set());
+  const formattedDistanceRef = useRef<string>('');
   const [showUserMenu, setShowUserMenu] = useState(false);
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
@@ -482,6 +485,31 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       prevFeedIds.current = currentIds;
     }
   }, [activeList, onViewEventsChange]);
+
+  // --- ANALYTICS: Track Impressions ---
+  useEffect(() => {
+    if (activeList.length === 0) return;
+
+    const timeoutId = setTimeout(() => {
+      const newViews: string[] = [];
+      activeList.forEach(event => {
+        if (!viewedEventsRef.current.has(event.id)) {
+          viewedEventsRef.current.add(event.id);
+          newViews.push(event.id);
+        }
+      });
+
+      if (newViews.length > 0) {
+        fetch('/api/analytics/view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ eventIds: newViews })
+        }).catch(err => console.error("View track error", err));
+      }
+    }, 2000); // Debounce 2s (only count if they stay on screen/list for a bit)
+
+    return () => clearTimeout(timeoutId);
+  }, [activeList]);
 
   if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
@@ -739,6 +767,13 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               event={event}
               userLocation={userLocation}
               onClick={() => {
+                // Analytics: Track Click
+                fetch('/api/analytics/click', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ eventId: event.id })
+                }).catch(err => console.error("Click track error", err));
+
                 if (map) {
                   map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
                 }

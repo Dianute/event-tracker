@@ -300,7 +300,6 @@ app.delete('/events/:id', async (req, res) => {
         const { rows } = await db.query("SELECT imageUrl FROM events WHERE id = $1", [id]);
 
         if (rows.length > 0 && rows[0].imageUrl) {
-            // ... (image deletion logic continues same as before)
             try {
                 const urlParts = rows[0].imageUrl.split('/uploads/');
                 if (urlParts.length > 1) {
@@ -320,6 +319,41 @@ app.delete('/events/:id', async (req, res) => {
 
     } catch (err) {
         res.status(500).json({ error: err.message });
+    }
+});
+
+// --- ANALYTICS ENDPOINTS ---
+
+// POST /api/analytics/view - Batch Increment Views
+app.post('/api/analytics/view', async (req, res) => {
+    const { eventIds } = req.body; // Expects array of IDs
+    if (!Array.isArray(eventIds) || eventIds.length === 0) return res.json({ success: true });
+
+    try {
+        // Efficient Single Query for multiple updates (Postgres specific)
+        // We use UNNEST to map IDs to rows, then join Update.
+        // OR simpler loop for moderate scale:
+        const queries = eventIds.map(id => db.query("UPDATE events SET views = COALESCE(views, 0) + 1 WHERE id = $1", [id]));
+        await Promise.allSettled(queries);
+
+        res.json({ success: true, count: eventIds.length });
+    } catch (err) {
+        console.error("Analytics Error (View):", err);
+        res.status(500).json({ error: "Failed to track views" });
+    }
+});
+
+// POST /api/analytics/click - Increment Click
+app.post('/api/analytics/click', async (req, res) => {
+    const { eventId } = req.body;
+    if (!eventId) return res.status(400).json({ error: "No Event ID" });
+
+    try {
+        await db.query("UPDATE events SET clicks = COALESCE(clicks, 0) + 1 WHERE id = $1", [eventId]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Analytics Error (Click):", err);
+        res.status(500).json({ error: "Failed to track click" });
     }
 });
 
