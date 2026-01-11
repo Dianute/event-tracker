@@ -31,7 +31,7 @@ export default function MyEventsModal({ isOpen, onClose, events, onEdit, onAdd, 
                 <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
                     <div>
                         <h2 className="text-xl font-black text-white flex items-center gap-2">
-                            Creator Dashboard 🚀
+                            Business Dashboard 💼
                         </h2>
                         <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
                             {myEvents.length} Active Events

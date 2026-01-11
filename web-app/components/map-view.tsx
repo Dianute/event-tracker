@@ -718,17 +718,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                           </div>
                           Admin Panel
                         </a>
-                      ) : (
-                        <a
-                          href="/dashboard"
-                          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group"
-                        >
-                          <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
-                            <LayoutDashboard size={16} />
-                          </div>
-                          Business Dashboard
-                        </a>
-                      )}
+                      ) : null}
                     </div>
                     <div className="border-t border-gray-800 mx-2 my-1"></div>
                     <div className="p-1">
@@ -742,9 +732,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                         className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors w-full text-left group mb-1"
                       >
                         <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                          <Calendar size={16} />
+                          <LayoutDashboard size={16} />
                         </div>
-                        My Events
+                        Business Dashboard
                       </button>
 
                       <div className="pt-2 border-t border-gray-700"></div>
