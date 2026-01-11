@@ -442,6 +442,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200"
                     onClick={() => setIsFullImage(false)}>
 
+                    {/* Fixed Close Button (Always Visible) */}
+                    <button onClick={(e) => { e.stopPropagation(); setIsFullImage(false); setZoomedImage(''); }}
+                        className="absolute top-6 right-6 z-[3020] p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-red-500/50">
+                        <X size={28} />
+                    </button>
+
                     <TransformWrapper
                         initialScale={1}
                         minScale={1}
@@ -449,9 +455,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         centerOnInit
                         doubleClick={{ mode: 'reset' }}
                     >
-                        {({ zoomIn, zoomOut, resetTransform }) => (
+                        {({ zoomIn, zoomOut }) => (
                             <>
-                                <div className="absolute top-6 right-6 z-[3010] flex gap-2">
+                                <div className="absolute top-6 right-20 z-[3010] flex gap-2">
                                     <button onClick={(e) => { e.stopPropagation(); zoomOut(); }}
                                         className="p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-white/10 hidden md:block">
                                         <Minus size={24} />
@@ -459,10 +465,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     <button onClick={(e) => { e.stopPropagation(); zoomIn(); }}
                                         className="p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-white/10 hidden md:block">
                                         <Plus size={24} />
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); resetTransform(); setIsFullImage(false); setZoomedImage(''); }}
-                                        className="p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-red-500/50">
-                                        <X size={28} />
                                     </button>
                                 </div>
                                 <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
