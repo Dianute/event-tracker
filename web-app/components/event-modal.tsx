@@ -500,7 +500,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             )}
 
             {/* Main Modal Container */}
-            <div className={`w-full h-[95vh] md:h-[85vh] md:max-h-[800px] md:max-w-[450px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
+            <div className={`w-full h-auto max-h-[90dvh] md:h-[85vh] md:max-h-[800px] md:max-w-[450px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
                 ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30' :
                     theme === 'light' ? 'bg-white border-gray-200 text-gray-900' :
                         'bg-zinc-900 border-white/10 text-white'}
@@ -512,7 +512,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         {/* HEADER IMAGE */}
                         <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 transition-colors
                              ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/20' : theme === 'light' ? 'bg-gray-100 border-gray-200' : 'bg-zinc-800/50 border-white/10'}`}>
-                            <button onClick={onClose} className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors shadow-lg active:scale-90"><X size={18} /></button>
+                            <button onClick={onClose} className="absolute top-5 right-5 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors shadow-lg active:scale-90"><X size={18} /></button>
                             {imageUrl ? (
                                 <>
                                     <img src={imageUrl} alt="Preview" className="w-full h-full object-cover bg-black/20" />
