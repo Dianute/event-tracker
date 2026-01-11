@@ -683,7 +683,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                         </a>
                       ) : (
                         <a
-                          href="/"
+                          href="/dashboard"
                           className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group"
                         >
                           <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">

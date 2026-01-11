@@ -255,30 +255,52 @@ app.post('/events', async (req, res) => {
 });
 
 // PUT /events/:id - Update an event
-app.put('/events/:id', requireAuth, async (req, res) => {
+app.put('/events/:id', async (req, res) => {
     const { id } = req.params;
     const { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
+    const adminPass = req.headers['x-admin-password'];
+    const userEmail = req.headers['x-user-email'];
 
     try {
+        // Ownership Check
+        if (adminPass !== ADMIN_PASSWORD) {
+            const { rows } = await db.query("SELECT userEmail FROM events WHERE id = $1", [id]);
+            if (rows.length === 0) return res.status(404).json({ error: "Event not found" });
+            if (!userEmail || rows[0].userEmail !== userEmail) {
+                return res.status(401).json({ error: "Unauthorized: You don't own this event" });
+            }
+        }
+
         const query = `UPDATE events SET title = $1, description = $2, type = $3, lat = $4, lng = $5, startTime = $6, endTime = $7, venue = $8, date = $9, link = $10, imageUrl = $11 WHERE id = $12`;
         const params = [title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, id];
 
         const { rowCount } = await db.query(query, params);
-        if (rowCount === 0) return res.status(404).json({ error: "Event not found" });
-        res.json({ success: true });
+        res.json({ success: true, changes: rowCount });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
 // DELETE /events/:id - Delete an event
-app.delete('/events/:id', requireAuth, async (req, res) => {
+app.delete('/events/:id', async (req, res) => {
     const { id } = req.params;
+    const adminPass = req.headers['x-admin-password'];
+    const userEmail = req.headers['x-user-email'];
 
     try {
+        // Ownership Check
+        if (adminPass !== ADMIN_PASSWORD) {
+            const { rows: meta } = await db.query("SELECT userEmail, imageUrl FROM events WHERE id = $1", [id]);
+            if (meta.length === 0) return res.status(404).json({ error: "Event not found" });
+            if (!userEmail || meta[0].userEmail !== userEmail) {
+                return res.status(401).json({ error: "Unauthorized: You don't own this event" });
+            }
+        }
+
         const { rows } = await db.query("SELECT imageUrl FROM events WHERE id = $1", [id]);
 
         if (rows.length > 0 && rows[0].imageUrl) {
+            // ... (image deletion logic continues same as before)
             try {
                 const urlParts = rows[0].imageUrl.split('/uploads/');
                 if (urlParts.length > 1) {
