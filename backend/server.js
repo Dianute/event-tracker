@@ -23,6 +23,7 @@ const toCamelCase = (row) => {
             .replace(/starttime/g, 'startTime')
             .replace(/endtime/g, 'endTime')
             .replace(/imageurl/g, 'imageUrl')
+            .replace(/useremail/g, 'userEmail')
             .replace(/createdat/g, 'createdAt');
         newRow[camelKey] = row[key];
     }
