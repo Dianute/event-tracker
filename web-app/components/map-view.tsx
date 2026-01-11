@@ -7,6 +7,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard } from 'lucide-react';
 import MyEventsModal from './my-events-modal';
+import WeeklyMenuModal from './weekly-menu-modal';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -249,6 +250,39 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [mounted, setMounted] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMyEvents, setShowMyEvents] = useState(false);
+  const [showWeeklyMenu, setShowWeeklyMenu] = useState(false);
+
+  // Helper: Batch Create for Weekly Menu
+  const handleBatchCreate = async (newEvents: any[]) => {
+    setShowWeeklyMenu(false);
+    if (!session?.user?.email) {
+      alert("Please sign in to generate menu.");
+      return;
+    }
+
+    // Iterate and POST
+    let addedCount = 0;
+    for (const ev of newEvents) {
+      try {
+        const payload = { ...ev, userEmail: session.user.email };
+        const ApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+        await fetch(`${ApiUrl}/api/events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        addedCount++;
+      } catch (e) {
+        console.error("Batch create error:", e);
+      }
+    }
+
+    if (addedCount > 0) {
+      if (onRefresh) onRefresh();
+      alert(`Successfully created ${addedCount} events! 📅`);
+    }
+  };
+
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
@@ -862,6 +896,17 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
           if (onAddEventClick) onAddEventClick(loc);
         }}
+        onGenerateMenu={() => {
+          setShowMyEvents(false);
+          setShowWeeklyMenu(true);
+        }}
+      />
+
+      <WeeklyMenuModal
+        isOpen={showWeeklyMenu}
+        onClose={() => setShowWeeklyMenu(false)}
+        initialLocation={userLocation}
+        onSubmit={handleBatchCreate}
       />
     </>
   );

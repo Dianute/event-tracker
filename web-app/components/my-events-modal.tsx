@@ -9,9 +9,10 @@ interface MyEventsModalProps {
     events: any[];
     onEdit: (event: any) => void;
     onAdd: () => void;
+    onGenerateMenu: () => void;
 }
 
-export default function MyEventsModal({ isOpen, onClose, events, onEdit, onAdd }: MyEventsModalProps) {
+export default function MyEventsModal({ isOpen, onClose, events, onEdit, onAdd, onGenerateMenu }: MyEventsModalProps) {
     const { data: session } = useSession();
 
     if (!isOpen) return null;
@@ -30,13 +31,24 @@ export default function MyEventsModal({ isOpen, onClose, events, onEdit, onAdd }
                 <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
                     <div>
                         <h2 className="text-xl font-black text-white flex items-center gap-2">
-                            My Events 🎨
+                            Creator Dashboard 🚀
                         </h2>
                         <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">
                             {myEvents.length} Active Events
                         </p>
                     </div>
                     <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => {
+                                onClose();
+                                onGenerateMenu();
+                            }}
+                            className="p-2 bg-purple-600/10 hover:bg-purple-600 text-purple-400 hover:text-white border border-purple-500/30 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold"
+                            title="Generate Weekly Menu"
+                        >
+                            <Calendar size={16} />
+                            <span>Weekly Menu</span>
+                        </button>
                         <button
                             onClick={() => {
                                 onClose();
