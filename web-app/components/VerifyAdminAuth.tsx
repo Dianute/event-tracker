@@ -81,8 +81,8 @@ export default function VerifyAdminAuth({ children }: { children: React.ReactNod
                 }
             } else {
                 // Scenario 3: Authenticated but NOT Admin -> Redirect to User Dashboard
-                console.log("Redirecting non-admin to user dashboard...");
-                router.replace('/dashboard');
+                console.log("Redirecting non-admin to home...");
+                router.replace('/');
             }
         }
     }, [status, session, router]);
