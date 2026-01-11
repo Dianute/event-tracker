@@ -500,7 +500,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             )}
 
             {/* Main Modal Container */}
-            <div className={`w-full h-[92dvh] md:h-[85vh] md:max-h-[800px] md:max-w-[450px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
+            <div className={`w-full h-[98dvh] md:h-[85vh] md:max-h-[800px] md:max-w-[450px] md:rounded-3xl shadow-2xl overflow-hidden flex flex-col transition-all duration-300 relative
                 ${theme === 'cyberpunk' ? 'bg-[#050510] border-cyan-500/30' :
                     theme === 'light' ? 'bg-white border-gray-200 text-gray-900' :
                         'bg-zinc-900 border-white/10 text-white'}
