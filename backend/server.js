@@ -71,13 +71,26 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 // Initialize Schema (Check if tables exist)
 (async () => {
     try {
-        const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-        // Split by semicolon to execute statements individually (pg restriction)
-        const statements = schema.split(';').filter(s => s.trim());
-        for (const stmt of statements) {
-            await db.pool.query(stmt);
+        const schemaPath = path.join(__dirname, 'schema.sql');
+        const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+
+        // Split by semicolon to run individually (simple migration)
+        const statements = schemaSql.split(';').filter(s => s.trim());
+        for (const statement of statements) {
+            await db.query(statement);
         }
-        console.log('✅ Schema initialized (PostgreSQL).');
+
+        // --- HIGH PERFORMANCE INDEXES (Added for 100k+ Scale) ---
+        // 1. Spatial Index for fast map lookups
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_lat_lng ON events (lat, lng);`);
+        // 2. Time Index for feed sorting
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_start_time ON events (startTime);`);
+        // 3. Email Index for "My Templates" & Analytics
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_user_email ON events (userEmail);`);
+        // 4. Analytics Indexes
+        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_views ON events (views);`);
+
+        console.log("✅ Database initialized & Optimized for Scale");
     } catch (err) {
         console.error('❌ Error initializing schema:', err);
     }

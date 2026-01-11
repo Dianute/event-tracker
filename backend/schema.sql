@@ -20,6 +20,12 @@ ALTER TABLE events ADD COLUMN IF NOT EXISTS userEmail TEXT;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks INT DEFAULT 0;
 
+-- Indexes for Scale
+CREATE INDEX IF NOT EXISTS idx_events_lat_lng ON events (lat, lng);
+CREATE INDEX IF NOT EXISTS idx_events_start_time ON events (startTime);
+CREATE INDEX IF NOT EXISTS idx_events_user_email ON events (userEmail);
+CREATE INDEX IF NOT EXISTS idx_events_views ON events (views);
+
 CREATE TABLE IF NOT EXISTS scout_logs (
     id TEXT PRIMARY KEY,
     startTime TIMESTAMP DEFAULT NOW(),
