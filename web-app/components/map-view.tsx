@@ -514,8 +514,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     return () => clearTimeout(timeoutId);
   }, [activeList]);
 
-  if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
-
   // Extract unique templates (Title + details) for Quick Fill
   const userTemplates = useMemo(() => {
     if (!session?.user?.email) return [];
@@ -525,6 +523,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
     ).values());
   }, [events, session?.user?.email]);
+
+  if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   return (
     <>
