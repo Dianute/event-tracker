@@ -127,7 +127,14 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
 
                         {/* Main Image - Top Aligned, Contained, No Padding */}
                         <img src={imageUrl} alt={title}
-                            onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!showControls) {
+                                    setShowControls(true);
+                                } else {
+                                    onZoom(imageUrl);
+                                }
+                            }}
                             className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 ${showControls ? 'object-contain object-top' : 'object-contain object-center bg-black/90'}`}
                         />
                     </>
@@ -472,7 +479,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         src={zoomedImage || imageUrl}
                                         alt="Zoom"
                                         className="max-w-full max-h-full object-contain p-2"
-                                        onClick={(e) => e.stopPropagation()}
+                                    // Removed stopPropagation so clicking image also closes (Tap to Dismiss)
                                     />
                                 </TransformComponent>
                             </>
