@@ -300,7 +300,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000); // Default to far future
 
     const timeMatch = (() => {
-      if (timeFilter === 'all') return true;
+      // Default 'all' means 'all ACTIVE events' (not ended more than 2h ago)
+      if (timeFilter === 'all') {
+        const cutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000); // Keep events visible 2h after end
+        return end > cutoff;
+      }
       if (timeFilter === 'live') return now >= start && now <= end;
       if (timeFilter === 'today') {
         const tomorrow4am = new Date(now);

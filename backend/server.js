@@ -170,10 +170,9 @@ app.get('/events', async (req, res) => {
         // Convert casing for Frontend
         const formattedRows = rows.map(toCamelCase);
 
-        // Javascript Filtering matches legacy logic
-        const activeEvents = formattedRows.filter(ev => isEventActive(ev.endTime));
-
-        res.json(activeEvents);
+        // RETURN ALL (Frontend will filter active vs history)
+        // This is critical for "Reuse Past Event" feature.
+        res.json(formattedRows);
     } catch (err) {
         console.error("GET /events error:", err);
         // Ensure we send a string even if err.message is missing
@@ -399,7 +398,9 @@ app.post('/api/preview-link', requireAuth, (req, res) => {
 app.get('/targets', requireAuth, async (req, res) => {
     try {
         const { rows } = await db.query("SELECT * FROM targets");
-        res.json(rows);
+
+        // Return camelCase to frontend
+        res.json(toCamelCase(rows[0]));
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
