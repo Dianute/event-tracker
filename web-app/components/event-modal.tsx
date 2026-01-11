@@ -153,7 +153,10 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
             </div>
 
             {/* 3. Bottom Content (Absolute Overlays) */}
-            <div className={`absolute bottom-0 left-0 right-0 z-40 p-6 pb-20 md:pb-8 text-white flex flex-col gap-4 max-h-[60%] overflow-y-auto scrollbar-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <div
+                onClick={(e) => e.stopPropagation()}
+                className={`absolute bottom-0 left-0 right-0 z-40 p-6 pb-20 md:pb-8 text-white flex flex-col gap-4 max-h-[60%] overflow-y-auto scrollbar-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            >
                 <div><h1 className="text-3xl font-black leading-tight drop-shadow-xl mb-1 text-white">{title}</h1></div>
                 <div className="flex flex-col gap-2 shrink-0">
                     <div className="flex items-center gap-3 text-sm font-medium text-gray-200">
