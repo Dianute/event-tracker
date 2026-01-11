@@ -288,6 +288,7 @@ export default function AdminEventsPage() {
                                         <th className="p-4 border-b border-gray-700">Event Details</th>
                                         <th className="p-4 border-b border-gray-700">Date & Time</th>
                                         <th className="p-4 border-b border-gray-700">Venue</th>
+                                        <th className="p-4 border-b border-gray-700">Creator</th>
                                         <th className="p-4 border-b border-gray-700 w-24">Source</th>
                                         <th className="p-4 border-b border-gray-700 text-right">Actions</th>
                                     </tr>
@@ -329,6 +330,9 @@ export default function AdminEventsPage() {
                                                         <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
                                                         <span className="line-clamp-2">{event.venue || event.location || 'Online'}</span>
                                                     </div>
+                                                </td>
+                                                <td className="p-4 text-xs text-gray-400 max-w-[150px] truncate" title={event.userEmail}>
+                                                    {event.userEmail || '-'}
                                                 </td>
                                                 <td className="p-4 text-center">
                                                     {event.link && event.link !== 'N/A' ? (

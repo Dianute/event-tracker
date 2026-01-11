@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2 } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { useSession } from "next-auth/react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -229,7 +230,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
 interface EventModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => void;
+    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; userEmail?: string | null }) => void;
     initialLocation: { lat: number; lng: number } | null;
     userLocation?: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing or editing
@@ -262,6 +263,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [isFullImage, setIsFullImage] = useState(false);
     const [zoomedImage, setZoomedImage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { data: session } = useSession();
 
     // Derived distance (Legacy use)
     const distanceString = (event && userLocation && event.lat && event.lng)
@@ -435,7 +437,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             title, description, type,
             startTime: startDateTime.toISOString(),
             endTime: endDateTime.toISOString(),
-            lat: finalLat!, lng: finalLng!, venue, imageUrl
+            lat: finalLat!, lng: finalLng!, venue, imageUrl,
+            userEmail: session?.user?.email
         });
         onClose();
     };

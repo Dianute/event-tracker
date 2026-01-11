@@ -213,7 +213,7 @@ const downloadImage = async (url) => {
 
 // POST /events - Create a new event (PUBLIC)
 app.post('/events', async (req, res) => {
-    let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl } = req.body;
+    let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail } = req.body;
 
     // AUTO-DOWNLOAD
     if (imageUrl && imageUrl.startsWith('http') && !imageUrl.includes('data:image')) {
@@ -242,8 +242,8 @@ app.post('/events', async (req, res) => {
         }
 
         const id = uuidv4();
-        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`;
-        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl];
+        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`;
+        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail];
 
         const { rows: newEvent } = await db.query(query, params);
         res.json(toCamelCase(newEvent[0]));

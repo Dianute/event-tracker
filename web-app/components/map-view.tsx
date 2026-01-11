@@ -317,6 +317,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       return dist <= radiusFilter;
     })();
 
+
+
     const query = searchQuery.toLowerCase();
     const searchMatch = !searchQuery ||
       e.title.toLowerCase().includes(query) ||
@@ -580,7 +582,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                   <input
                     autoFocus
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Search tags..."
                     className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400 min-w-0"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}

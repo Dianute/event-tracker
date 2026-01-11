@@ -11,8 +11,12 @@ CREATE TABLE IF NOT EXISTS events (
     date TEXT,
     link TEXT,
     imageUrl TEXT,
+    userEmail TEXT,
     createdAt TIMESTAMP DEFAULT NOW()
 );
+
+-- Migration for existing tables
+ALTER TABLE events ADD COLUMN IF NOT EXISTS userEmail TEXT;
 
 CREATE TABLE IF NOT EXISTS scout_logs (
     id TEXT PRIMARY KEY,

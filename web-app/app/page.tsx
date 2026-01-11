@@ -79,7 +79,7 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string; lat?: number; lng?: number; venue?: string; imageUrl?: string }) => {
+  const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; userEmail?: string | null }) => {
     const newEvent = {
       ...data,
       // Use data.lat/lng if provided (from address search), otherwise fall back to selectedLocation
