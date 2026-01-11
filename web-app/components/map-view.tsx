@@ -517,11 +517,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   // Extract unique templates (Title + details) for Quick Fill
-  const userTemplates = !session?.user?.email ? [] : Array.from(new Map(
-    events
-      .filter(e => e.userEmail === session?.user?.email)
-      .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
-  ).values());
+  const userTemplates = useMemo(() => {
+    if (!session?.user?.email) return [];
+    return Array.from(new Map(
+      events
+        .filter(e => e.userEmail === session?.user?.email)
+        .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
+    ).values());
+  }, [events, session?.user?.email]);
 
   return (
     <>

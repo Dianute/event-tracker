@@ -547,7 +547,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <div className="p-6 pt-4 pb-2"><h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2></div>
 
-                        <div className="p-6 pt-4 pb-2"><h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2></div>
+
 
                         {/* QUICK FILL TEMPLATES */}
                         {!event && templates.length > 0 && (
