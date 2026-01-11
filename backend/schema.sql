@@ -44,3 +44,17 @@ CREATE TABLE IF NOT EXISTS targets (
     lastEventsFound INTEGER DEFAULT 0,
     lastScrapedAt TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS user_locations (
+    id TEXT PRIMARY KEY,
+    userEmail TEXT NOT NULL,
+    name TEXT NOT NULL,
+    venue TEXT NOT NULL,
+    lat DOUBLE PRECISION,
+    lng DOUBLE PRECISION,
+    usageCount INT DEFAULT 1,
+    lastUsed TIMESTAMP DEFAULT NOW(),
+    createdAt TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_locations_email ON user_locations (userEmail);

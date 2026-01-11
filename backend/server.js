@@ -335,7 +335,98 @@ app.delete('/events/:id', async (req, res) => {
     }
 });
 
-// --- ANALYTICS ENDPOINTS ---
+// ==================== USER LOCATIONS API ====================
+
+// GET /api/user-locations - Fetch user's saved locations
+app.get('/api/user-locations', async (req, res) => {
+    const userEmail = req.headers['x-user-email'];
+
+    if (!userEmail) {
+        return res.status(401).json({ error: 'Unauthorized: x-user-email header required' });
+    }
+
+    try {
+        const { rows } = await db.query(
+            'SELECT * FROM user_locations WHERE userEmail = $1 ORDER BY lastUsed DESC',
+            [userEmail]
+        );
+        res.json(rows.map(toCamelCase));
+    } catch (err) {
+        console.error('GET /api/user-locations error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/user-locations - Save or update a location
+app.post('/api/user-locations', async (req, res) => {
+    const userEmail = req.headers['x-user-email'];
+    const { name, venue, lat, lng } = req.body;
+
+    if (!userEmail) {
+        return res.status(401).json({ error: 'Unauthorized: x-user-email header required' });
+    }
+
+    if (!name || !venue) {
+        return res.status(400).json({ error: 'Missing required fields: name, venue' });
+    }
+
+    try {
+        // Check if location already exists for this user (by venue)
+        const { rows: existing } = await db.query(
+            'SELECT id, usageCount FROM user_locations WHERE userEmail = $1 AND venue = $2',
+            [userEmail, venue]
+        );
+
+        if (existing.length > 0) {
+            // Update existing location
+            const { rows } = await db.query(
+                'UPDATE user_locations SET name = $1, lat = $2, lng = $3, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $4 RETURNING *',
+                [name, lat, lng, existing[0].id]
+            );
+            res.json({ success: true, location: toCamelCase(rows[0]), updated: true });
+        } else {
+            // Insert new location
+            const id = uuidv4();
+            const { rows } = await db.query(
+                'INSERT INTO user_locations (id, userEmail, name, venue, lat, lng) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [id, userEmail, name, venue, lat, lng]
+            );
+            res.json({ success: true, location: toCamelCase(rows[0]), updated: false });
+        }
+    } catch (err) {
+        console.error('POST /api/user-locations error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/user-locations/:id - Delete a saved location
+app.delete('/api/user-locations/:id', async (req, res) => {
+    const { id } = req.params;
+    const userEmail = req.headers['x-user-email'];
+
+    if (!userEmail) {
+        return res.status(401).json({ error: 'Unauthorized: x-user-email header required' });
+    }
+
+    try {
+        // Ownership check
+        const { rows } = await db.query('SELECT userEmail FROM user_locations WHERE id = $1', [id]);
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Location not found' });
+        }
+        if (rows[0].useremail !== userEmail) {
+            return res.status(401).json({ error: 'Unauthorized: You don\'t own this location' });
+        }
+
+        await db.query('DELETE FROM user_locations WHERE id = $1', [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error('DELETE /api/user-locations error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==================== ANALYTICS API ====================ENDPOINTS ---
 
 // POST /api/analytics/view - Batch Increment Views
 app.post('/api/analytics/view', async (req, res) => {
