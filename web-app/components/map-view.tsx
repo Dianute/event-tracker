@@ -858,6 +858,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         onEdit={(e) => {
           if (onEditEvent) onEditEvent(e);
         }}
+        onAdd={() => {
+          const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
+          if (onAddEventClick) onAddEventClick(loc);
+        }}
       />
     </>
   );

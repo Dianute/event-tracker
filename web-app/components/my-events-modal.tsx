@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Calendar, MapPin, Edit, EyeOff } from 'lucide-react';
+import { X, Calendar, MapPin, Edit, EyeOff, Plus } from 'lucide-react';
 import { useSession } from "next-auth/react";
 
 interface MyEventsModalProps {
@@ -8,9 +8,10 @@ interface MyEventsModalProps {
     onClose: () => void;
     events: any[];
     onEdit: (event: any) => void;
+    onAdd: () => void;
 }
 
-export default function MyEventsModal({ isOpen, onClose, events, onEdit }: MyEventsModalProps) {
+export default function MyEventsModal({ isOpen, onClose, events, onEdit, onAdd }: MyEventsModalProps) {
     const { data: session } = useSession();
 
     if (!isOpen) return null;
@@ -35,9 +36,21 @@ export default function MyEventsModal({ isOpen, onClose, events, onEdit }: MyEve
                             {myEvents.length} Active Events
                         </p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
-                        <X size={20} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => {
+                                onClose();
+                                onAdd();
+                            }}
+                            className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors text-white flex items-center gap-2 text-xs font-bold"
+                        >
+                            <Plus size={16} />
+                            <span>Create</span>
+                        </button>
+                        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
+                            <X size={20} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* List */}
