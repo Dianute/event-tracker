@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import EventModal from '@/components/event-modal';
+import { useSession } from 'next-auth/react';
 
 // We need to import MapView dynamically to avoid SSR issues with Leaflet
 // MapView accepts events, onMapClick, and newLocation props
@@ -38,6 +39,8 @@ export default function Home() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
   const [feedEvents, setFeedEvents] = useState<Event[]>([]);
+  const [userLocations, setUserLocations] = useState<any[]>([]);
+  const { data: session } = useSession();
 
   // Load events from Backend on mount
   // Load events from Backend
@@ -60,6 +63,18 @@ export default function Home() {
     const interval = setInterval(fetchEvents, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch user's saved locations
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch(`${API_URL}/api/user-locations`, {
+        headers: { 'x-user-email': session.user.email }
+      })
+        .then(res => res.json())
+        .then(data => setUserLocations(data))
+        .catch(err => console.error('Failed to load locations:', err));
+    }
+  }, [session]);
 
   const handleMapClick = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
@@ -168,6 +183,7 @@ export default function Home() {
         theme={currentTheme}
         readOnly={!!selectedEvent}
         feed={feedEvents}
+        userLocations={userLocations}
       />
 
     </main>
