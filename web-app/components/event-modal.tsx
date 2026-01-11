@@ -159,20 +159,22 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                 </button>
             </div>
 
-            {/* Zoom Hint Button */}
-            <button
-                onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
-                className={`absolute top-20 right-6 z-30 pointer-events-auto bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 transition-all duration-300 active:scale-95 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-            >
-                <Maximize2 size={12} className="text-white/90" />
-                <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest">Zoom</span>
-            </button>
+
 
             {/* 3. Bottom Content (Absolute Overlays) */}
             <div
                 onClick={(e) => e.stopPropagation()}
                 className={`absolute bottom-0 left-0 right-0 z-40 p-6 pb-20 md:pb-8 text-white flex flex-col gap-4 max-h-[60%] overflow-y-auto scrollbar-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             >
+                {/* Zoom Hint Button (Above Title) */}
+                <button
+                    onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
+                    className="self-start mb-2 pointer-events-auto bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 transition-all duration-300 active:scale-95"
+                >
+                    <Maximize2 size={12} className="text-white" />
+                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Zoom</span>
+                </button>
+
                 <div><h1 className="text-3xl font-black leading-tight drop-shadow-xl mb-1 text-white">{title}</h1></div>
                 <div className="flex flex-col gap-2 shrink-0">
                     <div className="flex items-center gap-3 text-sm font-medium text-gray-200">
