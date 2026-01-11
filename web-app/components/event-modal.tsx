@@ -237,9 +237,10 @@ interface EventModalProps {
     theme?: 'dark' | 'light' | 'cyberpunk';
     readOnly?: boolean;
     feed?: any[];
+    savedLocations?: { venue: string; lat: number; lng: number }[]; // New Prop
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [] }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [] }: EventModalProps) {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -550,8 +551,29 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <div className="relative">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
                                 <input type="text" required value={venue} placeholder="Search address..." onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCurrentLocation(null); }}
-                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                    onFocus={() => { if (!venue) setIsSearching(true); }} // Trigger suggestions on focus if empty
+                                />
                                 <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
+
+                                {/* SMART LOCATION PICKER: Show Saved Locations if Search is empty/start */}
+                                {(isSearching && !venue && savedLocations.length > 0) && (
+                                    <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
+                                        <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm sticky top-0">My Locations</div>
+                                        {savedLocations.map((loc, i) => (
+                                            <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => {
+                                                    setVenue(loc.venue);
+                                                    setCurrentLocation({ lat: loc.lat, lng: loc.lng });
+                                                    setIsSearching(false);
+                                                }}>
+                                                <MapPin size={12} className="text-green-500" /> {loc.venue}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
                                 {suggestions.length > 0 && (
                                     <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
                                         {suggestions.map((item, i) => (

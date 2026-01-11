@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy } from 'lucide-react';
 import EventModal from '@/components/event-modal';
 import Link from 'next/link';
 
@@ -74,6 +74,35 @@ export default function DashboardPage() {
                 }
             })
             .catch(err => alert("Error: " + err.message));
+    };
+
+    const handleDuplicate = (event: any) => {
+        // Calculate "Tomorrow" for the default date
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(12, 0, 0, 0);
+
+        const tomorrowEnd = new Date(tomorrow);
+        tomorrowEnd.setHours(14, 0, 0, 0);
+
+        // Clone event but reset specific fields
+        const newEvent = {
+            ...event,
+            id: null,             // Ensure it's treated as a NEW event
+            title: event.title,    // Keep title
+            description: event.description, // Keep description
+            venue: event.venue,    // Keep location
+            lat: event.lat,
+            lng: event.lng,
+            imageUrl: '',          // Clear image (User wants to take new photo)
+            startTime: tomorrow.toISOString(),
+            endTime: tomorrowEnd.toISOString(),
+            views: 0,
+            clicks: 0
+        };
+
+        setSelectedEvent(newEvent);
+        setIsModalOpen(true);
     };
 
     const handleEdit = (event: any) => {
@@ -299,6 +328,13 @@ export default function DashboardPage() {
                                         </td>
                                         <td className="p-5 text-right">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                <button
+                                                    onClick={() => handleDuplicate(event)}
+                                                    className="p-3 bg-white/5 hover:bg-green-500/20 text-green-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                    title="Duplicate for Tomorrow"
+                                                >
+                                                    <Copy size={18} />
+                                                </button>
                                                 <button
                                                     onClick={() => handleEdit(event)}
                                                     className="p-3 bg-white/5 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all active:scale-90 border border-white/5"
