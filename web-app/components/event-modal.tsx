@@ -550,61 +550,69 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
 
                         {/* QUICK FILL TEMPLATES - UX REDESIGN: Big, Friendly Cards */}
-                        {!event && templates.length > 0 && (
+                        {!event && (
                             <div className="px-6 pb-4 pt-2">
                                 <label className="block text-xs font-extrabold text-blue-500 uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Zap size={14} className="animate-pulse" />
                                     Tap to Reuse Past Event
                                 </label>
-                                <div className="grid grid-cols-1 gap-2.5">
-                                    {templates.slice(0, 3).map(t => (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setTitle(t.title);
-                                                setDescription(t.description || '');
-                                                setType(t.type);
-                                                setVenue(t.venue || '');
-                                                if (t.lat && t.lng) setCurrentLocation({ lat: t.lat, lng: t.lng });
 
-                                                // Extract Time
-                                                const s = new Date(t.startTime);
-                                                const e = new Date(t.endTime);
-                                                const formatTime = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-                                                setTimeStart(formatTime(s));
-                                                setTimeEnd(formatTime(e));
-                                            }}
-                                            className={`group w-full p-4 rounded-2xl border transition-all active:scale-95 flex items-center gap-4 text-left relative overflow-hidden
-                                                ${theme === 'light'
-                                                    ? 'bg-white border-blue-200 shadow-sm hover:shadow-md hover:border-blue-400'
-                                                    : 'bg-gradient-to-br from-white/5 to-white/0 border-white/10 hover:border-white/30 hover:bg-white/10'}`}
-                                        >
-                                            {/* Icon Box */}
-                                            <div className={`p-3 rounded-xl shrink-0 ${theme === 'light' ? 'bg-blue-50 text-blue-600' : 'bg-blue-500/20 text-blue-400'}`}>
-                                                <RotateCw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
-                                            </div>
+                                {templates.length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-2.5">
+                                        {templates.slice(0, 3).map(t => (
+                                            <button
+                                                key={t.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setTitle(t.title);
+                                                    setDescription(t.description || '');
+                                                    setType(t.type);
+                                                    setVenue(t.venue || '');
+                                                    if (t.lat && t.lng) setCurrentLocation({ lat: t.lat, lng: t.lng });
 
-                                            {/* Text Info */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className={`font-black text-base truncate mb-0.5 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                                    {t.title}
+                                                    // Extract Time
+                                                    const s = new Date(t.startTime);
+                                                    const e = new Date(t.endTime);
+                                                    const formatTime = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+                                                    setTimeStart(formatTime(s));
+                                                    setTimeEnd(formatTime(e));
+                                                }}
+                                                className={`group w-full p-4 rounded-2xl border transition-all active:scale-95 flex items-center gap-4 text-left relative overflow-hidden
+                                                    ${theme === 'light'
+                                                        ? 'bg-white border-blue-200 shadow-sm hover:shadow-md hover:border-blue-400'
+                                                        : 'bg-gradient-to-br from-white/5 to-white/0 border-white/10 hover:border-white/30 hover:bg-white/10'}`}
+                                            >
+                                                {/* Icon Box */}
+                                                <div className={`p-3 rounded-xl shrink-0 ${theme === 'light' ? 'bg-blue-50 text-blue-600' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                    <RotateCw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
                                                 </div>
-                                                <div className="flex items-center gap-2 text-xs font-medium opacity-60 truncate">
-                                                    <MapPin size={10} /> {t.venue || 'No Location'}
-                                                </div>
-                                                <div className="flex items-center gap-2 text-xs font-medium opacity-60 mt-0.5">
-                                                    <Clock size={10} /> {new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(t.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                </div>
-                                            </div>
 
-                                            {/* Action Arrow */}
-                                            <div className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-blue-500">
-                                                <ArrowLeft size={20} className="rotate-180" />
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
+                                                {/* Text Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className={`font-black text-base truncate mb-0.5 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                                        {t.title}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs font-medium opacity-60 truncate">
+                                                        <MapPin size={10} /> {t.venue || 'No Location'}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs font-medium opacity-60 mt-0.5">
+                                                        <Clock size={10} /> {new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(t.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </div>
+                                                </div>
+
+                                                {/* Action Arrow */}
+                                                <div className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-blue-500">
+                                                    <ArrowLeft size={20} className="rotate-180" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className={`p-4 rounded-2xl border border-dashed flex items-center gap-3 opacity-60 ${theme === 'light' ? 'border-gray-300 bg-gray-50' : 'border-white/20 bg-white/5'}`}>
+                                        <div className="p-2 bg-gray-200 dark:bg-zinc-800 rounded-full"><Plus size={16} /></div>
+                                        <div className="text-xs font-medium">Create your first event to save it here as a shortcut!</div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
