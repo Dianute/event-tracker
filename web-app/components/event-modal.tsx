@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Zap, RotateCw, ArrowLeft } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
@@ -238,12 +238,45 @@ interface EventModalProps {
     readOnly?: boolean;
     feed?: any[];
     savedLocations?: { venue: string; lat: number; lng: number }[];
-    templates?: any[]; // New Prop
+    templates?: any[]; // Legacy Prop (optional now)
+    allEvents?: any[]; // NEW: Pass full history for internal calculation
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], templates = [] }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations: rawSaved = [], templates: rawTemplates = [], allEvents = [] }: EventModalProps) {
     const { data: session } = useSession(); // Access User Session
-    const [title, setTitle] = useState('');
+
+    // Internal Reference Data (if not provided by props, calculate from allEvents)
+    const templates = useMemo(() => {
+        if (rawTemplates.length > 0) return rawTemplates;
+        if (!session?.user?.email || !allEvents || allEvents.length === 0) return [];
+
+        return Array.from(new Map(
+            allEvents
+                .filter(e => {
+                    const owner = e.userEmail || (e as any).useremail;
+                    return owner && session?.user?.email && owner.toLowerCase() === session.user.email.toLowerCase();
+                })
+                .map(e => [e.title, e])
+        ).values()).sort((a: any, b: any) => {
+            const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
+            const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
+            return timeB - timeA;
+        });
+    }, [allEvents, session?.user?.email, rawTemplates]);
+
+    const savedLocations = useMemo(() => {
+        if (rawSaved.length > 0) return rawSaved;
+        if (!session?.user?.email || !allEvents || allEvents.length === 0) return [];
+
+        return Array.from(new Map(
+            allEvents
+                .filter(e => {
+                    const owner = e.userEmail || (e as any).useremail;
+                    return (owner && session?.user?.email && owner.toLowerCase() === session.user.email.toLowerCase()) && e.venue && e.lat && e.lng;
+                })
+                .map(e => [e.venue, { venue: e.venue, lat: e.lat, lng: e.lng }])
+        ).values());
+    }, [allEvents, session?.user?.email, rawSaved]);
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
 
