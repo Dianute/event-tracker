@@ -598,48 +598,55 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         <div className="p-6 pt-4 pb-2 flex items-center justify-between">
                             <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2>
 
-                            {/* Saved Spots Dropdown - Inline with Header */}
+                            {/* Saved Spots - Two Buttons: Last Used + Dropdown */}
                             {!event && userLocations.length > 0 && (
-                                <div className="relative">
+                                <div className="flex gap-2 items-center">
+                                    {/* Button 1: Last Used Location (Quick Access) */}
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            // First location = most recently used
                                             const firstLoc = userLocations[0];
                                             setTitle(firstLoc.name);
                                             setVenue(firstLoc.venue);
                                             if (firstLoc.lat && firstLoc.lng) setCurrentLocation({ lat: firstLoc.lat, lng: firstLoc.lng });
                                             localStorage.removeItem('event-form-draft');
-
-                                            // If there are more locations, toggle dropdown
-                                            if (userLocations.length > 1) {
-                                                setShowLocationDropdown(!showLocationDropdown);
-                                            }
                                         }}
                                         className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
                                     >
-                                        {userLocations[0].name} {userLocations.length > 1 ? '▼' : ''}
+                                        {userLocations[0].name}
                                     </button>
 
-                                    {showLocationDropdown && userLocations.length > 1 && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
-                                            {userLocations.slice(1).map(loc => (
-                                                <button
-                                                    key={loc.id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setTitle(loc.name);
-                                                        setVenue(loc.venue);
-                                                        if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
-                                                        setShowLocationDropdown(false);
-                                                        // Clear draft to prevent auto-restore override
-                                                        localStorage.removeItem('event-form-draft');
-                                                    }}
-                                                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
-                                                >
-                                                    {loc.name}
-                                                </button>
-                                            ))}
+                                    {/* Button 2: Dropdown for Other Locations */}
+                                    {userLocations.length > 1 && (
+                                        <div className="relative">
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                                                className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
+                                            >
+                                                More ▼
+                                            </button>
+
+                                            {showLocationDropdown && (
+                                                <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
+                                                    {userLocations.slice(1).map(loc => (
+                                                        <button
+                                                            key={loc.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setTitle(loc.name);
+                                                                setVenue(loc.venue);
+                                                                if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
+                                                                setShowLocationDropdown(false);
+                                                                localStorage.removeItem('event-form-draft');
+                                                            }}
+                                                            className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
+                                                        >
+                                                            {loc.name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
