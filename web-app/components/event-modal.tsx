@@ -265,7 +265,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [isFullImage, setIsFullImage] = useState(false);
     const [zoomedImage, setZoomedImage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { data: session } = useSession();
 
     // Derived distance (Legacy use)
     const distanceString = (event && userLocation && event.lat && event.lng)
