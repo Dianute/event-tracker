@@ -277,6 +277,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 .map(e => [e.venue, { venue: e.venue, lat: e.lat, lng: e.lng }])
         ).values());
     }, [allEvents, session?.user?.email, rawSaved]);
+
+    const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
 
