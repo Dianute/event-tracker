@@ -242,7 +242,7 @@ interface EventModalProps {
 }
 
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], templates = [] }: EventModalProps) {
-
+    const { data: session } = useSession(); // Access User Session
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
