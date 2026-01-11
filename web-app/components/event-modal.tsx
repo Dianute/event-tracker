@@ -465,11 +465,14 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         <X size={28} />
                                     </button>
                                 </div>
-                                <div className="w-full h-full" onClick={(e) => e.stopPropagation()}>
-                                    <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
-                                        <img src={zoomedImage || imageUrl} alt="Zoom" className="max-w-full max-h-full object-contain p-2" />
-                                    </TransformComponent>
-                                </div>
+                                <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                                    <img
+                                        src={zoomedImage || imageUrl}
+                                        alt="Zoom"
+                                        className="max-w-full max-h-full object-contain p-2"
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </TransformComponent>
                             </>
                         )}
                     </TransformWrapper>
