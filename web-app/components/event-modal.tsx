@@ -603,15 +603,27 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <div className="relative">
                                     <button
                                         type="button"
-                                        onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                                        onClick={() => {
+                                            // First location = most recently used
+                                            const firstLoc = userLocations[0];
+                                            setTitle(firstLoc.name);
+                                            setVenue(firstLoc.venue);
+                                            if (firstLoc.lat && firstLoc.lng) setCurrentLocation({ lat: firstLoc.lat, lng: firstLoc.lng });
+                                            localStorage.removeItem('event-form-draft');
+
+                                            // If there are more locations, toggle dropdown
+                                            if (userLocations.length > 1) {
+                                                setShowLocationDropdown(!showLocationDropdown);
+                                            }
+                                        }}
                                         className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
                                     >
-                                        Saved Spots ▼
+                                        {userLocations[0].name} {userLocations.length > 1 ? '▼' : ''}
                                     </button>
 
-                                    {showLocationDropdown && (
+                                    {showLocationDropdown && userLocations.length > 1 && (
                                         <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
-                                            {userLocations.map(loc => (
+                                            {userLocations.slice(1).map(loc => (
                                                 <button
                                                     key={loc.id}
                                                     type="button"
