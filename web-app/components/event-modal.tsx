@@ -557,8 +557,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 </label>
 
                                 {/* DEBUG: VISIBLE AUTH CHECK */}
-                                <div className="text-[10px] text-red-500 font-mono mb-2">
-                                    DEBUG: Email={session?.user?.email || 'NULL'} | Templates={templates.length}
+                                <div className="text-[10px] text-red-500 font-mono mb-2 break-all bg-black/10 p-1 rounded">
+                                    DEBUG: Me={session?.user?.email} | Count={events.length} | LastEmail={events[0]?.userEmail || 'N/A'}
                                 </div>
 
                                 {templates.length > 0 ? (
