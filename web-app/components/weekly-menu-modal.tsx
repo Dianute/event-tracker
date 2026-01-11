@@ -154,16 +154,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors" />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Description</label>
-                                <textarea
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    rows={2}
-                                    placeholder="Menu details..."
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors resize-none text-sm"
-                                />
-                            </div>
+
                             <div className="relative">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
                                 <input type="text" value={venue} placeholder="Search venue..."
@@ -184,6 +175,16 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                         ))}
                                     </div>
                                 )}
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Description</label>
+                                <textarea
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    rows={2}
+                                    placeholder="Menu details..."
+                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors resize-none text-sm"
+                                />
                             </div>
                         </div>
 
