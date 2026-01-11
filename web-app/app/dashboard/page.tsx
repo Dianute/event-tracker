@@ -20,12 +20,19 @@ export default function DashboardPage() {
     const [totalViews, setTotalViews] = useState(0);
     const [totalClicks, setTotalClicks] = useState(0);
 
-    // Extract unique templates from user's events
-    const userTemplates = Array.from(new Map(
-        events
-            .filter(e => e.userEmail === session?.user?.email)
-            .map(e => [e.title, e]) // Deduplicate by title
-    ).values());
+    // Fetch user's saved locations from API
+    const [userLocations, setUserLocations] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (session?.user?.email) {
+            fetch(`${API_URL}/api/user-locations`, {
+                headers: { 'x-user-email': session.user.email }
+            })
+                .then(res => res.json())
+                .then(data => setUserLocations(data))
+                .catch(err => console.error('Failed to load locations:', err));
+        }
+    }, [session]);
 
     const fetchEvents = () => {
         if (!session?.user?.email) return;
@@ -381,7 +388,7 @@ export default function DashboardPage() {
                 initialLocation={selectedEvent ? { lat: selectedEvent.lat, lng: selectedEvent.lng } : null}
                 event={selectedEvent}
                 theme="dark"
-                templates={userTemplates}
+                userLocations={userLocations}
             />
         </div>
     );

@@ -514,15 +514,19 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     return () => clearTimeout(timeoutId);
   }, [activeList]);
 
-  // Extract unique templates (Title + details) for Quick Fill
-  const userTemplates = useMemo(() => {
-    if (!session?.user?.email) return [];
-    return Array.from(new Map(
-      events
-        .filter(e => e.userEmail === session?.user?.email)
-        .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
-    ).values());
-  }, [events, session?.user?.email]);
+  // Fetch user's saved locations from API
+  const [userLocations, setUserLocations] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      fetch(`${API_URL}/api/user-locations`, {
+        headers: { 'x-user-email': session.user.email }
+      })
+        .then(res => res.json())
+        .then(data => setUserLocations(data))
+        .catch(err => console.error('Failed to load locations:', err));
+    }
+  }, [session]);
 
   if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 

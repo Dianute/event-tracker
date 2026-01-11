@@ -260,6 +260,36 @@ app.post('/events', async (req, res) => {
         const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail];
 
         const { rows: newEvent } = await db.query(query, params);
+
+        // Auto-save location for user (if provided)
+        if (venue && lat && lng && userEmail) {
+            try {
+                const locationName = title; // Use event title as location name
+                const { rows: existingLoc } = await db.query(
+                    'SELECT id FROM user_locations WHERE userEmail = $1 AND venue = $2',
+                    [userEmail, venue]
+                );
+
+                if (existingLoc.length > 0) {
+                    // Update existing location
+                    await db.query(
+                        'UPDATE user_locations SET name = $1, lat = $2, lng = $3, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $4',
+                        [locationName, lat, lng, existingLoc[0].id]
+                    );
+                } else {
+                    // Insert new location
+                    const locationId = uuidv4();
+                    await db.query(
+                        'INSERT INTO user_locations (id, userEmail, name, venue, lat, lng) VALUES ($1, $2, $3, $4, $5, $6)',
+                        [locationId, userEmail, locationName, venue, lat, lng]
+                    );
+                }
+            } catch (locErr) {
+                console.error('Failed to auto-save location:', locErr);
+                // Don't fail the event creation if location save fails
+            }
+        }
+
         res.json(toCamelCase(newEvent[0]));
 
     } catch (err) {

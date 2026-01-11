@@ -238,10 +238,10 @@ interface EventModalProps {
     readOnly?: boolean;
     feed?: any[];
     savedLocations?: { venue: string; lat: number; lng: number }[];
-    templates?: any[]; // New Prop
+    userLocations?: any[]; // Persistent saved locations from API
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], templates = [] }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], userLocations = [] }: EventModalProps) {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -266,6 +266,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [zoomedImage, setZoomedImage] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
     const { data: session } = useSession();
+
+    // Dropdown state for saved locations
+    const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
     // Derived distance (Legacy use)
     const distanceString = (event && userLocation && event.lat && event.lng)
@@ -587,42 +590,36 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <div className="p-6 pt-4 pb-2"><h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2></div>
 
+                        {/* Saved Spots Dropdown - Space-Saving UI */}
+                        {!event && userLocations.length > 0 && (
+                            <div className="absolute top-6 right-6 z-10">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                                    className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
+                                >
+                                    Saved Spots ▼
+                                </button>
 
-
-                        {/* SAVED SPOTS - Minimalist Design */}
-                        {!event && templates.length > 0 && (
-                            <div className="px-6 pb-4">
-                                <div className="flex gap-2 overflow-x-auto scrollbar-none">
-                                    {templates.map(t => (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setTitle(t.title);
-                                                setDescription(t.description);
-                                                setType(t.type);
-                                                setVenue(t.venue || '');
-                                                if (t.lat && t.lng) setCurrentLocation({ lat: t.lat, lng: t.lng });
-
-                                                // Extract Time
-                                                const s = new Date(t.startTime);
-                                                const e = new Date(t.endTime);
-                                                const formatTime = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-                                                setTimeStart(formatTime(s));
-                                                setTimeEnd(formatTime(e));
-                                            }}
-                                            className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase whitespace-nowrap transition-all border-dashed border-gray-500 text-gray-500 hover:border-blue-500 hover:text-blue-500"
-                                        >
-                                            {t.title}
-                                        </button>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase whitespace-nowrap transition-all border-dashed border-green-500 text-green-500 hover:bg-green-500/10"
-                                    >
-                                        +
-                                    </button>
-                                </div>
+                                {showLocationDropdown && (
+                                    <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden">
+                                        {userLocations.map(loc => (
+                                            <button
+                                                key={loc.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setTitle(loc.name);
+                                                    setVenue(loc.venue);
+                                                    if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
+                                                    setShowLocationDropdown(false);
+                                                }}
+                                                className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
+                                            >
+                                                {loc.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 
