@@ -549,11 +549,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
 
 
-                        {/* QUICK FILL TEMPLATES */}
+                        {/* SAVED SPOTS - Minimalist Design */}
                         {!event && templates.length > 0 && (
-                            <div className="px-6 pb-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Quick Fill from History</label>
-                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+                            <div className="px-6 pb-4">
+                                <div className="flex gap-2 overflow-x-auto scrollbar-none">
                                     {templates.map(t => (
                                         <button
                                             key={t.id}
@@ -572,15 +571,17 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                 setTimeStart(formatTime(s));
                                                 setTimeEnd(formatTime(e));
                                             }}
-                                            className={`whitespace-nowrap px-4 py-2 rounded-xl border text-xs font-bold transition-all active:scale-95 flex items-center gap-2
-                                                ${theme === 'light'
-                                                    ? 'bg-white border-gray-200 text-gray-700 hover:border-blue-500 hover:text-blue-500 shadow-sm'
-                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:border-blue-500 hover:text-white hover:bg-blue-500/10'}`}
+                                            className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase whitespace-nowrap transition-all border-dashed border-gray-500 text-gray-500 hover:border-blue-500 hover:text-blue-500"
                                         >
-                                            <span className="opacity-50">{t.title === 'Lunch Special' ? '🍔' : '⚡'}</span>
                                             {t.title}
                                         </button>
                                     ))}
+                                    <button
+                                        type="button"
+                                        className="px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase whitespace-nowrap transition-all border-dashed border-green-500 text-green-500 hover:bg-green-500/10"
+                                    >
+                                        +
+                                    </button>
                                 </div>
                             </div>
                         )}
