@@ -349,6 +349,43 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         }
     }, [isOpen, event, initialLocation]);
 
+    // Auto-save form data to localStorage (prevents data loss when switching tabs)
+    useEffect(() => {
+        if (!event && isOpen) {
+            // Only auto-save in CREATE mode
+            const formData = {
+                title, description, type, venue, date, timeStart, timeEnd, isAllDay,
+                currentLocation, imageUrl
+            };
+            localStorage.setItem('event-form-draft', JSON.stringify(formData));
+        }
+    }, [title, description, type, venue, date, timeStart, timeEnd, isAllDay, currentLocation, imageUrl, event, isOpen]);
+
+    // Restore draft on modal open (CREATE mode only)
+    useEffect(() => {
+        if (isOpen && !event) {
+            const draft = localStorage.getItem('event-form-draft');
+            if (draft) {
+                try {
+                    const data = JSON.parse(draft);
+                    // Only restore if fields are empty (don't override template clicks)
+                    if (!title && data.title) setTitle(data.title);
+                    if (!description && data.description) setDescription(data.description);
+                    if (data.type) setType(data.type);
+                    if (!venue && data.venue) setVenue(data.venue);
+                    if (data.date) setDate(data.date);
+                    if (data.timeStart) setTimeStart(data.timeStart);
+                    if (data.timeEnd) setTimeEnd(data.timeEnd);
+                    if (data.isAllDay !== undefined) setIsAllDay(data.isAllDay);
+                    if (data.currentLocation) setCurrentLocation(data.currentLocation);
+                    if (data.imageUrl) setImageUrl(data.imageUrl);
+                } catch (e) {
+                    console.error('Failed to restore draft:', e);
+                }
+            }
+        }
+    }, [isOpen, event]);
+
     // Feed Scroll Logic
     useEffect(() => {
         if (isOpen && readOnly && event && scrollRef.current) {
@@ -442,6 +479,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             lat: finalLat!, lng: finalLng!, venue, imageUrl,
             userEmail: session?.user?.email
         });
+
+        // Clear draft on successful submission
+        localStorage.removeItem('event-form-draft');
         onClose();
     };
 
