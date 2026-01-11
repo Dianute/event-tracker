@@ -364,9 +364,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         }
     }, [title, description, type, venue, date, timeStart, timeEnd, isAllDay, currentLocation, imageUrl, event, isOpen]);
 
-    // Restore draft on modal open (CREATE mode only)
+    // Restore draft on modal open (CREATE mode only) - Run once per modal open
+    const draftRestored = useRef(false);
     useEffect(() => {
-        if (isOpen && !event) {
+        if (isOpen && !event && !draftRestored.current) {
             const draft = localStorage.getItem('event-form-draft');
             if (draft) {
                 try {
@@ -382,10 +383,16 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     if (data.isAllDay !== undefined) setIsAllDay(data.isAllDay);
                     if (data.currentLocation) setCurrentLocation(data.currentLocation);
                     if (data.imageUrl) setImageUrl(data.imageUrl);
+                    draftRestored.current = true;
                 } catch (e) {
                     console.error('Failed to restore draft:', e);
                 }
             }
+        }
+
+        // Reset flag when modal closes
+        if (!isOpen) {
+            draftRestored.current = false;
         }
     }, [isOpen, event]);
 
