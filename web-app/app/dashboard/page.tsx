@@ -13,14 +13,19 @@ export default function DashboardPage() {
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
 
     // Derived Stats
     const [totalViews, setTotalViews] = useState(0);
     const [totalClicks, setTotalClicks] = useState(0);
 
-    // Edit Modal State
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+    // Extract unique templates from user's events
+    const userTemplates = Array.from(new Map(
+        events
+            .filter(e => e.userEmail === session?.user?.email)
+            .map(e => [e.title, e]) // Deduplicate by title
+    ).values());
 
     const fetchEvents = () => {
         if (!session?.user?.email) return;
@@ -376,6 +381,7 @@ export default function DashboardPage() {
                 initialLocation={selectedEvent ? { lat: selectedEvent.lat, lng: selectedEvent.lng } : null}
                 event={selectedEvent}
                 theme="dark"
+                templates={userTemplates}
             />
         </div>
     );
