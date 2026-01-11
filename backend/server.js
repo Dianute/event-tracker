@@ -170,9 +170,10 @@ app.get('/events', async (req, res) => {
         // Convert casing for Frontend
         const formattedRows = rows.map(toCamelCase);
 
-        // RETURN ALL (Frontend will filter active vs history)
-        // This is critical for "Reuse Past Event" feature.
-        res.json(formattedRows);
+        // Javascript Filtering matches legacy logic
+        const activeEvents = formattedRows.filter(ev => isEventActive(ev.endTime));
+
+        res.json(activeEvents);
     } catch (err) {
         console.error("GET /events error:", err);
         // Ensure we send a string even if err.message is missing
@@ -398,9 +399,7 @@ app.post('/api/preview-link', requireAuth, (req, res) => {
 app.get('/targets', requireAuth, async (req, res) => {
     try {
         const { rows } = await db.query("SELECT * FROM targets");
-
-        // Return camelCase to frontend
-        res.json(toCamelCase(rows[0]));
+        res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -609,65 +608,6 @@ app.get('/cleanup', (req, res) => {
     res.json({ message: "Cleanup started" });
 });
 
-// GET /locations - Get user's saved spots
-app.get('/locations', async (req, res) => {
-    const userEmail = req.query.userEmail;
-    if (!userEmail) return res.json([]);
-    try {
-        const { rows } = await db.query("SELECT * FROM saved_locations WHERE userEmail = $1 ORDER BY created_at DESC", [userEmail]);
-        // Helper toCamelCase is used elsewhere, assuming it's available in scope
-        res.json(rows.map(toCamelCase));
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// POST /locations - Save a spot
-app.post('/locations', async (req, res) => {
-    const { userEmail, venue, lat, lng, nickname } = req.body;
-    if (!userEmail || !lat || !lng) return res.status(400).json({ error: "Missing fields" });
-    try {
-        const { rows } = await db.query(
-            "INSERT INTO saved_locations (userEmail, venue, lat, lng, nickname) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-            [userEmail, venue, lat, lng, nickname || venue]
-        );
-        res.json(toCamelCase(rows[0]));
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// DELETE /locations/:id - Remove a spot
-app.delete('/locations/:id', async (req, res) => {
-    try {
-        await db.query("DELETE FROM saved_locations WHERE id = $1", [req.params.id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// Ensure Saved Locations Table Exists on Startup
-const initSavedLocations = async () => {
-    try {
-        await db.query(`
-            CREATE TABLE IF NOT EXISTS saved_locations (
-                id SERIAL PRIMARY KEY,
-                userEmail TEXT NOT NULL,
-                venue TEXT NOT NULL,
-                lat DOUBLE PRECISION NOT NULL,
-                lng DOUBLE PRECISION NOT NULL,
-                nickname TEXT, 
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        `);
-        console.log("✅ Saved Locations Table Verified");
-    } catch (err) {
-        console.error("⚠️ Failed to init saved_locations table:", err.message);
-    }
-};
-
-app.listen(PORT, async () => {
-    await initSavedLocations();
+app.listen(PORT, () => {
     console.log(`Backend Server connecting to Postgres on port ${PORT}`);
 });

@@ -168,7 +168,6 @@ export default function Home() {
         theme={currentTheme}
         readOnly={!!selectedEvent}
         feed={feedEvents}
-        allEvents={events} // Pass full history for Templates
       />
 
     </main>

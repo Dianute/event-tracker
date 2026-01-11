@@ -26,17 +26,6 @@ CREATE INDEX IF NOT EXISTS idx_events_start_time ON events (startTime);
 CREATE INDEX IF NOT EXISTS idx_events_user_email ON events (userEmail);
 CREATE INDEX IF NOT EXISTS idx_events_views ON events (views);
 
-CREATE TABLE IF NOT EXISTS saved_locations (
-    id SERIAL PRIMARY KEY,
-    userEmail TEXT NOT NULL,
-    venue TEXT NOT NULL,
-    lat DOUBLE PRECISION NOT NULL,
-    lng DOUBLE PRECISION NOT NULL,
-    nickname TEXT, 
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX IF NOT EXISTS idx_saved_locations_email ON saved_locations(userEmail);
-
 CREATE TABLE IF NOT EXISTS scout_logs (
     id TEXT PRIMARY KEY,
     startTime TIMESTAMP DEFAULT NOW(),

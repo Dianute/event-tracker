@@ -300,11 +300,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000); // Default to far future
 
     const timeMatch = (() => {
-      // Default 'all' means 'all ACTIVE events' (not ended more than 2h ago)
-      if (timeFilter === 'all') {
-        const cutoff = new Date(now.getTime() - 2 * 60 * 60 * 1000); // Keep events visible 2h after end
-        return end > cutoff;
-      }
+      if (timeFilter === 'all') return true;
       if (timeFilter === 'live') return now >= start && now <= end;
       if (timeFilter === 'today') {
         const tomorrow4am = new Date(now);
@@ -523,25 +519,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     if (!session?.user?.email) return [];
     return Array.from(new Map(
       events
-        .filter(e => {
-          const owner = e.userEmail || (e as any).useremail;
-          return owner && session?.user?.email && owner.toLowerCase() === session.user.email.toLowerCase();
-        })
+        .filter(e => e.userEmail === session?.user?.email)
         .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
-    ).values()).sort((a, b) => {
-      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
-      return timeB - timeA;
-    }); // Sort Newest First
-  }, [events, session?.user?.email]);
-
-  // Extract unique past locations (Venue + Lat/Lng) for "Where" dropdown
-  const userPastLocations = useMemo(() => {
-    if (!session?.user?.email) return [];
-    return Array.from(new Map(
-      events
-        .filter(e => e.userEmail === session?.user?.email && e.venue && e.lat && e.lng)
-        .map(e => [e.venue, { venue: e.venue, lat: e.lat, lng: e.lng }]) // Map by venue
     ).values());
   }, [events, session?.user?.email]);
 
@@ -784,14 +763,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Live Event List (Bottom) */}
-      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000]
-        flex flex-row md:flex-col
-        overflow-x-auto md:overflow-x-visible md:overflow-y-auto
-        snap-x snap-mandatory
-        gap-0 md:gap-0
-        px-2 md:px-0 md:w-80
+      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+        flex flex-row md:flex-col 
+        overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
+        snap-x snap-mandatory 
+        gap-0 md:gap-0 
+        px-2 md:px-0 md:w-80 
         py-3 md:py-0
-        max-h-[50vh] md:max-h-[60vh]
+        max-h-[50vh] md:max-h-[60vh] 
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
 
 
