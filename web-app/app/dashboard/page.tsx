@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap } from 'lucide-react';
 import EventModal from '@/components/event-modal';
 import Link from 'next/link';
 
@@ -125,40 +125,104 @@ export default function DashboardPage() {
         );
     }
 
+    const activeEventsCount = events.filter(ev => {
+        if (!ev.endTime) return true;
+        return new Date(ev.endTime) > new Date();
+    }).length;
+
+    const simulatedReach = (events.length * 42) + (activeEventsCount * 15);
+
     return (
         <div className="min-h-screen p-6 pb-32 transition-colors duration-300 bg-[#050510] font-sans text-white">
             <div className="max-w-6xl mx-auto">
                 <header className="mb-8">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-gray-800 pb-6">
-                        <div>
-                            <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-3 transition-colors text-xs font-bold uppercase tracking-wider bg-white/5 px-3 py-1.5 rounded-full hover:bg-white/10">
+                    <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10 border-b border-gray-800 pb-10">
+                        <div className="space-y-4">
+                            <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-1 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
                                 <ArrowLeft size={14} /> Back to Map
                             </Link>
-                            <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x">
-                                Business Dashboard 🚀
-                            </h1>
-                            <p className="text-gray-400 text-sm mt-2 font-medium">
-                                Manage your active events and promotions
+
+                            <div className="flex items-center gap-4">
+                                <h1 className="text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x leading-tight">
+                                    Business Hub
+                                </h1>
+                                <div className="bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border border-yellow-500/30 px-3 py-1 rounded-lg flex items-center gap-2 animate-pulse">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_#eab308]"></span>
+                                    <span className="text-[10px] font-black text-yellow-500 uppercase tracking-tighter">Free Plan</span>
+                                </div>
+                            </div>
+
+                            <p className="text-gray-400 text-base font-medium max-w-lg leading-relaxed">
+                                Welcome back, <span className="text-white font-bold">{session?.user?.name || 'Partner'}</span>. Monitor your reach and manage your active promotions.
                             </p>
                         </div>
 
-                        <div className="flex gap-3">
+                        <div className="flex flex-col md:flex-row gap-4">
+                            <button
+                                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
+                            >
+                                <CreditCard size={18} className="text-purple-400" />
+                                <span>Go Pro</span>
+                            </button>
                             <button
                                 onClick={() => { setSelectedEvent(null); setIsModalOpen(true); }}
-                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-95 flex items-center gap-2"
+                                className="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-900/40 active:scale-95 flex items-center justify-center gap-3"
                             >
-                                <Plus size={16} /> Create Event
+                                <Plus size={20} />
+                                <span>Launch Event</span>
                             </button>
                         </div>
                     </div>
 
-                    <div className="relative">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                        <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-blue-500/30 transition-all">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="p-3 bg-blue-500/10 text-blue-400 rounded-2xl">
+                                    <CalendarIcon size={24} />
+                                </div>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Total Events</span>
+                            </div>
+                            <div className="text-4xl font-black text-white">{events.length}</div>
+                        </div>
+
+                        <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-green-500/30 transition-all">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all"></div>
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="p-3 bg-green-500/10 text-green-400 rounded-2xl">
+                                    <Activity size={24} />
+                                </div>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Active Now</span>
+                            </div>
+                            <div className="text-4xl font-black text-white">{activeEventsCount}</div>
+                        </div>
+
+                        <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-purple-500/30 transition-all">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all"></div>
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="p-3 bg-purple-500/10 text-purple-400 rounded-2xl">
+                                    <BarChart3 size={24} />
+                                </div>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Profile Reach</span>
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                                <div className="text-4xl font-black text-white">{simulatedReach}</div>
+                                <span className="text-green-400 text-xs font-bold">+12%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative group">
+                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                            <Zap size={20} />
+                        </div>
                         <input
                             type="text"
-                            placeholder="Search your events..."
+                            placeholder="Filter your events by title, venue, or category..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-gray-900/50 border border-gray-700/50 rounded-xl pl-4 pr-12 py-3 text-white focus:outline-none focus:border-blue-500/50 focus:bg-gray-800 transition-all font-medium placeholder:text-gray-600"
+                            className="w-full bg-gray-900 border border-white/5 rounded-2xl pl-12 pr-12 py-5 text-white focus:outline-none focus:border-blue-500/50 shadow-2xl transition-all font-medium placeholder:text-gray-600"
                         />
                     </div>
                 </header>
