@@ -524,6 +524,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     ).values());
   }, [events, session?.user?.email]);
 
+  // Extract unique past locations (Venue + Lat/Lng) for "Where" dropdown
+  const userPastLocations = useMemo(() => {
+    if (!session?.user?.email) return [];
+    return Array.from(new Map(
+      events
+        .filter(e => e.userEmail === session?.user?.email && e.venue && e.lat && e.lng)
+        .map(e => [e.venue, { venue: e.venue, lat: e.lat, lng: e.lng }]) // Map by venue
+    ).values());
+  }, [events, session?.user?.email]);
+
   if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
   return (
@@ -763,14 +773,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Live Event List (Bottom) */}
-      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-        flex flex-row md:flex-col 
-        overflow-x-auto md:overflow-x-visible md:overflow-y-auto 
-        snap-x snap-mandatory 
-        gap-0 md:gap-0 
-        px-2 md:px-0 md:w-80 
+      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000]
+        flex flex-row md:flex-col
+        overflow-x-auto md:overflow-x-visible md:overflow-y-auto
+        snap-x snap-mandatory
+        gap-0 md:gap-0
+        px-2 md:px-0 md:w-80
         py-3 md:py-0
-        max-h-[50vh] md:max-h-[60vh] 
+        max-h-[50vh] md:max-h-[60vh]
         hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
 
 
