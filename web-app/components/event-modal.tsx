@@ -588,40 +588,42 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {isUploading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center flex-col gap-2 backdrop-blur-sm"><div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" /><span className="text-xs font-bold text-white">Uploading...</span></div>}
                         </div>
 
-                        <div className="p-6 pt-4 pb-2"><h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2></div>
+                        <div className="p-6 pt-4 pb-2 flex items-center justify-between">
+                            <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2>
 
-                        {/* Saved Spots Dropdown - Space-Saving UI */}
-                        {!event && userLocations.length > 0 && (
-                            <div className="absolute top-6 right-6 z-10">
-                                <button
-                                    type="button"
-                                    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
-                                    className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
-                                >
-                                    Saved Spots ▼
-                                </button>
+                            {/* Saved Spots Dropdown - Inline with Header */}
+                            {!event && userLocations.length > 0 && (
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                                        className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
+                                    >
+                                        Saved Spots ▼
+                                    </button>
 
-                                {showLocationDropdown && (
-                                    <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden">
-                                        {userLocations.map(loc => (
-                                            <button
-                                                key={loc.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setTitle(loc.name);
-                                                    setVenue(loc.venue);
-                                                    if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
-                                                    setShowLocationDropdown(false);
-                                                }}
-                                                className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
-                                            >
-                                                {loc.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                                    {showLocationDropdown && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
+                                            {userLocations.map(loc => (
+                                                <button
+                                                    key={loc.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setTitle(loc.name);
+                                                        setVenue(loc.venue);
+                                                        if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
+                                                        setShowLocationDropdown(false);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
+                                                >
+                                                    {loc.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
 
                         <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
                             {/* FORM FIELDS */}
