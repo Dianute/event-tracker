@@ -521,7 +521,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       events
         .filter(e => e.userEmail === session?.user?.email)
         .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
-    ).values());
+    ).values()).sort((a, b) => {
+      const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const timeB = b.startTime ? new Date(b.startTime).getTime() : 0;
+      return timeB - timeA;
+    }); // Sort Newest First
   }, [events, session?.user?.email]);
 
   // Extract unique past locations (Venue + Lat/Lng) for "Where" dropdown

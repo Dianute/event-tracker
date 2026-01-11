@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2 } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Zap, RotateCw, ArrowLeft } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
 
@@ -549,18 +549,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
 
 
-                        {/* QUICK FILL TEMPLATES */}
+                        {/* QUICK FILL TEMPLATES - UX REDESIGN: Big, Friendly Cards */}
                         {!event && templates.length > 0 && (
-                            <div className="px-6 pb-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Quick Fill from History</label>
-                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
-                                    {templates.map(t => (
+                            <div className="px-6 pb-4 pt-2">
+                                <label className="block text-xs font-extrabold text-blue-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                    <Zap size={14} className="animate-pulse" />
+                                    Tap to Reuse Past Event
+                                </label>
+                                <div className="grid grid-cols-1 gap-2.5">
+                                    {templates.slice(0, 3).map(t => (
                                         <button
                                             key={t.id}
                                             type="button"
                                             onClick={() => {
                                                 setTitle(t.title);
-                                                setDescription(t.description);
+                                                setDescription(t.description || '');
                                                 setType(t.type);
                                                 setVenue(t.venue || '');
                                                 if (t.lat && t.lng) setCurrentLocation({ lat: t.lat, lng: t.lng });
@@ -572,13 +575,33 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                 setTimeStart(formatTime(s));
                                                 setTimeEnd(formatTime(e));
                                             }}
-                                            className={`whitespace-nowrap px-4 py-2 rounded-xl border text-xs font-bold transition-all active:scale-95 flex items-center gap-2
+                                            className={`group w-full p-4 rounded-2xl border transition-all active:scale-95 flex items-center gap-4 text-left relative overflow-hidden
                                                 ${theme === 'light'
-                                                    ? 'bg-white border-gray-200 text-gray-700 hover:border-blue-500 hover:text-blue-500 shadow-sm'
-                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:border-blue-500 hover:text-white hover:bg-blue-500/10'}`}
+                                                    ? 'bg-white border-blue-200 shadow-sm hover:shadow-md hover:border-blue-400'
+                                                    : 'bg-gradient-to-br from-white/5 to-white/0 border-white/10 hover:border-white/30 hover:bg-white/10'}`}
                                         >
-                                            <span className="opacity-50">{t.title === 'Lunch Special' ? '🍔' : '⚡'}</span>
-                                            {t.title}
+                                            {/* Icon Box */}
+                                            <div className={`p-3 rounded-xl shrink-0 ${theme === 'light' ? 'bg-blue-50 text-blue-600' : 'bg-blue-500/20 text-blue-400'}`}>
+                                                <RotateCw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
+                                            </div>
+
+                                            {/* Text Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`font-black text-base truncate mb-0.5 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                                                    {t.title}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs font-medium opacity-60 truncate">
+                                                    <MapPin size={10} /> {t.venue || 'No Location'}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-xs font-medium opacity-60 mt-0.5">
+                                                    <Clock size={10} /> {new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(t.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            </div>
+
+                                            {/* Action Arrow */}
+                                            <div className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-blue-500">
+                                                <ArrowLeft size={20} className="rotate-180" />
+                                            </div>
                                         </button>
                                     ))}
                                 </div>
