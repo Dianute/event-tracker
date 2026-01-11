@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS events (
 ALTER TABLE events ADD COLUMN IF NOT EXISTS userEmail TEXT;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks INT DEFAULT 0;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT;
 
 -- Indexes for Scale
 CREATE INDEX IF NOT EXISTS idx_events_lat_lng ON events (lat, lng);
@@ -54,7 +55,8 @@ CREATE TABLE IF NOT EXISTS user_locations (
     lng DOUBLE PRECISION,
     usageCount INT DEFAULT 1,
     lastUsed TIMESTAMP DEFAULT NOW(),
-    createdAt TIMESTAMP DEFAULT NOW()
+    createdAt TIMESTAMP DEFAULT NOW(),
+    phone TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_locations_email ON user_locations (userEmail);

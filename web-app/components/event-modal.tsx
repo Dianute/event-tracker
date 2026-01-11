@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2 } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Phone } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
 
@@ -230,7 +230,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
 interface EventModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; userEmail?: string | null }) => void;
+    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; phone?: string; userEmail?: string | null }) => void;
     initialLocation: { lat: number; lng: number } | null;
     userLocation?: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing or editing
@@ -254,6 +254,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [isAllDay, setIsAllDay] = useState(false);
 
     const [venue, setVenue] = useState('');
+    const [phone, setPhone] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -307,6 +308,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 setIsAllDay(isFullDay);
 
                 setVenue(event.venue || event.location || '');
+                setPhone(event.phone || '');
                 setImageUrl(event.imageUrl || '');
                 setCurrentLocation({ lat: event.lat, lng: event.lng });
             } else {
@@ -315,6 +317,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 setDescription('');
                 setType('social');
                 setImageUrl('');
+                setPhone('');
                 setIsUploading(false);
                 setIsSearching(false);
                 setZoomedImage('');
@@ -486,7 +489,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             title, description, type,
             startTime: startDateTime.toISOString(),
             endTime: endDateTime.toISOString(),
-            lat: finalLat!, lng: finalLng!, venue, imageUrl,
+            lat: finalLat!, lng: finalLng!, venue, imageUrl, phone,
             userEmail: session?.user?.email
         });
 
@@ -608,6 +611,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             const firstLoc = userLocations[0];
                                             setTitle(firstLoc.name);
                                             setVenue(firstLoc.venue);
+                                            setPhone(firstLoc.phone || '');
                                             if (firstLoc.lat && firstLoc.lng) setCurrentLocation({ lat: firstLoc.lat, lng: firstLoc.lng });
                                             localStorage.removeItem('event-form-draft');
                                         }}
@@ -636,6 +640,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                             onClick={() => {
                                                                 setTitle(loc.name);
                                                                 setVenue(loc.venue);
+                                                                setPhone(loc.phone || '');
                                                                 if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
                                                                 setShowLocationDropdown(false);
                                                                 localStorage.removeItem('event-form-draft');
@@ -697,6 +702,19 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         ))}
                                     </div>
                                 )}
+                            </div>
+
+                            {/* Phone Field */}
+                            <div className="relative">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Phone (Optional)</label>
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    placeholder="+370 600 12345"
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                />
+                                <Phone className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
                             </div>
 
                             <div>

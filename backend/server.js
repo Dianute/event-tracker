@@ -227,7 +227,7 @@ const downloadImage = async (url) => {
 
 // POST /events - Create a new event (PUBLIC)
 app.post('/events', async (req, res) => {
-    let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail } = req.body;
+    let { title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone } = req.body;
 
     // AUTO-DOWNLOAD
     if (imageUrl && imageUrl.startsWith('http') && !imageUrl.includes('data:image')) {
@@ -256,8 +256,8 @@ app.post('/events', async (req, res) => {
         }
 
         const id = uuidv4();
-        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`;
-        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail];
+        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`;
+        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone];
 
         const { rows: newEvent } = await db.query(query, params);
 
@@ -273,15 +273,15 @@ app.post('/events', async (req, res) => {
                 if (existingLoc.length > 0) {
                     // Update existing location
                     await db.query(
-                        'UPDATE user_locations SET name = $1, lat = $2, lng = $3, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $4',
-                        [locationName, lat, lng, existingLoc[0].id]
+                        'UPDATE user_locations SET name = $1, lat = $2, lng = $3, phone = $4, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $5',
+                        [locationName, lat, lng, phone, existingLoc[0].id]
                     );
                 } else {
                     // Insert new location
                     const locationId = uuidv4();
                     await db.query(
-                        'INSERT INTO user_locations (id, userEmail, name, venue, lat, lng) VALUES ($1, $2, $3, $4, $5, $6)',
-                        [locationId, userEmail, locationName, venue, lat, lng]
+                        'INSERT INTO user_locations (id, userEmail, name, venue, lat, lng, phone) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                        [locationId, userEmail, locationName, venue, lat, lng, phone]
                     );
                 }
             } catch (locErr) {
@@ -390,7 +390,7 @@ app.get('/api/user-locations', async (req, res) => {
 // POST /api/user-locations - Save or update a location
 app.post('/api/user-locations', async (req, res) => {
     const userEmail = req.headers['x-user-email'];
-    const { name, venue, lat, lng } = req.body;
+    const { name, venue, lat, lng, phone } = req.body;
 
     if (!userEmail) {
         return res.status(401).json({ error: 'Unauthorized: x-user-email header required' });
@@ -410,16 +410,16 @@ app.post('/api/user-locations', async (req, res) => {
         if (existing.length > 0) {
             // Update existing location
             const { rows } = await db.query(
-                'UPDATE user_locations SET name = $1, lat = $2, lng = $3, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $4 RETURNING *',
-                [name, lat, lng, existing[0].id]
+                'UPDATE user_locations SET name = $1, lat = $2, lng = $3, phone = $4, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $5 RETURNING *',
+                [name, lat, lng, phone, existing[0].id]
             );
             res.json({ success: true, location: toCamelCase(rows[0]), updated: true });
         } else {
             // Insert new location
             const id = uuidv4();
             const { rows } = await db.query(
-                'INSERT INTO user_locations (id, userEmail, name, venue, lat, lng) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [id, userEmail, name, venue, lat, lng]
+                'INSERT INTO user_locations (id, userEmail, name, venue, lat, lng, phone) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                [id, userEmail, name, venue, lat, lng, phone]
             );
             res.json({ success: true, location: toCamelCase(rows[0]), updated: false });
         }
