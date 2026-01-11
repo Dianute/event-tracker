@@ -439,7 +439,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         <div className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             {/* GLOBAL ZOOM OVERLAY */}
             {isFullImage && (zoomedImage || imageUrl) && (
-                <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[3000] bg-black flex items-center justify-center animate-in fade-in duration-200"
+                    onClick={() => setIsFullImage(false)}>
 
                     <TransformWrapper
                         initialScale={1}
@@ -464,9 +465,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         <X size={28} />
                                     </button>
                                 </div>
-                                <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
-                                    <img src={zoomedImage || imageUrl} alt="Zoom" className="max-w-full max-h-full object-contain p-2" />
-                                </TransformComponent>
+                                <div className="w-full h-full" onClick={(e) => e.stopPropagation()}>
+                                    <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
+                                        <img src={zoomedImage || imageUrl} alt="Zoom" className="max-w-full max-h-full object-contain p-2" />
+                                    </TransformComponent>
+                                </div>
                             </>
                         )}
                     </TransformWrapper>
