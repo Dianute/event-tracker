@@ -516,11 +516,11 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   if (!mounted || !defaultCenter) return <div className="h-screen w-full bg-black flex items-center justify-center text-white">Initializing System...</div>;
 
-  // Extract unique past locations for the current user
-  const userPastLocations = !session?.user?.email ? [] : Array.from(new Map(
+  // Extract unique templates (Title + details) for Quick Fill
+  const userTemplates = !session?.user?.email ? [] : Array.from(new Map(
     events
-      .filter(e => e.userEmail === session?.user?.email && e.venue && e.lat && e.lng)
-      .map(e => [e.venue, { venue: e.venue, lat: e.lat, lng: e.lng }]) // Map by venue name to dedup
+      .filter(e => e.userEmail === session?.user?.email)
+      .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
   ).values());
 
   return (

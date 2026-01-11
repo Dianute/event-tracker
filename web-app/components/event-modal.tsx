@@ -237,10 +237,11 @@ interface EventModalProps {
     theme?: 'dark' | 'light' | 'cyberpunk';
     readOnly?: boolean;
     feed?: any[];
-    savedLocations?: { venue: string; lat: number; lng: number }[]; // New Prop
+    savedLocations?: { venue: string; lat: number; lng: number }[];
+    templates?: any[]; // New Prop
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [] }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], templates = [] }: EventModalProps) {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -545,6 +546,44 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         </div>
 
                         <div className="p-6 pt-4 pb-2"><h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2></div>
+
+                        <div className="p-6 pt-4 pb-2"><h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2></div>
+
+                        {/* QUICK FILL TEMPLATES */}
+                        {!event && templates.length > 0 && (
+                            <div className="px-6 pb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Quick Fill from History</label>
+                                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+                                    {templates.map(t => (
+                                        <button
+                                            key={t.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setTitle(t.title);
+                                                setDescription(t.description);
+                                                setType(t.type);
+                                                setVenue(t.venue || '');
+                                                if (t.lat && t.lng) setCurrentLocation({ lat: t.lat, lng: t.lng });
+
+                                                // Extract Time
+                                                const s = new Date(t.startTime);
+                                                const e = new Date(t.endTime);
+                                                const formatTime = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+                                                setTimeStart(formatTime(s));
+                                                setTimeEnd(formatTime(e));
+                                            }}
+                                            className={`whitespace-nowrap px-4 py-2 rounded-xl border text-xs font-bold transition-all active:scale-95 flex items-center gap-2
+                                                ${theme === 'light'
+                                                    ? 'bg-white border-gray-200 text-gray-700 hover:border-blue-500 hover:text-blue-500 shadow-sm'
+                                                    : 'bg-white/5 border-white/10 text-gray-300 hover:border-blue-500 hover:text-white hover:bg-blue-500/10'}`}
+                                        >
+                                            <span className="opacity-50">{t.title === 'Lunch Special' ? '🍔' : '⚡'}</span>
+                                            {t.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
                             {/* FORM FIELDS */}
