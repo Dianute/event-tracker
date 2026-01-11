@@ -176,16 +176,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                     </div>
                                 )}
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Description</label>
-                                <textarea
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    rows={2}
-                                    placeholder="Menu details..."
-                                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors resize-none text-sm"
-                                />
-                            </div>
+
                         </div>
 
                         <div className="space-y-4">
@@ -210,6 +201,22 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                 </div>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Description (Full Width) */}
+                    <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Description (Full Menu)</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => {
+                                setDescription(e.target.value);
+                                e.target.style.height = 'auto';
+                                e.target.style.height = e.target.scrollHeight + 'px';
+                            }}
+                            rows={3}
+                            placeholder="Detailed menu list, prices, or special offers..."
+                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors resize-none text-sm overflow-hidden min-h-[80px]"
+                        />
                     </div>
 
                     {/* 2. Menu Grid */}
