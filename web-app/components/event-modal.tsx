@@ -202,6 +202,22 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                             )}
                         </div>
                     </a>
+
+                    {/* Phone Button (if phone exists) */}
+                    {event.phone && (
+                        <a
+                            href={`tel:${event.phone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-3 text-sm font-medium text-gray-200 hover:text-white transition-colors group/phone"
+                        >
+                            <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/phone:bg-white/20 transition-colors">
+                                <Phone size={16} className="text-green-500" />
+                            </div>
+                            <span className="underline decoration-white/30 underline-offset-4 drop-shadow-md">
+                                {event.phone}
+                            </span>
+                        </a>
+                    )}
                 </div>
                 {description && (
                     <div className="prose prose-invert prose-sm max-w-none">
