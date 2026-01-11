@@ -148,8 +148,8 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                 <div className={`absolute bottom-0 left-0 right-0 h-4/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none transition-opacity duration-300 z-20 ${showControls ? 'opacity-100' : 'opacity-0'}`} />
             </div>
 
-            {/* 2. Top Controls */}
-            <div className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            {/* 2. Top Controls - pointer-events-none ensures clicks pass to image unless hitting buttons */}
+            <div className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 transition-opacity duration-300 pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
                 <div onClick={(e) => e.stopPropagation()} className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white bg-black/50`}>
                     <span className="drop-shadow-md">{type}</span>
                 </div>
