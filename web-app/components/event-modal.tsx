@@ -181,7 +181,11 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                         </div>
                     </a>
                 </div>
-                <div className="prose prose-invert prose-sm max-w-none"><p className="text-sm text-gray-300 leading-relaxed font-medium drop-shadow-md">{description || 'No description provided.'}</p></div>
+                {description && (
+                    <div className="prose prose-invert prose-sm max-w-none">
+                        <p className="text-sm text-gray-300 leading-relaxed font-medium drop-shadow-md">{description}</p>
+                    </div>
+                )}
 
                 {/* Action Button */}
                 {event?.link && (
