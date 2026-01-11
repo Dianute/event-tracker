@@ -6,8 +6,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard } from 'lucide-react';
-import MyEventsModal from './my-events-modal';
-import WeeklyMenuModal from './weekly-menu-modal';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -70,7 +68,6 @@ interface MapViewProps {
   onThemeChange?: (theme: 'dark' | 'light' | 'cyberpunk') => void;
   onUserLocationUpdate?: (lat: number, lng: number) => void;
   onViewEventsChange?: (events: Event[]) => void;
-  onEditEvent?: (event: Event) => void;
 }
 
 // ... (keep helpers)
@@ -245,44 +242,10 @@ function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLn
   return null;
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate, onViewEventsChange, onEditEvent }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate, onViewEventsChange }: MapViewProps) {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showMyEvents, setShowMyEvents] = useState(false);
-  const [showWeeklyMenu, setShowWeeklyMenu] = useState(false);
-
-  // Helper: Batch Create for Weekly Menu
-  const handleBatchCreate = async (newEvents: any[]) => {
-    setShowWeeklyMenu(false);
-    if (!session?.user?.email) {
-      alert("Please sign in to generate menu.");
-      return;
-    }
-
-    // Iterate and POST
-    let addedCount = 0;
-    for (const ev of newEvents) {
-      try {
-        const payload = { ...ev, userEmail: session.user.email };
-        const ApiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        await fetch(`${ApiUrl}/api/events`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        addedCount++;
-      } catch (e) {
-        console.error("Batch create error:", e);
-      }
-    }
-
-    if (addedCount > 0) {
-      if (onRefresh) onRefresh();
-      alert(`Successfully created ${addedCount} events! 📅`);
-    }
-  };
-
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
@@ -718,40 +681,20 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                           </div>
                           Admin Panel
                         </a>
-                      ) : null}
+                      ) : (
+                        <a
+                          href="/dashboard"
+                          className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group"
+                        >
+                          <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors">
+                            <LayoutDashboard size={16} />
+                          </div>
+                          Business Dashboard
+                        </a>
+                      )}
                     </div>
                     <div className="border-t border-gray-800 mx-2 my-1"></div>
                     <div className="p-1">
-                      <div className="pt-2 border-t border-gray-700"></div>
-
-                      <button
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          setShowMyEvents(true);
-                        }}
-                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors w-full text-left group mb-1"
-                      >
-                        <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                          <LayoutDashboard size={16} />
-                        </div>
-                        Business Dashboard
-                      </button>
-
-                      <div className="pt-2 border-t border-gray-700"></div>
-
-                      <button
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          setShowMyEvents(true);
-                        }}
-                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors w-full text-left group mb-1"
-                      >
-                        <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
-                          <Calendar size={16} />
-                        </div>
-                        My Events
-                      </button>
-
                       <button
                         onClick={() => signOut()}
                         className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors w-full text-left group"
@@ -874,30 +817,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           <Plus size={24} className="transition-transform duration-300" />
         </button>
       </div>
-
-      <MyEventsModal
-        isOpen={showMyEvents}
-        onClose={() => setShowMyEvents(false)}
-        events={events} // Pass all events, modal filters them
-        onEdit={(e) => {
-          if (onEditEvent) onEditEvent(e);
-        }}
-        onAdd={() => {
-          const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
-          if (onAddEventClick) onAddEventClick(loc);
-        }}
-        onGenerateMenu={() => {
-          setShowMyEvents(false);
-          setShowWeeklyMenu(true);
-        }}
-      />
-
-      <WeeklyMenuModal
-        isOpen={showWeeklyMenu}
-        onClose={() => setShowWeeklyMenu(false)}
-        initialLocation={userLocation}
-        onSubmit={handleBatchCreate}
-      />
     </>
   );
 }
