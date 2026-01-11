@@ -613,6 +613,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                         setVenue(loc.venue);
                                                         if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
                                                         setShowLocationDropdown(false);
+                                                        // Clear draft to prevent auto-restore override
+                                                        localStorage.removeItem('event-form-draft');
                                                     }}
                                                     className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
                                                 >
