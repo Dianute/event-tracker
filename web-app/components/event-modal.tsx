@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Zap, RotateCw, ArrowLeft } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Zap, RotateCw, ArrowLeft, Star } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
 
@@ -264,7 +264,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         });
     }, [allEvents, session?.user?.email, rawTemplates]);
 
-    const savedLocations = useMemo(() => {
+    // Rename "savedLocations" history memo to avoid conflict
+    const historyLocations = useMemo(() => {
         if (rawSaved.length > 0) return rawSaved;
         if (!session?.user?.email || !allEvents || allEvents.length === 0) return [];
 
@@ -282,16 +283,69 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
 
+    // Moved Venue/Location State UP
+    const [venue, setVenue] = useState('');
+    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+    const [savedSpots, setSavedSpots] = useState<any[]>([]); // Explicit API Saved Locations
+    const [isSavingLoc, setIsSavingLoc] = useState(false);
+
+    // Fetch Saved Locations on mount
+    useEffect(() => {
+        if (session?.user?.email) {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/locations?userEmail=${session.user.email}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setSavedSpots(data);
+                })
+                .catch(err => console.error("Failed to load locations", err));
+        }
+    }, [session?.user?.email, isOpen]);
+
+    // Handle Save Location
+    const handleSaveLocation = async () => {
+        if (!venue || !currentLocation || !session?.user?.email) return;
+        setIsSavingLoc(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/locations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userEmail: session.user.email,
+                    venue: venue,
+                    lat: currentLocation.lat,
+                    lng: currentLocation.lng,
+                    nickname: venue
+                })
+            });
+            const newSpot = await res.json();
+            setSavedSpots(prev => [newSpot, ...prev]);
+        } catch (err) {
+            console.error("Save failed", err);
+        } finally {
+            setIsSavingLoc(false);
+        }
+    };
+
+    const isCurrentLocSaved = useMemo(() => {
+        return savedSpots.some(s => s.venue === venue || (currentLocation && Math.abs(s.lat - currentLocation.lat) < 0.001 && Math.abs(s.lng - currentLocation.lng) < 0.001));
+    }, [savedSpots, venue, currentLocation]);
+
+    // Unified Location List for Dropdown
+    const allSavedLocations = useMemo(() => {
+        // Map history to same format
+        const historyMapped = historyLocations.map(h => ({ ...h, id: `hist-${h.venue}`, nickname: h.venue, isHistory: true }));
+        return [...savedSpots, ...historyMapped];
+    }, [savedSpots, historyLocations]);
+
     // NEW Date/Time States
     const [date, setDate] = useState(''); // YYYY-MM-DD
     const [timeStart, setTimeStart] = useState('12:00'); // HH:mm
     const [timeEnd, setTimeEnd] = useState('14:00'); // HH:mm
     const [isAllDay, setIsAllDay] = useState(false);
 
-    const [venue, setVenue] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isUploading, setIsUploading] = useState(false);
-    const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+    // Removed duplicate venue/currentLocation
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showControls, setShowControls] = useState(true);
@@ -583,73 +637,66 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
 
 
-                        {/* QUICK FILL TEMPLATES - UX REDESIGN: Big, Friendly Cards */}
+                        {/* QUICK FILL TEMPLATES - COMPACT CHIPS REDESIGN */}
                         {!event && (
-                            <div className="px-6 pb-4 pt-2">
-                                <label className="block text-xs font-extrabold text-blue-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Zap size={14} className="animate-pulse" />
-                                    Tap to Reuse Past Event
+                            <div className="px-6 pb-2 pt-2">
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                                    <span>Quick Reuse</span>
+                                    <span className="text-gray-600 font-normal normal-case">Swipe for more</span>
                                 </label>
 
-                                {/* DEBUG: VISIBLE AUTH CHECK */}
-                                {templates.length > 0 ? (
-                                    <div className="grid grid-cols-1 gap-2.5">
-                                        {templates.slice(0, 3).map(t => (
-                                            <button
-                                                key={t.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    setTitle(t.title);
-                                                    setDescription(t.description || '');
-                                                    setType(t.type);
-                                                    setVenue(t.venue || '');
-                                                    if (t.lat && t.lng) setCurrentLocation({ lat: t.lat, lng: t.lng });
+                                <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2 mask-linear-fade">
 
-                                                    // Extract Time
-                                                    const s = new Date(t.startTime);
-                                                    const e = new Date(t.endTime);
-                                                    const formatTime = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-                                                    setTimeStart(formatTime(s));
-                                                    setTimeEnd(formatTime(e));
-                                                }}
-                                                className={`group w-full p-4 rounded-2xl border transition-all active:scale-95 flex items-center gap-4 text-left relative overflow-hidden
-                                                    ${theme === 'light'
-                                                        ? 'bg-white border-blue-200 shadow-sm hover:shadow-md hover:border-blue-400'
-                                                        : 'bg-gradient-to-br from-white/5 to-white/0 border-white/10 hover:border-white/30 hover:bg-white/10'}`}
-                                            >
-                                                {/* Icon Box */}
-                                                <div className={`p-3 rounded-xl shrink-0 ${theme === 'light' ? 'bg-blue-50 text-blue-600' : 'bg-blue-500/20 text-blue-400'}`}>
-                                                    <RotateCw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
-                                                </div>
+                                    {/* 1. Explicit Saved Spots (Stars) */}
+                                    {savedSpots.map(spot => (
+                                        <button
+                                            key={`saved-${spot.id}`}
+                                            type="button"
+                                            onClick={() => {
+                                                setVenue(spot.venue);
+                                                setCurrentLocation({ lat: spot.lat, lng: spot.lng });
+                                                // Don't override title/time for just a location save
+                                            }}
+                                            className={`shrink-0 h-8 px-3 rounded-full flex items-center gap-1.5 border transition-all active:scale-95 whitespace-nowrap
+                                            ${theme === 'light' ? 'bg-yellow-100 border-yellow-200 text-yellow-800' : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400 hover:bg-yellow-500/20'}`}
+                                        >
+                                            <Star size={12} fill="currentColor" />
+                                            <span className="text-xs font-bold">{spot.nickname || spot.venue}</span>
+                                        </button>
+                                    ))}
 
-                                                {/* Text Info */}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className={`font-black text-base truncate mb-0.5 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                                                        {t.title}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs font-medium opacity-60 truncate">
-                                                        <MapPin size={10} /> {t.venue || 'No Location'}
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-xs font-medium opacity-60 mt-0.5">
-                                                        <Clock size={10} /> {new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(t.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </div>
-                                                </div>
+                                    {/* 2. History Templates (Zap) */}
+                                    {templates.map((t, idx) => (
+                                        <button
+                                            key={`${t.title}-${idx}`}
+                                            type="button"
+                                            onClick={() => {
+                                                setTitle(t.title);
+                                                setDescription(t.description);
+                                                setType(t.type);
+                                                setVenue(t.venue);
+                                                setCurrentLocation({ lat: t.lat, lng: t.lng });
+                                                // Extract Time
+                                                if (t.startTime) setTimeStart(new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+                                                if (t.endTime) setTimeEnd(new Date(t.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+                                                // Always set date to TODAY
+                                                setDate(new Date().toISOString().split('T')[0]);
+                                            }}
+                                            className={`shrink-0 h-8 px-3 rounded-full flex items-center gap-1.5 border transition-all active:scale-95 whitespace-nowrap
+                                            ${theme === 'light' ? 'bg-blue-50 text-blue-800 border-blue-100' : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10 hover:text-white'}`}
+                                        >
+                                            <Zap size={12} className={theme === 'light' ? 'text-blue-500' : 'text-blue-400'} />
+                                            <span className="text-xs font-medium">{t.title}</span>
+                                        </button>
+                                    ))}
 
-                                                {/* Action Arrow */}
-                                                <div className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-blue-500">
-                                                    <ArrowLeft size={20} className="rotate-180" />
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className={`p-4 rounded-2xl border border-dashed flex items-center gap-3 opacity-60 ${theme === 'light' ? 'border-gray-300 bg-gray-50' : 'border-white/20 bg-white/5'}`}>
-                                        <div className="p-2 bg-gray-200 dark:bg-zinc-800 rounded-full"><Plus size={16} /></div>
-                                        <div className="text-xs font-medium">Create your first event to save it here as a shortcut!</div>
-                                    </div>
-                                )}
+                                    {savedSpots.length === 0 && templates.length === 0 && (
+                                        <div className="text-xs text-gray-500 italic py-1">Save locations or create events to see shortcuts here.</div>
+                                    )}
+                                </div>
                             </div>
                         )}
+
 
                         <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
                             {/* FORM FIELDS */}
@@ -663,23 +710,40 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
 
                                 {/* SMART LOCATION PICKER: Show Saved Locations if Search is active & empty/start */}
-                                {(isSearching && !venue && savedLocations.length > 0) && (
+                                {/* SMART LOCATION PICKER: Show Saved Locations if Search is active & empty/start */}
+                                {(isSearching && !venue && allSavedLocations.length > 0) && (
                                     <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
                                         <div className={`p-2 text-[10px] font-bold uppercase tracking-widest sticky top-0 backdrop-blur-sm ${theme === 'light' ? 'bg-gray-50/90 text-gray-500' : 'bg-black/50 text-gray-400'}`}>
                                             📍 My Saved Locations
                                         </div>
-                                        {savedLocations.map((loc, i) => (
-                                            <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
+                                        {allSavedLocations.map((loc, i) => (
+                                            <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center justify-between transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
                                                 onMouseDown={(e) => e.preventDefault()}
                                                 onClick={() => {
                                                     setVenue(loc.venue);
                                                     setCurrentLocation({ lat: loc.lat, lng: loc.lng });
                                                     setIsSearching(false);
                                                 }}>
-                                                <MapPin size={12} className="text-green-500" /> {loc.venue}
+                                                <div className="flex items-center gap-2">
+                                                    {loc.isHistory ? <RotateCw size={12} className="text-blue-400" /> : <Star size={12} className="text-yellow-400" fill="currentColor" />}
+                                                    {loc.venue}
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
+                                )}
+
+                                {/* Save Star Button */}
+                                {venue && currentLocation && (
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveLocation}
+                                        disabled={isCurrentLocSaved || isSavingLoc}
+                                        className={`absolute right-3 top-[34px] transition-all hover:scale-110 active:scale-95
+                    ${isCurrentLocSaved ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-400'}`}
+                                    >
+                                        <Star size={18} fill={isCurrentLocSaved ? "currentColor" : "none"} />
+                                    </button>
                                 )}
 
                                 {suggestions.length > 0 && (
@@ -783,7 +847,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         ))}
                     </div>
                 )}
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
