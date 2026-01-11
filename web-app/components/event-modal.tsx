@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2 } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -158,6 +158,15 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                     <X size={22} />
                 </button>
             </div>
+
+            {/* Zoom Hint Button */}
+            <button
+                onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
+                className={`absolute top-20 right-6 z-30 pointer-events-auto bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 transition-all duration-300 active:scale-95 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            >
+                <Maximize2 size={12} className="text-white/90" />
+                <span className="text-[10px] font-bold text-white/90 uppercase tracking-widest">Zoom</span>
+            </button>
 
             {/* 3. Bottom Content (Absolute Overlays) */}
             <div
