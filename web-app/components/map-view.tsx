@@ -8,6 +8,8 @@ import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard } from 'lucide-react';
 
 // Custom Emoji Marker Helper
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
   const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' :
     isFinished ? 'animate-sand-drift' : 'transform hover:scale-110';
@@ -500,7 +502,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       });
 
       if (newViews.length > 0) {
-        fetch('/api/analytics/view', {
+        fetch(`${API_URL}/api/analytics/view`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ eventIds: newViews })
@@ -768,7 +770,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               userLocation={userLocation}
               onClick={() => {
                 // Analytics: Track Click
-                fetch('/api/analytics/click', {
+                fetch(`${API_URL}/api/analytics/click`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ eventId: event.id })
