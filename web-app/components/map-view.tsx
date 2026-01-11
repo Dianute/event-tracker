@@ -519,7 +519,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     if (!session?.user?.email) return [];
     return Array.from(new Map(
       events
-        .filter(e => e.userEmail === session?.user?.email)
+        .filter(e => {
+          const owner = e.userEmail || (e as any).useremail;
+          return owner && session?.user?.email && owner.toLowerCase() === session.user.email.toLowerCase();
+        })
         .map(e => [e.title, e]) // Map by Title to dedup (keeping latest)
     ).values()).sort((a, b) => {
       const timeA = a.startTime ? new Date(a.startTime).getTime() : 0;
