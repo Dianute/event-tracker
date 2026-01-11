@@ -557,11 +557,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 </label>
 
                                 {/* DEBUG: VISIBLE AUTH CHECK */}
-                                {/* DEBUG: VISIBLE AUTH CHECK */}
-                                <div className="text-[10px] text-red-500 font-mono mb-2 break-all bg-black/10 p-1 rounded">
-                                    DEBUG: Me={session?.user?.email} | Templates={templates.length}
-                                </div>
-
                                 {templates.length > 0 ? (
                                     <div className="grid grid-cols-1 gap-2.5">
                                         {templates.slice(0, 3).map(t => (
