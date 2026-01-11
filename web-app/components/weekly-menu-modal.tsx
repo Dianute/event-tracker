@@ -110,7 +110,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
             if (!images[i]) continue;
 
             events.push({
-                title: `${title} (${days[i]})`,
+                title: title,
                 description,
                 type: 'food',
                 startTime: `${dateStr}T${timeStart}:00.000Z`, // Simplified ISO construction
