@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
 import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard } from 'lucide-react';
+import MyEventsModal from './my-events-modal';
 
 // Custom Emoji Marker Helper
 const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
@@ -68,6 +69,7 @@ interface MapViewProps {
   onThemeChange?: (theme: 'dark' | 'light' | 'cyberpunk') => void;
   onUserLocationUpdate?: (lat: number, lng: number) => void;
   onViewEventsChange?: (events: Event[]) => void;
+  onEditEvent?: (event: Event) => void;
 }
 
 // ... (keep helpers)
@@ -242,10 +244,11 @@ function MapBoundsHandler({ onBoundsChange }: { onBoundsChange: (bounds: L.LatLn
   return null;
 }
 
-export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate, onViewEventsChange }: MapViewProps) {
+export default function MapView({ events, onMapClick, newLocation, onDeleteEvent, onRefresh, onAddEventClick, onEventSelect, onThemeChange, onUserLocationUpdate, onViewEventsChange, onEditEvent }: MapViewProps) {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showMyEvents, setShowMyEvents] = useState(false);
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
@@ -695,6 +698,36 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                     </div>
                     <div className="border-t border-gray-800 mx-2 my-1"></div>
                     <div className="p-1">
+                      <div className="pt-2 border-t border-gray-700"></div>
+
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          setShowMyEvents(true);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors w-full text-left group mb-1"
+                      >
+                        <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                          <Calendar size={16} />
+                        </div>
+                        My Events
+                      </button>
+
+                      <div className="pt-2 border-t border-gray-700"></div>
+
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          setShowMyEvents(true);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white rounded-lg transition-colors w-full text-left group mb-1"
+                      >
+                        <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                          <Calendar size={16} />
+                        </div>
+                        My Events
+                      </button>
+
                       <button
                         onClick={() => signOut()}
                         className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors w-full text-left group"
@@ -817,6 +850,15 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           <Plus size={24} className="transition-transform duration-300" />
         </button>
       </div>
+
+      <MyEventsModal
+        isOpen={showMyEvents}
+        onClose={() => setShowMyEvents(false)}
+        events={events} // Pass all events, modal filters them
+        onEdit={(e) => {
+          if (onEditEvent) onEditEvent(e);
+        }}
+      />
     </>
   );
 }

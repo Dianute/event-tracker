@@ -38,6 +38,7 @@ export default function Home() {
   const [userPos, setUserPos] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | undefined>(undefined);
   const [feedEvents, setFeedEvents] = useState<Event[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Load events from Backend on mount
   // Load events from Backend
@@ -64,7 +65,8 @@ export default function Home() {
   const handleMapClick = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
     setIsModalOpen(true);
-    setSelectedEvent(undefined); // Ensure we are cleaner
+    setSelectedEvent(undefined);
+    setIsEditMode(false);
   };
 
   const handlePlusClick = (location?: { lat: number; lng: number }) => {
@@ -77,6 +79,13 @@ export default function Home() {
   const handleEventSelect = (event: any) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
+    setIsEditMode(false);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+    setIsEditMode(true);
   };
 
   const handleAddEvent = (data: { title: string; description: string; type: string; startTime?: string; endTime?: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; userEmail?: string | null }) => {
@@ -110,8 +119,9 @@ export default function Home() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedLocation(null); // Clear selection if cancelled
+    setSelectedLocation(null);
     setSelectedEvent(undefined);
+    setIsEditMode(false);
   };
 
   const handleDeleteEvent = (id: string) => {
@@ -145,6 +155,7 @@ export default function Home() {
           onRefresh={fetchEvents}
           onAddEventClick={handlePlusClick}
           onEventSelect={handleEventSelect}
+          onEditEvent={handleEditEvent}
           onThemeChange={setCurrentTheme}
           onUserLocationUpdate={handleUserLocationUpdate}
           onViewEventsChange={setFeedEvents}
@@ -166,7 +177,7 @@ export default function Home() {
         userLocation={userPos}
         event={selectedEvent}
         theme={currentTheme}
-        readOnly={!!selectedEvent}
+        readOnly={!isEditMode && !!selectedEvent}
         feed={feedEvents}
       />
 
