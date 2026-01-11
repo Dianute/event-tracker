@@ -376,6 +376,7 @@ export default function DashboardPage() {
                 initialLocation={selectedEvent ? { lat: selectedEvent.lat, lng: selectedEvent.lng } : null}
                 event={selectedEvent}
                 theme="dark"
+                allEvents={events} // Pass full history so "Templates" work here too
             />
         </div>
     );
