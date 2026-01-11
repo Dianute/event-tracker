@@ -589,16 +589,19 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {/* FORM FIELDS */}
                             <div className="relative">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
-                                <input type="text" required value={venue} placeholder="Search address..." onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCurrentLocation(null); }}
+                                <input type="text" required value={venue} placeholder="Search address..."
+                                    onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCurrentLocation(null); }}
+                                    onFocus={() => setIsSearching(true)}
                                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
-                                    onFocus={() => { if (!venue) setIsSearching(true); }} // Trigger suggestions on focus if empty
                                 />
                                 <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
 
-                                {/* SMART LOCATION PICKER: Show Saved Locations if Search is empty/start */}
+                                {/* SMART LOCATION PICKER: Show Saved Locations if Search is active & empty/start */}
                                 {(isSearching && !venue && savedLocations.length > 0) && (
                                     <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
-                                        <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm sticky top-0">My Locations</div>
+                                        <div className={`p-2 text-[10px] font-bold uppercase tracking-widest sticky top-0 backdrop-blur-sm ${theme === 'light' ? 'bg-gray-50/90 text-gray-500' : 'bg-black/50 text-gray-400'}`}>
+                                            📍 My Saved Locations
+                                        </div>
                                         {savedLocations.map((loc, i) => (
                                             <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
                                                 onMouseDown={(e) => e.preventDefault()}
