@@ -519,15 +519,20 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     <button onClick={(e) => { e.stopPropagation(); setImageUrl(''); }} className="absolute bottom-3 right-3 p-1.5 bg-red-500 text-white rounded-full shadow-lg"><X size={14} /></button>
                                 </>
                             ) : (
-                                <div className="flex gap-4">
-                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/cam">
-                                        <div className={`p-3.5 rounded-full shadow-lg active:scale-90 transition-transform ${theme === 'cyberpunk' ? 'bg-cyan-600 shadow-cyan-500/30 text-white' : 'bg-blue-600 text-white shadow-blue-500/30'}`}><Camera size={24} /></div>
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Camera</span>
+                                <div className="w-full h-full flex">
+                                    <label className="flex-1 h-full flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors border-r border-white/5 relative group">
+                                        <div className={`p-4 rounded-full transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${theme === 'cyberpunk' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/10 text-blue-500'}`}>
+                                            <Camera size={32} />
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">Camera</span>
                                         <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                     </label>
-                                    <label className="flex flex-col items-center gap-2 cursor-pointer group/gal">
-                                        <div className={`p-3.5 rounded-full shadow-sm border active:scale-90 transition-transform ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-700' : 'bg-white/10 border-white/5 text-gray-400'}`}><ImageIcon size={24} /></div>
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gallery</span>
+
+                                    <label className="flex-1 h-full flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors relative group">
+                                        <div className={`p-4 rounded-full transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${theme === 'light' ? 'bg-gray-200 text-gray-600' : 'bg-purple-500/10 text-purple-500'}`}>
+                                            <ImageIcon size={32} />
+                                        </div>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">Gallery</span>
                                         <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                     </label>
                                 </div>
