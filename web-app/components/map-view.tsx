@@ -252,6 +252,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const viewedEventsRef = useRef<Set<string>>(new Set());
   const formattedDistanceRef = useRef<string>('');
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
@@ -756,7 +757,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               </button>
 
               {showUserMenu && (
-                <div className="absolute top-full right-0 mt-3 w-56 bg-[#0a0a0a] border border-gray-700/50 rounded-2xl shadow-2xl overflow-hidden py-2 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-black/50">
+                <div className="absolute top-full right-0 mt-4 w-64 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden py-3 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
                   {session ? (
                     <>
                       <div className="px-4 py-3 border-b border-gray-800">
@@ -779,20 +780,20 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                       </div>
                     </>
                   ) : (
-                    <div className="p-1">
-                      <button onClick={() => signIn()} className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-white hover:bg-white/10 rounded-lg transition-colors w-full text-left bg-blue-600/20 hover:bg-blue-600/30">
-                        <div className="p-1.5 rounded-md bg-blue-500 text-white"><User size={16} /></div>
+                    <div className="p-2">
+                      <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 rounded-xl transition-colors w-full text-left bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30">
+                        <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-lg"><User size={16} /></div>
                         Sign In / Join
                       </button>
                     </div>
                   )}
 
-                  <div className="border-t border-gray-800 mx-2 my-1"></div>
+                  <div className="border-t border-white/10 mx-3 my-1"></div>
 
                   {/* Common: Theme Toggle */}
                   <div className="p-1">
-                    <button onClick={handleThemeChange} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors w-full text-left group">
-                      <div className="p-1.5 rounded-md bg-gray-800 group-hover:bg-gray-700 transition-colors text-yellow-400">
+                    <button onClick={handleThemeChange} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors w-full text-left group">
+                      <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors text-yellow-400 border border-white/5">
                         {mapTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
                       </div>
                       <span className="flex-1">{mapTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
@@ -913,7 +914,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         <button
           onClick={() => {
             if (!session) {
-              signIn();
+              setShowAuthModal(true);
               return;
             }
             const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
@@ -925,6 +926,42 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           <Plus size={24} className="transition-transform duration-300" />
         </button>
       </div>
-    </>
+
+      {/* Auth Modal (Google Style) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div onClick={() => setShowAuthModal(false)} className="absolute inset-0" />
+          <div className="relative w-full max-w-sm bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-white/10">
+            <button onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
+              <X size={20} />
+            </button>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+                <Globe size={32} className="text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
+              <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+                Sign in to save your favorite spots, create events, and sync across devices.
+              </p>
+
+              <button
+                onClick={() => signIn('google')}
+                className="w-full bg-white text-black font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 active:scale-95 transition-all shadow-lg text-[15px]"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden="true"><path d="M12.0003 20.45c-4.71 0-8.45029-3.9-8.45029-8.45 0-4.55 3.74029-8.45 8.45029-8.45 2.27 0 4.29.83 5.86 2.21l-2.02 1.87c-1.04-.96-2.47-1.54-3.84-1.54-3.23 0-5.85029 2.62-5.85029 5.85 0 3.23 2.62029 5.85 5.85029 5.85 2.15 0 3.72-.94 4.52-2.31h-4.52v-2.34h6.99c.09.52.14.93.14 1.54 0 4.79-3.21 8.22-7.14 8.22z" fill="currentColor" /></svg>
+                Continue with Google
+              </button>
+
+              <div className="mt-8 pt-6 border-t border-white/5 w-full">
+                <p className="text-[10px] text-gray-500">
+                  By continuing, you agree to our Terms of Service and Privacy Policy.
+                  Your data is safe with us.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div >
   );
 }
