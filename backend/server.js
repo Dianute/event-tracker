@@ -150,11 +150,12 @@ app.get('/api/health-db', async (req, res) => {
 });
 
 // Helper to check if event is active (ends in future or ended < 15 mins ago)
-const isEventActive = (endTimeStr) => {
+const isEventActive = (endTimeStr, type) => {
     if (!endTimeStr) return true; // No end time? Keep it.
 
     const now = new Date();
-    const buffer = 15 * 60 * 1000; // 15 mins
+    // Instant expiry for Food (Menus), 15 min buffer for others (Parties/Social)
+    const buffer = (type === 'food') ? 0 : 15 * 60 * 1000;
     const cutoff = new Date(now.getTime() - buffer);
 
     let eventEnd;
@@ -183,11 +184,12 @@ app.get('/events', async (req, res) => {
         let resultEvents;
         if (history === 'true') {
             // HISTORY: Return events that are NOT active (ended)
-            resultEvents = formattedRows.filter(ev => !isEventActive(ev.endTime));
-            // Optional: Limit history to last 7 days explicitly if needed, but Cleanup handles the hard limit.
+            // Note: History logic shouldn't care about the buffer, ideally pure history.
+            // But to be consistent with "Disappeared from map", we use the same check negated.
+            resultEvents = formattedRows.filter(ev => !isEventActive(ev.endTime, ev.type));
         } else {
             // DEFAULT: Active events only
-            resultEvents = formattedRows.filter(ev => isEventActive(ev.endTime));
+            resultEvents = formattedRows.filter(ev => isEventActive(ev.endTime, ev.type));
         }
 
         res.json(resultEvents);
