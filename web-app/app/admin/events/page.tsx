@@ -335,8 +335,8 @@ export default function AdminEventsPage() {
                                                         </tr>
                                                     )}
                                                     <tr key={event.id} className="hover:bg-white/5 transition-colors group">
-                                                        <td className="p-4">
-                                                            <div className="w-12 h-12 rounded bg-gray-700 overflow-hidden">
+                                                        <td className="p-4 cursor-pointer" onClick={() => handleEdit(event)}>
+                                                            <div className="w-12 h-12 rounded bg-gray-700 overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all">
                                                                 {event.imageUrl ? (
                                                                     <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
                                                                 ) : (
@@ -344,8 +344,8 @@ export default function AdminEventsPage() {
                                                                 )}
                                                             </div>
                                                         </td>
-                                                        <td className="p-4">
-                                                            <div className="font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1" title={event.title}>
+                                                        <td className="p-4 cursor-pointer" onClick={() => handleEdit(event)}>
+                                                            <div className="font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1" title={event.title}>
                                                                 {event.title}
                                                             </div>
                                                             <div className="text-xs text-gray-500 line-clamp-1">{event.type}</div>
