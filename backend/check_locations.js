@@ -1,10 +1,6 @@
 require('dotenv').config();
-const { Pool } = require('pg');
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
-});
+const db = require('./db');
+const pool = db.pool;
 
 async function checkLocations() {
     try {
@@ -33,7 +29,7 @@ async function checkLocations() {
         });
 
     } catch (err) {
-        console.error('❌ Error:', err.message);
+        console.error('❌ Error:', err);
     } finally {
         await pool.end();
     }
