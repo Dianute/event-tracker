@@ -300,6 +300,29 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000); // Default to far future
 
     const timeMatch = (() => {
+      // SPECIAL CATEGORY LOGIC: Food (Daily Menus)
+      // Only show Today's menus, and only 15 mins before start time.
+      if (e.type === 'food') {
+        const foodStart = new Date(start);
+        const bufferTime = new Date(foodStart.getTime() - 15 * 60000); // 15 mins before
+
+        // 1. Must be TODAY (Start time < Tomorrow 4am && End time > Today 4am)
+        // Check if event falls within "Active Day" window (Today 00:00 - Tomorrow 04:00)
+        const dayStart = new Date(now);
+        dayStart.setHours(0, 0, 0, 0); // Start of Today
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+        dayEnd.setHours(4, 0, 0, 0); // End: Tomorrow 4am
+
+        const isToday = start >= dayStart && start < dayEnd;
+
+        if (!isToday) return false; // Hide future/past menus completely
+
+        // 2. Must be within buffer time (Now >= Start - 15m)
+        return now >= bufferTime && now <= end;
+      }
+
+      // STANDARD LOGIC for other categories
       if (timeFilter === 'all') return true;
       if (timeFilter === 'live') return now >= start && now <= end;
       if (timeFilter === 'today') {
