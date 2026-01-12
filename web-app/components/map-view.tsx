@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard, X } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
