@@ -65,9 +65,16 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
     useEffect(() => {
         const updateStatus = () => {
             if (!event.startTime || !event.endTime) return;
+
+            // USE BROWSER TIME (Local)
+            // This ensures that if the user is in the same timezone as the event (e.g. UK User viewing UK Event),
+            // the status is 100% accurate.
             const now = new Date();
+
+            // Browser parses 'YYYY-MM-DDTHH:mm' as Local Time by default.
             const start = new Date(event.startTime);
             const end = new Date(event.endTime);
+
             const duration = end.getTime() - start.getTime();
             const elapsed = now.getTime() - start.getTime();
 
@@ -84,7 +91,8 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                     setStatus({
                         label: `In ${diffMins} min`,
                         color: 'orange',
-                        timeText: `Starts ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+                        // Display Time: Use the string directly from DB (already formatted) or slice
+                        timeText: `Starts ${event.startTime?.slice(11, 16)}`,
                         progress: progressPercent
                     });
                 } else if (diffHours < 24) {
@@ -92,7 +100,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                     setStatus({
                         label: `In ${diffHours} hr`,
                         color: 'blue',
-                        timeText: `Starts ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                        timeText: `Starts ${event.startTime?.slice(11, 16)}`
                     });
                 } else {
                     // > 1 Day -> "In X days"

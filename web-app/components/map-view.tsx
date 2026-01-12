@@ -297,12 +297,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   }, []);
 
 
-
+  // 1. First Pass: Comprehensive Filtering
   const now = new Date();
 
   // 1. First Pass: Comprehensive Filtering
   const candidates = events.filter(e => {
-    // A. Time Filter
+    // A. Time Filter (Updated to use Browser Local Time for Local Correctness)
     const start = e.startTime ? new Date(e.startTime) : new Date(0);
     const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000);
 
@@ -325,7 +325,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         return now >= bufferTime && now <= end;
       }
 
-      // STANDARD LOGIC
+      // ... (Standard Logic uses 'now') ...
       if (timeFilter === 'all') return true;
       if (timeFilter === 'today') {
         const dayStart = new Date(now);
@@ -431,15 +431,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const nowTime = now.getTime();
     const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
     const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
-    const aEnd = a.endTime ? new Date(a.endTime).getTime() : aStart + 3600000;
-    const bEnd = b.endTime ? new Date(b.endTime).getTime() : bStart + 3600000;
-
-    // Calculate Scores (Lower is Better/Top)
-    let scoreA = aStart;
-    let scoreB = bStart;
-
-    // 1. Live Boost (Huge)
-    const isALive = nowTime >= aStart && nowTime < aEnd;
     const isBLive = nowTime >= bStart && nowTime < bEnd;
 
     // FOOD LOGIC: If it's Food & Live, ignore start time. All live food is equal in time.
