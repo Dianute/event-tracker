@@ -256,9 +256,10 @@ interface EventModalProps {
     feed?: any[];
     savedLocations?: { venue: string; lat: number; lng: number }[];
     userLocations?: any[]; // Persistent saved locations from API
+    onLocationsChange?: () => void;
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], userLocations = [] }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], userLocations = [], onLocationsChange }: EventModalProps) {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -441,6 +442,25 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [venue, isSearching, event]);
+
+    const handleDeleteLocation = async (id: string, name: string) => {
+        if (!confirm(`Delete saved location "${name}"?`)) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/user-locations/${id}`, {
+                method: 'DELETE',
+                headers: { 'x-user-email': session?.user?.email || '' }
+            });
+            if (res.ok) {
+                if (onLocationsChange) onLocationsChange();
+                // If we viewed this location in dropdown, close it? No need.
+            } else {
+                alert("Failed to delete location.");
+            }
+        } catch (e) {
+            console.error("Delete failed", e);
+        }
+    };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -661,23 +681,35 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             </button>
 
                                             {showLocationDropdown && (
-                                                <div className="absolute right-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
+                                                <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
                                                     {userLocations.slice(1).map(loc => (
-                                                        <button
-                                                            key={loc.id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setTitle(loc.name);
-                                                                setVenue(loc.venue);
-                                                                setPhone(loc.phone || '');
-                                                                if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
-                                                                setShowLocationDropdown(false);
-                                                                localStorage.removeItem('event-form-draft');
-                                                            }}
-                                                            className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
-                                                        >
-                                                            {loc.name}
-                                                        </button>
+                                                        <div key={loc.id} className="group flex items-center w-full hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 relative">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setTitle(loc.name);
+                                                                    setVenue(loc.venue);
+                                                                    setPhone(loc.phone || '');
+                                                                    if (loc.lat && loc.lng) setCurrentLocation({ lat: loc.lat, lng: loc.lng });
+                                                                    setShowLocationDropdown(false);
+                                                                    localStorage.removeItem('event-form-draft');
+                                                                }}
+                                                                className="flex-1 text-left px-4 py-2.5 text-sm text-gray-300 truncate pr-8"
+                                                            >
+                                                                {loc.name}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDeleteLocation(loc.id, loc.name);
+                                                                }}
+                                                                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-gray-600 hover:text-red-400 opacity-60 group-hover:opacity-100 transition-all"
+                                                                title="Delete Location"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
                                                     ))}
                                                 </div>
                                             )}
@@ -700,16 +732,31 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 {/* SMART LOCATION PICKER: Show Saved Locations if Search is empty/start */}
                                 {(isSearching && !venue && savedLocations.length > 0) && (
                                     <div className={`absolute z-20 w-full mt-1 border rounded-xl shadow-xl max-h-48 overflow-y-auto ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
-                                        <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm sticky top-0">My Locations</div>
-                                        {savedLocations.map((loc, i) => (
-                                            <div key={i} className={`p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
+                                        <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm sticky top-0 flex justify-between">
+                                            <span>My Locations</span>
+                                        </div>
+                                        {savedLocations.map((loc: any, i) => ( // Use 'any' to access ID
+                                            <div key={i} className={`group relative p-3 cursor-pointer text-sm truncate flex items-center gap-2 transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
                                                 onMouseDown={(e) => e.preventDefault()}
                                                 onClick={() => {
                                                     setVenue(loc.venue);
                                                     setCurrentLocation({ lat: loc.lat, lng: loc.lng });
                                                     setIsSearching(false);
                                                 }}>
-                                                <MapPin size={12} className="text-green-500" /> {loc.venue}
+                                                <MapPin size={12} className="text-green-500 shrink-0" />
+                                                <span className="truncate pr-6">{loc.venue}</span>
+                                                {loc.id && ( // Only show delete if ID exists (it should for saved locations)
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation(); // Prevent selection
+                                                            handleDeleteLocation(loc.id, loc.venue);
+                                                        }}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-red-500 opacity-60 group-hover:opacity-100 transition-all"
+                                                    >
+                                                        <X size={14} />
+                                                    </button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>

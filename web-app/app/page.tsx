@@ -255,6 +255,7 @@ export default function Home() {
         readOnly={!!selectedEvent}
         feed={feedEvents}
         userLocations={userLocations}
+        onLocationsChange={fetchLocations}
       />
 
       {/* Notification Toast */}
