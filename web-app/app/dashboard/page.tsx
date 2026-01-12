@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy } from 'lucide-react';
 import EventModal from '@/components/event-modal';
+import SavedLocationsPage from '@/components/saved-locations';
 import Link from 'next/link';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -15,6 +16,7 @@ export default function DashboardPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
+    const [activeTab, setActiveTab] = useState<'events' | 'locations'>('events');
 
     // Derived Stats
     const [totalViews, setTotalViews] = useState(0);
@@ -264,120 +266,142 @@ export default function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-blue-500 transition-colors">
-                            <Zap size={20} />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Filter your events by title, venue, or category..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-gray-900 border border-white/5 rounded-2xl pl-12 pr-12 py-5 text-white focus:outline-none focus:border-blue-500/50 shadow-2xl transition-all font-medium placeholder:text-gray-600"
-                        />
+                    {/* Navigation Tabs */}
+                    <div className="flex gap-4 mb-8 border-b border-white/5 pb-2">
+                        <button
+                            onClick={() => setActiveTab('events')}
+                            className={`pb-2 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'events' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                        >
+                            My Events
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('locations')}
+                            className={`pb-2 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'locations' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                        >
+                            Saved Locations
+                        </button>
                     </div>
-                </header>
 
-                <div className="bg-gray-800/40 rounded-2xl border border-gray-700/50 overflow-hidden shadow-2xl backdrop-blur-sm">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-gray-900/60 text-gray-500 text-[10px] uppercase tracking-[0.1em] font-black">
-                                    <th className="p-5 border-b border-gray-700/50">Thumbnail</th>
-                                    <th className="p-5 border-b border-gray-700/50">Event Details</th>
-                                    <th className="p-5 border-b border-gray-700/50">Scheduled</th>
-                                    <th className="p-5 border-b border-gray-700/50">Performance</th>
-                                    <th className="p-5 border-b border-gray-700/50">Venue</th>
-                                    <th className="p-5 border-b border-gray-700/50 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-700/50">
-                                {filteredEvents.map(event => (
-                                    <tr key={event.id} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="p-5">
-                                            <div className="w-16 h-16 rounded-xl bg-gray-900 border border-white/5 overflow-hidden shadow-inner flex shrink-0">
-                                                {event.imageUrl ? (
-                                                    <img src={event.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-gray-600 text-[10px] font-bold uppercase tracking-tighter">No Image</div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="p-5">
-                                            <div className="font-bold text-white group-hover:text-blue-400 transition-colors mb-0.5 line-clamp-1">
-                                                {event.title}
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider border border-blue-500/20">{event.type}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-5 whitespace-nowrap">
-                                            <div className="flex items-center gap-2 text-sm text-gray-300 font-medium">
-                                                <CalendarIcon size={14} className="text-blue-500" />
-                                                {new Date(event.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                            </div>
-                                            <div className="text-xs text-gray-500 pl-6 mt-0.5">
-                                                {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </div>
-                                        </td>
-                                        <td className="p-5">
-                                            <div className="flex flex-col gap-1">
-                                                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
-                                                    <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
-                                                    {event.views || 0} Views
-                                                </div>
-                                                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
-                                                    <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
-                                                    {event.clicks || 0} Clicks
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-5">
-                                            <div className="flex items-start gap-2 text-sm text-gray-400">
-                                                <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
-                                                <span className="line-clamp-2 leading-relaxed">{event.venue || 'Online Event'}</span>
-                                            </div>
-                                        </td>
-                                        <td className="p-5 text-right">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleDuplicate(event)}
-                                                    className="p-3 bg-white/5 hover:bg-green-500/20 text-green-400 rounded-xl transition-all active:scale-90 border border-white/5"
-                                                    title="Duplicate for Tomorrow"
-                                                >
-                                                    <Copy size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(event)}
-                                                    className="p-3 bg-white/5 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all active:scale-90 border border-white/5"
-                                                    title="Edit"
-                                                >
-                                                    <Edit size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(event.id, event.title)}
-                                                    className="p-3 bg-white/5 hover:bg-red-500/20 text-red-400 rounded-xl transition-all active:scale-90 border border-white/5"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    {filteredEvents.length === 0 && (
-                        <div className="p-20 text-center">
-                            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
-                                <CalendarIcon className="text-gray-600" size={32} />
+                    {activeTab === 'events' && (
+                        <div className="relative group">
+                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-blue-500 transition-colors">
+                                <Zap size={20} />
                             </div>
-                            <p className="text-gray-500 font-medium">No events found.</p>
-                            <p className="text-xs text-gray-600 mt-1">Create your first event to get started.</p>
+                            <input
+                                type="text"
+                                placeholder="Filter your events by title, venue, or category..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-gray-900 border border-white/5 rounded-2xl pl-12 pr-12 py-5 text-white focus:outline-none focus:border-blue-500/50 shadow-2xl transition-all font-medium placeholder:text-gray-600"
+                            />
                         </div>
                     )}
-                </div>
+                </header>
+
+                {activeTab === 'events' && (
+                    <div className="bg-gray-800/40 rounded-2xl border border-gray-700/50 overflow-hidden shadow-2xl backdrop-blur-sm">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-gray-900/60 text-gray-500 text-[10px] uppercase tracking-[0.1em] font-black">
+                                        <th className="p-5 border-b border-gray-700/50">Thumbnail</th>
+                                        <th className="p-5 border-b border-gray-700/50">Event Details</th>
+                                        <th className="p-5 border-b border-gray-700/50">Scheduled</th>
+                                        <th className="p-5 border-b border-gray-700/50">Performance</th>
+                                        <th className="p-5 border-b border-gray-700/50">Venue</th>
+                                        <th className="p-5 border-b border-gray-700/50 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-700/50">
+                                    {filteredEvents.map(event => (
+                                        <tr key={event.id} className="hover:bg-white/[0.02] transition-colors group">
+                                            <td className="p-5">
+                                                <div className="w-16 h-16 rounded-xl bg-gray-900 border border-white/5 overflow-hidden shadow-inner flex shrink-0">
+                                                    {event.imageUrl ? (
+                                                        <img src={event.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-600 text-[10px] font-bold uppercase tracking-tighter">No Image</div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-5">
+                                                <div className="font-bold text-white group-hover:text-blue-400 transition-colors mb-0.5 line-clamp-1">
+                                                    {event.title}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider border border-blue-500/20">{event.type}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-5 whitespace-nowrap">
+                                                <div className="flex items-center gap-2 text-sm text-gray-300 font-medium">
+                                                    <CalendarIcon size={14} className="text-blue-500" />
+                                                    {new Date(event.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </div>
+                                                <div className="text-xs text-gray-500 pl-6 mt-0.5">
+                                                    {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </div>
+                                            </td>
+                                            <td className="p-5">
+                                                <div className="flex flex-col gap-1">
+                                                    <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                        <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+                                                        {event.views || 0} Views
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                        <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
+                                                        {event.clicks || 0} Clicks
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-5">
+                                                <div className="flex items-start gap-2 text-sm text-gray-400">
+                                                    <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
+                                                    <span className="line-clamp-2 leading-relaxed">{event.venue || 'Online Event'}</span>
+                                                </div>
+                                            </td>
+                                            <td className="p-5 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleDuplicate(event)}
+                                                        className="p-3 bg-white/5 hover:bg-green-500/20 text-green-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                        title="Duplicate for Tomorrow"
+                                                    >
+                                                        <Copy size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEdit(event)}
+                                                        className="p-3 bg-white/5 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit size={18} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(event.id, event.title)}
+                                                        className="p-3 bg-white/5 hover:bg-red-500/20 text-red-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        {filteredEvents.length === 0 && (
+                            <div className="p-20 text-center">
+                                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5">
+                                    <CalendarIcon className="text-gray-600" size={32} />
+                                </div>
+                                <p className="text-gray-500 font-medium">No events found.</p>
+                                <p className="text-xs text-gray-600 mt-1">Create your first event to get started.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'locations' && <SavedLocationsPage />}
             </div>
 
             {/* Edit Modal */}
@@ -390,6 +414,6 @@ export default function DashboardPage() {
                 theme="dark"
                 userLocations={userLocations}
             />
-        </div>
+        </div >
     );
 }
