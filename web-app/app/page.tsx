@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus } from 'lucide-react';
 import EventModal from '@/components/event-modal';
 import { useSession } from 'next-auth/react';
@@ -44,23 +44,60 @@ export default function Home() {
 
   // Load events from Backend on mount
   // Load events from Backend
+  const [notification, setNotification] = useState<string | null>(null);
+  const eventsRef = useRef<Set<string>>(new Set());
+  const isFirstLoad = useRef(true);
+  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
+
+  // Sound Helper
+  const playNotificationSound = () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(500, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    } catch (e) { console.error("Audio error", e); }
+  };
+
   const fetchEvents = () => {
-    console.log("🔌 Connecting to Backend:", API_URL);
     fetch(`${API_URL}/events`)
       .then(res => res.json())
       .then(data => {
-        if (Array.isArray(data)) setEvents(data);
-        else console.error("Invalid API response:", data);
+        if (Array.isArray(data)) {
+          // Detect New Events
+          if (!isFirstLoad.current) {
+            const newCount = data.filter(e => !eventsRef.current.has(e.id)).length;
+            if (newCount > 0) {
+              setNotification(`${newCount} New Spot${newCount > 1 ? 's' : ''} Found!`);
+              playNotificationSound();
+              setTimeout(() => setNotification(null), 4000);
+            }
+          }
+
+          setEvents(data);
+
+          // Update Ref
+          const newSet = new Set(data.map((e: any) => e.id));
+          eventsRef.current = newSet;
+          isFirstLoad.current = false;
+        }
       })
       .catch(err => console.error("Failed to fetch events:", err));
   };
 
-  const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
-
   useEffect(() => {
     fetchEvents();
-    // Poll for updates every 60 seconds (to catch deleted events)
-    const interval = setInterval(fetchEvents, 60000);
+    const interval = setInterval(fetchEvents, 10000); // 10s poll
     return () => clearInterval(interval);
   }, []);
 
@@ -191,6 +228,13 @@ export default function Home() {
         userLocations={userLocations}
       />
 
+      {/* Notification Toast */}
+      {notification && (
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[5000] bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-none backdrop-blur-md bg-opacity-90 border border-white/20">
+          <span className="text-xl">🔔</span>
+          <span className="font-bold">{notification}</span>
+        </div>
+      )}
     </main>
   );
 }
