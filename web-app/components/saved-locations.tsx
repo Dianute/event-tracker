@@ -14,9 +14,16 @@ export default function SavedLocationsPage({ locations, onRefresh }: { locations
     const handleDelete = async (id: string, name: string) => {
         if (!confirm(`Delete "${name}"?`)) return;
 
+        const headers: any = {};
+        if (session?.user?.email) headers['x-user-email'] = session.user.email;
+        else {
+            const adminPass = localStorage.getItem('admin_secret');
+            if (adminPass) headers['x-admin-password'] = adminPass;
+        }
+
         await fetch(`${API_URL}/api/user-locations/${id}`, {
             method: 'DELETE',
-            headers: { 'x-user-email': session?.user?.email! }
+            headers
         });
 
         onRefresh(); // Refresh list
@@ -28,12 +35,16 @@ export default function SavedLocationsPage({ locations, onRefresh }: { locations
     };
 
     const handleSave = async (updatedLocation: any) => {
+        const headers: any = { 'Content-Type': 'application/json' };
+        if (session?.user?.email) headers['x-user-email'] = session.user.email;
+        else {
+            const adminPass = localStorage.getItem('admin_secret');
+            if (adminPass) headers['x-admin-password'] = adminPass;
+        }
+
         await fetch(`${API_URL}/api/user-locations`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-user-email': session?.user?.email!
-            },
+            headers,
             body: JSON.stringify(updatedLocation)
         });
 
