@@ -937,7 +937,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               <X size={20} />
             </button>
 
-
+            <div className="pt-2 pb-6">
+              <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Create your account</h3>
+              <p className="text-sm text-gray-400">
+                Or <span className="text-blue-400 cursor-pointer hover:underline" onClick={() => signIn('google')}>sign in to your existing account</span>
+              </p>
+            </div>
 
             <button
               onClick={() => signIn('google')}
