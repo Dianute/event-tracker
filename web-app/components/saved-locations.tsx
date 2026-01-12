@@ -6,28 +6,10 @@ import { MapPin, Phone, Edit, Trash2, Plus, X } from 'lucide-react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-export default function SavedLocationsPage() {
+export default function SavedLocationsPage({ locations, onRefresh }: { locations: any[], onRefresh: () => void }) {
     const { data: session } = useSession();
-    const [locations, setLocations] = useState<any[]>([]);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingLocation, setEditingLocation] = useState<any>(null);
-
-    // Fetch locations
-    useEffect(() => {
-        if (session?.user?.email) {
-            fetchLocations();
-        }
-    }, [session]);
-
-    const fetchLocations = async () => {
-        if (!session?.user?.email) return;
-
-        const res = await fetch(`${API_URL}/api/user-locations`, {
-            headers: { 'x-user-email': session.user.email }
-        });
-        const data = await res.json();
-        setLocations(data);
-    };
 
     const handleDelete = async (id: string, name: string) => {
         if (!confirm(`Delete "${name}"?`)) return;
@@ -37,7 +19,7 @@ export default function SavedLocationsPage() {
             headers: { 'x-user-email': session?.user?.email! }
         });
 
-        fetchLocations(); // Refresh list
+        onRefresh(); // Refresh list
     };
 
     const handleEdit = (location: any) => {
@@ -56,7 +38,7 @@ export default function SavedLocationsPage() {
         });
 
         setIsEditModalOpen(false);
-        fetchLocations(); // Refresh list
+        onRefresh(); // Refresh list
     };
 
     const formatDate = (dateString: string) => {

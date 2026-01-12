@@ -25,7 +25,7 @@ export default function DashboardPage() {
     // Fetch user's saved locations from API
     const [userLocations, setUserLocations] = useState<any[]>([]);
 
-    useEffect(() => {
+    const fetchLocations = () => {
         if (session?.user?.email) {
             fetch(`${API_URL}/api/user-locations`, {
                 headers: { 'x-user-email': session.user.email }
@@ -34,6 +34,10 @@ export default function DashboardPage() {
                 .then(data => setUserLocations(data))
                 .catch(err => console.error('Failed to load locations:', err));
         }
+    };
+
+    useEffect(() => {
+        fetchLocations();
     }, [session]);
 
     const fetchEvents = () => {
@@ -401,7 +405,7 @@ export default function DashboardPage() {
                     </div>
                 )}
 
-                {activeTab === 'locations' && <SavedLocationsPage />}
+                {activeTab === 'locations' && <SavedLocationsPage locations={userLocations} onRefresh={fetchLocations} />}
             </div>
 
             {/* Edit Modal */}
