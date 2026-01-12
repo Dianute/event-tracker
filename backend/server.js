@@ -160,10 +160,8 @@ const isEventActive = (endTimeStr) => {
     let eventEnd;
 
     if (endTimeStr.endsWith('Z')) {
-        // UTC String - Standard
         eventEnd = new Date(endTimeStr);
     } else {
-        // Local String compensation
         const parsed = new Date(endTimeStr);
         eventEnd = new Date(parsed.getTime() - (2 * 60 * 60 * 1000)); // Subtract 2 hours
     }
@@ -171,25 +169,64 @@ const isEventActive = (endTimeStr) => {
     return eventEnd > cutoff;
 };
 
-// GET /events - Fetch all active events
+// GET /events - Fetch events (Active or History)
 app.get('/events', async (req, res) => {
     try {
-        // Fetch all events (Simplified for Postgres compatibility/safety)
+        const { history } = req.query; // ?history=true
+
+        // Fetch all events
         const { rows } = await db.query("SELECT * FROM events");
 
-        // Convert casing for Frontend
+        // Convert casing
         const formattedRows = rows.map(toCamelCase);
 
-        // Javascript Filtering matches legacy logic
-        const activeEvents = formattedRows.filter(ev => isEventActive(ev.endTime));
+        let resultEvents;
+        if (history === 'true') {
+            // HISTORY: Return events that are NOT active (ended)
+            resultEvents = formattedRows.filter(ev => !isEventActive(ev.endTime));
+            // Optional: Limit history to last 7 days explicitly if needed, but Cleanup handles the hard limit.
+        } else {
+            // DEFAULT: Active events only
+            resultEvents = formattedRows.filter(ev => isEventActive(ev.endTime));
+        }
 
-        res.json(activeEvents);
+        res.json(resultEvents);
     } catch (err) {
         console.error("GET /events error:", err);
-        // Ensure we send a string even if err.message is missing
         res.status(500).json({ error: String(err.message || err) });
     }
 });
+
+// ... (Upload routes remain same) ...
+
+// Cleanup Logic (Postgres Version) - RETENTION: 7 DAYS
+const runCleanup = async () => {
+    console.log("🧹 Running Auto-Cleanup Task (7 Day Retention)...");
+    try {
+        // Delete items older than 7 days
+        const { rows: rowsUTC } = await db.query("SELECT id, imageUrl FROM events WHERE endTime LIKE '%Z' AND endTime::timestamp < NOW() - INTERVAL '7 days'");
+        if (rowsUTC.length > 0) processCleanup(rowsUTC, "UTC");
+
+    } catch (err) {
+        console.error("Cleanup Query Error", err);
+    }
+};
+
+const processCleanup = (rows, type) => {
+    rows.forEach(async row => {
+        if (row.imageUrl) {
+            try {
+                const parts = row.imageUrl.split('/uploads/');
+                if (parts.length > 1) {
+                    fs.unlink(path.join(__dirname, 'public', 'uploads', parts[1]), () => { });
+                }
+            } catch (e) { }
+        }
+        await db.query("DELETE FROM events WHERE id = $1", [row.id]);
+    });
+};
+
+cron.schedule('0 * * * *', runCleanup); // Run every hour instad of every minute
 
 // POST /upload - Handle Image Upload (PUBLIC) -> TO BASE 64 (PERSISTENT)
 app.post('/upload', upload.single('image'), async (req, res) => {
