@@ -15,6 +15,8 @@ export default function AdminEventsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('ALL');
+    const [activeTab, setActiveTab] = useState<'active' | 'history'>('active');
+    const [historyEvents, setHistoryEvents] = useState<any[]>([]);
 
     // Saved Locations
     const [userLocations, setUserLocations] = useState<any[]>([]);
@@ -33,6 +35,7 @@ export default function AdminEventsPage() {
 
     const fetchEvents = () => {
         setLoading(true);
+        // 1. Fetch Active
         fetch(`${API_URL}/events`)
             .then(res => res.json())
             .then(data => {
@@ -42,14 +45,21 @@ export default function AdminEventsPage() {
                     setEvents(sorted);
                 } else {
                     console.error("Invalid API response:", data);
-                    // alert("Failed to load events: " + (data.error || "Unknown error")); // Silent fail to avoid spam
                 }
             })
-            .catch(err => {
-                console.error(err);
-                // alert("Network error loading events.");
-            })
+            .catch(err => console.error(err))
             .finally(() => setLoading(false));
+
+        // 2. Fetch History (Silent)
+        fetch(`${API_URL}/events?history=true`)
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const sortedHist = data.sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+                    setHistoryEvents(sortedHist);
+                }
+            })
+            .catch(e => console.error("History fetch error:", e));
     };
 
     useEffect(() => {
@@ -201,7 +211,9 @@ export default function AdminEventsPage() {
             .catch(e => alert("Network error: " + e.message));
     };
 
-    const filteredEvents = events.filter(e => {
+    const currentList = activeTab === 'active' ? events : historyEvents;
+
+    const filteredEvents = currentList.filter((e: any) => {
         const matchesSearch = e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (e.venue && e.venue.toLowerCase().includes(searchTerm.toLowerCase()));
         const matchesType = filterType === 'ALL' || e.type === filterType;
@@ -241,6 +253,16 @@ export default function AdminEventsPage() {
                                 <p className="text-gray-400 text-sm mt-2 font-medium">
                                     Database contains <span className="text-white font-bold">{events.length}</span> active events
                                 </p>
+
+                                {/* Tabs */}
+                                <div className="flex gap-4 mt-6 border-b border-gray-800">
+                                    <button onClick={() => setActiveTab('active')} className={`pb-2 px-4 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'active' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                                        Active
+                                    </button>
+                                    <button onClick={() => setActiveTab('history')} className={`pb-2 px-4 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === 'history' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                                        History ({historyEvents.length})
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Right Side: Actions & Import */}
