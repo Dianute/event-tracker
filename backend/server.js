@@ -707,29 +707,18 @@ cron.schedule('0 */6 * * *', () => {
     scout.stdout.on('data', d => console.log(`[Auto-Scout]: ${d}`));
 });
 
-// Cleanup Logic (Postgres Version)
+// Cleanup Logic (Postgres Version) - RETENTION: 7 DAYS
 const runCleanup = async () => {
-    console.log("🧹 Running Auto-Cleanup Task...");
+    console.log("🧹 Running Auto-Cleanup Task (7 Day Retention)...");
     try {
-        // Postgres: Use NOW() - INTERVAL '15 minutes'
-        // But logic is complex due to UTC/Local check.
-        // Let's keep it simple for now: Delete anything older than 24 hours just to be safe?
-        // Or re-implement the exact logic:
-
-        // 1. UTC Z
-        const { rows: rowsUTC } = await db.query("SELECT id, imageUrl FROM events WHERE endTime LIKE '%Z' AND endTime::timestamp < NOW() - INTERVAL '15 minutes'");
+        // Delete items older than 7 days
+        // UTC
+        const { rows: rowsUTC } = await db.query("SELECT id, imageUrl FROM events WHERE endTime LIKE '%Z' AND endTime::timestamp < NOW() - INTERVAL '7 days'");
         if (rowsUTC.length > 0) processCleanup(rowsUTC, "UTC");
 
-        // 2. Local (No Z) - Assuming Server Time is UTC, and Local is +2
-        // If event is "19:00", it means "17:00 UTC". 
-        // We want to delete if NOW > 19:45 Local (17:45 UTC).
-        // It's tricky in SQL mixed mode.
-        // Let's rely on Node Date parsing to be safe if SQL is too hard.
-        // Fetch ALL potential candidates (e.g. older than 2024) and filter in JS? No too slow.
-        // Let's just trust the JS filter on GET and do cleanup loosely on older items (e.g. > 1 day).
-
-        // Alternative: Pure SQL simplified
-        // DELETE WHERE ((endTime LIKE '%Z' AND endTime::timestamp < NOW()) OR (endTime NOT LIKE '%Z' AND endTime::timestamp < NOW() - INTERVAL '2 hours'))
+        // Local (Simple safety net: delete anything clearly older than 7 days + buffer)
+        const { rows: rowsLocal } = await db.query("SELECT id, imageUrl FROM events WHERE endTime NOT LIKE '%Z' AND endTime::timestamp < NOW() - INTERVAL '8 days'");
+        if (rowsLocal.length > 0) processCleanup(rowsLocal, "Local");
 
     } catch (err) {
         console.error("Cleanup Query Error", err);
@@ -747,11 +736,11 @@ const processCleanup = (rows, type) => {
             } catch (e) { }
         }
         await db.query("DELETE FROM events WHERE id = $1", [row.id]);
+        console.log(`[Cleanup] Deleted ${type} event: ${row.id}`);
     });
 };
 
-cron.schedule('* * * * *', runCleanup);
-// setTimeout(runCleanup, 5000);
+cron.schedule('0 * * * *', runCleanup); // Run every hour
 
 app.get('/cleanup', (req, res) => {
     runCleanup();
