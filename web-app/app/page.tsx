@@ -65,7 +65,7 @@ export default function Home() {
   }, []);
 
   // Fetch user's saved locations
-  useEffect(() => {
+  const fetchLocations = () => {
     if (session?.user?.email) {
       fetch(`${API_URL}/api/user-locations`, {
         headers: { 'x-user-email': session.user.email }
@@ -74,6 +74,10 @@ export default function Home() {
         .then(data => setUserLocations(data))
         .catch(err => console.error('Failed to load locations:', err));
     }
+  };
+
+  useEffect(() => {
+    fetchLocations();
   }, [session]);
 
   const handleMapClick = (lat: number, lng: number) => {
@@ -119,6 +123,7 @@ export default function Home() {
       .then(savedEvent => {
         setEvents([...events, savedEvent]);
         setSelectedLocation(null);
+        fetchLocations();
       })
       .catch(err => console.error("Failed to save event:", err));
   };
