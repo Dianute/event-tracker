@@ -81,8 +81,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
         }
 
         // --- EXPLICIT MIGRATIONS (Force Schema Update) ---
-        await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT");
-        await db.query("ALTER TABLE user_locations ADD COLUMN IF NOT EXISTS phone TEXT");
+        try {
+            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT");
+            await db.query("ALTER TABLE user_locations ADD COLUMN IF NOT EXISTS phone TEXT");
+            console.log("✅ Schema patched successfully (phone column)");
+        } catch (migErr) {
+            console.warn("⚠️ Schema patch warning:", migErr.message);
+        }
 
         // --- HIGH PERFORMANCE INDEXES (Added for 100k+ Scale) ---
         // 1. Spatial Index for fast map lookups
