@@ -382,7 +382,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const sorted = [...candidates].sort((a, b) => {
       // ... (Same as before for pin overlaps)
       if (a.type !== 'food' || b.type !== 'food') return 0;
-      return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime());
+      return (new Date(a.startTime || '').getTime()) - (new Date(b.startTime || '').getTime());
     });
 
     // ... (Food de-clutter logic) ...
@@ -431,10 +431,17 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   // 3. TIME: Live Now > Today > Future
 
   displayList.sort((a, b) => {
-    const nowTime = now.getTime();
+    const nowTime = Date.now();
     const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
     const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
+    const aEnd = a.endTime ? new Date(a.endTime).getTime() : aStart + 1000 * 60 * 60;
+    const bEnd = b.endTime ? new Date(b.endTime).getTime() : bStart + 1000 * 60 * 60;
+
+    const isALive = nowTime >= aStart && nowTime < aEnd;
     const isBLive = nowTime >= bStart && nowTime < bEnd;
+
+    let scoreA = aStart;
+    let scoreB = bStart;
 
     // FOOD LOGIC: If it's Food & Live, ignore start time. All live food is equal in time.
     if (isALive && a.type === 'food') scoreA = nowTime;
