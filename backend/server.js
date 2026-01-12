@@ -80,6 +80,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             await db.query(statement);
         }
 
+        // --- EXPLICIT MIGRATIONS (Force Schema Update) ---
+        await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT");
+        await db.query("ALTER TABLE user_locations ADD COLUMN IF NOT EXISTS phone TEXT");
+
         // --- HIGH PERFORMANCE INDEXES (Added for 100k+ Scale) ---
         // 1. Spatial Index for fast map lookups
         await db.query(`CREATE INDEX IF NOT EXISTS idx_events_lat_lng ON events (lat, lng);`);
