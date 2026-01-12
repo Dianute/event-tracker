@@ -309,10 +309,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const timeMatch = (() => {
       // SPECIAL CATEGORY LOGIC: Food (Daily Menus)
       if (e.type === 'food') {
-        const foodStart = new Date(start);
-        const bufferTime = new Date(foodStart);
-        bufferTime.setMinutes(bufferTime.getMinutes() - 30); // 30 min buffer
+        // STRICT TIMING: User requested "Don't show menus 30 mins before".
+        // Only show if it is strictly between Start and End.
 
+        // Also ensure it is TODAY (already handled by start >= dayStart check implicitly if we only look at today's logic)
+        // But the user said "it shows everything" for the week.
+        // So we must enforce: Is this menu for TODAY?
         const dayStart = new Date(now);
         dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(dayStart);
@@ -322,7 +324,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         const isToday = start >= dayStart && start < dayEnd;
         if (!isToday) return false;
 
-        return now >= bufferTime && now <= end;
+        // strict: now >= start && now <= end
+        return now >= start && now <= end;
       }
 
       // ... (Standard Logic uses 'now') ...
