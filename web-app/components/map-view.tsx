@@ -304,7 +304,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       // Only show Today's menus, and only 15 mins before start time.
       if (e.type === 'food') {
         const foodStart = new Date(start);
-        const bufferTime = new Date(foodStart.getTime() - 15 * 60000); // 15 mins before
+        const bufferTime = foodStart; // STRICT START: No preview buffer (prevents overlap with previous meal)
 
         // 1. Must be TODAY (Start time < Tomorrow 4am && End time > Today 4am)
         // Check if event falls within "Active Day" window (Today 00:00 - Tomorrow 04:00)

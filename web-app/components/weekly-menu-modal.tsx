@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, MapPin, Camera, Upload, ArrowRight, Save } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Camera, Upload, ArrowRight, Save, Phone } from 'lucide-react';
 
 interface WeeklyMenuModalProps {
     isOpen: boolean;
@@ -17,6 +17,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
     const [title, setTitle] = useState('Business Lunch');
     const [description, setDescription] = useState('Delicious daily lunch menu.');
     const [venue, setVenue] = useState('');
+    const [phone, setPhone] = useState('');
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -118,6 +119,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                 lat: coords.lat,
                 lng: coords.lng,
                 venue,
+                phone,
                 imageUrl: images[i]
             });
         }
@@ -175,6 +177,14 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                         ))}
                                     </div>
                                 )}
+                            </div>
+
+                            <div className="relative">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Phone (Optional)</label>
+                                <input type="tel" value={phone} placeholder="+370 600..."
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    className="w-full px-4 py-3 pl-10 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors" />
+                                <Phone className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
                             </div>
 
                         </div>
