@@ -502,10 +502,17 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             endDateTime.setDate(endDateTime.getDate() + 1);
         }
 
+        // Helper to format for DB (Local ISO - maintains "Face Value" of time)
+        const formatForDB = (dateObj: Date) => {
+            const offset = dateObj.getTimezoneOffset() * 60000; // Offset in ms
+            const localTime = new Date(dateObj.getTime() - offset);
+            return localTime.toISOString().slice(0, -1); // Remove 'Z'
+        };
+
         onSubmit({
             title, description, type,
-            startTime: startDateTime.toISOString(),
-            endTime: endDateTime.toISOString(),
+            startTime: formatForDB(startDateTime),
+            endTime: formatForDB(endDateTime),
             lat: finalLat!, lng: finalLng!, venue, imageUrl, phone,
             userEmail: session?.user?.email
         });
