@@ -156,7 +156,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); onClose(); }}
                     className="pointer-events-auto p-2.5 rounded-full bg-black/20 backdrop-blur-xl text-white border border-white/10 hover:bg-white/20 transition-all active:scale-95 text-center flex items-center justify-center shadow-lg">
-                    <Minimize2 size={22} />
+                    <X size={22} />
                 </button>
             </div>
 
