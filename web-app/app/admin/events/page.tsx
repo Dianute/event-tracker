@@ -67,7 +67,7 @@ export default function AdminEventsPage() {
     }, []);
 
     // Fetch Locations (for Modal)
-    useEffect(() => {
+    const fetchUserLocations = () => {
         if (session?.user?.email) {
             fetch(`${API_URL}/api/user-locations`, {
                 headers: { 'x-user-email': session.user.email }
@@ -76,6 +76,10 @@ export default function AdminEventsPage() {
                 .then(data => setUserLocations(data))
                 .catch(err => console.error(err));
         }
+    };
+
+    useEffect(() => {
+        fetchUserLocations();
     }, [session]);
 
     const handleDelete = (id: string, title: string) => {
@@ -203,6 +207,8 @@ export default function AdminEventsPage() {
                     setIsModalOpen(false);
                     setSelectedEvent(null);
                     fetchEvents();
+                    // Also refresh locations if updated
+                    fetchUserLocations();
                 } else {
                     const err = await res.json();
                     alert("Operation failed: " + err.error);
@@ -446,6 +452,8 @@ export default function AdminEventsPage() {
                     event={selectedEvent}
                     readOnly={isReadOnly}
                     theme="dark"
+                    userLocations={userLocations}
+                    onLocationsChange={fetchUserLocations}
                 />
 
                 {/* Weekly Menu Modal */}
