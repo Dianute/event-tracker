@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Phone } from 'lucide-react';
+import { X, Clock, MapPin, Navigation, Calendar as CalendarIcon, Phone, ExternalLink, ImageIcon, Maximize2, Minimize2, ChevronLeft, ChevronRight, Share2, Copy, Check, Info, ZoomIn, ZoomOut, Minus, Plus } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
 
@@ -156,7 +156,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); onClose(); }}
                     className="pointer-events-auto p-2.5 rounded-full bg-black/20 backdrop-blur-xl text-white border border-white/10 hover:bg-white/20 transition-all active:scale-95 text-center flex items-center justify-center shadow-lg">
-                    <X size={22} />
+                    <Minimize2 size={22} />
                 </button>
             </div>
 
@@ -168,12 +168,13 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                 className={`absolute bottom-0 left-0 right-0 z-40 p-6 pb-20 md:pb-8 text-white flex flex-col gap-4 max-h-[60%] overflow-y-auto scrollbar-none transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             >
                 {/* Zoom Hint Button (Above Title) */}
+                {/* Zoom Hint Button (Icon Only - Bigger) */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onZoom(imageUrl); }}
-                    className="self-start mb-2 pointer-events-auto bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 transition-all duration-300 active:scale-95"
+                    className="self-start mb-2 pointer-events-auto bg-white/20 hover:bg-white/30 backdrop-blur-md border border-white/10 rounded-full p-2.5 flex items-center justify-center transition-all duration-300 active:scale-95"
+                    title="Enlarge Image"
                 >
-                    <Maximize2 size={12} className="text-white" />
-                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Zoom</span>
+                    <Maximize2 size={24} className="text-white drop-shadow-md" />
                 </button>
 
                 <div><h1 className="text-3xl font-black leading-tight drop-shadow-xl mb-1 text-white">{title}</h1></div>
@@ -586,7 +587,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         {/* HEADER IMAGE */}
                         <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 transition-colors
                              ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/20' : theme === 'light' ? 'bg-gray-100 border-gray-200' : 'bg-zinc-800/50 border-white/10'}`}>
-                            <button onClick={onClose} className="absolute top-5 right-5 z-20 p-2 rounded-full bg-black/50 text-white hover:bg-red-500 transition-colors shadow-lg active:scale-90"><X size={18} /></button>
+                            <button
+                                onClick={onClose}
+                                className="absolute top-5 right-5 z-20 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-md transition-all active:scale-95"
+                            >
+                                <Minimize2 size={28} />
+                            </button>
                             {imageUrl ? (
                                 <>
                                     <img src={imageUrl} alt="Preview" className="w-full h-full object-cover bg-black/20" />
