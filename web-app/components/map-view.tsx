@@ -429,39 +429,59 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   displayList.sort((a, b) => {
     const nowTime = now.getTime();
-    const aStart = new Date(a.startTime).getTime();
-    const bStart = new Date(b.startTime).getTime();
+    const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
+    const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
+    const aEnd = a.endTime ? new Date(a.endTime).getTime() : aStart + 3600000;
+    const bEnd = b.endTime ? new Date(b.endTime).getTime() : bStart + 3600000;
 
     // Calculate Scores (Lower is Better/Top)
     let scoreA = aStart;
     let scoreB = bStart;
 
     // 1. Live Boost (Huge)
-    const isALive = nowTime >= aStart && nowTime < (new Date(a.endTime).getTime());
-    const isBLive = nowTime >= bStart && nowTime < (new Date(b.endTime).getTime());
+    const isALive = nowTime >= aStart && nowTime < aEnd;
+    const isBLive = nowTime >= bStart && nowTime < bEnd;
 
-    if (isALive) scoreA -= 10000000000; // -10 Billion
+    // FOOD LOGIC: If it's Food & Live, ignore start time. All live food is equal in time.
+    if (isALive && a.type === 'food') scoreA = nowTime;
+    if (isBLive && b.type === 'food') scoreB = nowTime;
+
+    if (isALive) scoreA -= 10000000000; // -10 Billion (Top Tier)
     if (isBLive) scoreB -= 10000000000;
 
     // 2. Map Focus Boost (If we have a center)
     if (mapCenter) {
-      const distA = getDistance(mapCenter.lat, mapCenter.lng, a.lat, a.lng);
-      const distB = getDistance(mapCenter.lat, mapCenter.lng, b.lat, b.lng);
+      // Helper for safe coords
+      const latA = a.lat || 0; const lngA = a.lng || 0;
+      const latB = b.lat || 0; const lngB = b.lng || 0;
 
-      // Add distance penalty (1m = 1 point)
-      // If you look at it, it's at the top.
+      const distA = getDistance(mapCenter.lat, mapCenter.lng, latA, lngA);
+      const distB = getDistance(mapCenter.lat, mapCenter.lng, latB, lngB);
+
       scoreA += distA * 10;
       scoreB += distB * 10;
     }
-    // 3. User Location Fallback (if map center not set or identical)
+    // 3. User Location Fallback
     else if (userLocation) {
-      const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
-      const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
+      const latA = a.lat || 0; const lngA = a.lng || 0;
+      const latB = b.lat || 0; const lngB = b.lng || 0;
+
+      const distA = getDistance(userLocation.lat, userLocation.lng, latA, lngA);
+      const distB = getDistance(userLocation.lat, userLocation.lng, latB, lngB);
       scoreA += distA * 5;
       scoreB += distB * 5;
     }
 
     return scoreA - scoreB;
+  });
+
+  // Re-create groupedEvents for markers (Fixes TS 'Cannot find name groupedEvents')
+  const groupedEvents = new Map<string, Event[]>();
+  displayList.forEach(e => {
+    if (typeof e.lat !== 'number' || typeof e.lng !== 'number') return;
+    const locKey = `${e.lat.toFixed(4)},${e.lng.toFixed(4)}`;
+    if (!groupedEvents.has(locKey)) groupedEvents.set(locKey, []);
+    groupedEvents.get(locKey)?.push(e);
   });
 
   const showingFallback = displayList.length === 0;
