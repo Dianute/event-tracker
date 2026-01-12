@@ -36,7 +36,8 @@ export default function AdminEventsPage() {
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
-                    const sorted = data.sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+                    // Sort Ascending (Chronological: Monday -> Friday)
+                    const sorted = data.sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
                     setEvents(sorted);
                 } else {
                     console.error("Invalid API response:", data);
