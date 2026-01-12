@@ -255,6 +255,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
   const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -294,76 +295,107 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   const now = new Date();
 
-  const filteredEvents = events.filter(e => {
-    // Time Filter Logic
-    const start = e.startTime ? new Date(e.startTime) : new Date(0); // Default to past if missing
-    const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000); // Default to far future
+  // 1. First Pass: Comprehensive Filtering
+  const candidates = events.filter(e => {
+    // A. Time Filter
+    const start = e.startTime ? new Date(e.startTime) : new Date(0);
+    const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000);
 
     const timeMatch = (() => {
       // SPECIAL CATEGORY LOGIC: Food (Daily Menus)
-      // Only show Today's menus, and only 15 mins before start time.
       if (e.type === 'food') {
         const foodStart = new Date(start);
-        const bufferTime = foodStart; // STRICT START: No preview buffer (prevents overlap with previous meal)
+        const bufferTime = new Date(foodStart);
+        bufferTime.setMinutes(bufferTime.getMinutes() - 30); // 30 min buffer
 
-        // 1. Must be TODAY (Start time < Tomorrow 4am && End time > Today 4am)
-        // Check if event falls within "Active Day" window (Today 00:00 - Tomorrow 04:00)
         const dayStart = new Date(now);
-        dayStart.setHours(0, 0, 0, 0); // Start of Today
+        dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(dayStart);
         dayEnd.setDate(dayEnd.getDate() + 1);
-        dayEnd.setHours(4, 0, 0, 0); // End: Tomorrow 4am
+        dayEnd.setHours(4, 0, 0, 0); // Tomorrow 4am
 
         const isToday = start >= dayStart && start < dayEnd;
+        if (!isToday) return false;
 
-        if (!isToday) return false; // Hide future/past menus completely
-
-        // 2. Must be within buffer time (Now >= Start - 15m)
         return now >= bufferTime && now <= end;
       }
 
-      // STANDARD LOGIC for other categories
+      // STANDARD LOGIC
       if (timeFilter === 'all') return true;
-      if (timeFilter === 'live') return now >= start && now <= end;
       if (timeFilter === 'today') {
-        const tomorrow4am = new Date(now);
-        tomorrow4am.setDate(tomorrow4am.getDate() + 1);
-        tomorrow4am.setHours(4, 0, 0, 0);
-        return start < tomorrow4am && end > now;
+        const dayStart = new Date(now);
+        dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+        return start >= dayStart && start < dayEnd;
       }
       if (timeFilter === 'week') {
-        const nextWeek = new Date(now);
-        nextWeek.setDate(nextWeek.getDate() + 7);
-        return start < nextWeek && end > now;
+        const dayStart = new Date(now);
+        dayStart.setHours(0, 0, 0, 0);
+        const weekEnd = new Date(dayStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        return start >= dayStart && start < weekEnd;
+      }
+      if (timeFilter === 'live') {
+        return now >= start && now <= end;
       }
       return true;
     })();
 
-    // Radius Filter Logic
+    // B. Category Filter
+    const categoryMatch = selectedCategory === 'all' || e.type === selectedCategory;
+
+    // C. Radius Filter
     const radiusMatch = (() => {
       if (!radiusFilter || !userLocation) return true;
       const dist = getDistance(userLocation.lat, userLocation.lng, e.lat, e.lng);
       return dist <= radiusFilter;
     })();
 
-
-
+    // D. Search Filter
     const query = searchQuery.toLowerCase();
     const searchMatch = !searchQuery ||
       e.title.toLowerCase().includes(query) ||
       e.description.toLowerCase().includes(query) ||
       e.type.toLowerCase().includes(query);
 
-    // Viewport Filter Logic
-    if (mapBounds) {
+    // E. Bounds Filter
+    const boundsMatch = (() => {
+      if (!mapBounds) return true;
       if (typeof e.lat !== 'number' || typeof e.lng !== 'number') return false;
-      if (!mapBounds.contains([e.lat, e.lng])) {
-        return false;
-      }
-    }
+      return mapBounds.contains([e.lat, e.lng]);
+    })();
 
-    return timeMatch && radiusMatch && searchMatch;
+    return timeMatch && categoryMatch && radiusMatch && searchMatch && boundsMatch;
   });
+
+  // 2. Second Pass: Anti-Overlap (Smart Pin De-Clutter)
+  const filteredEvents = (() => {
+    const result: Event[] = [];
+    const foodOccupied = new Set<string>();
+
+    const sorted = [...candidates].sort((a, b) => {
+      if (a.type !== 'food' || b.type !== 'food') return 0;
+      const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
+      const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
+      const aLive = now.getTime() >= aStart;
+      const bLive = now.getTime() >= bStart;
+
+      if (aLive && !bLive) return -1; // Live Priority
+      if (!aLive && bLive) return 1;
+      return aStart - bStart;
+    });
+
+    for (const e of sorted) {
+      if (e.type === 'food') {
+        const key = e.lat.toFixed(4) + ',' + e.lng.toFixed(4);
+        if (foodOccupied.has(key)) continue;
+        foodOccupied.add(key);
+      }
+      result.push(e);
+    }
+    return result;
+  })();
 
   // Deduplication & Clustering
   const uniqueEvents = new Map<string, Event>();

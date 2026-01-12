@@ -25,6 +25,7 @@ export default function AdminEventsPage() {
 
     // Weekly Menu Modal State
     const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
+    const [isReadOnly, setIsReadOnly] = useState(false);
 
     // Import State
     const [importUrl, setImportUrl] = useState('');
@@ -89,11 +90,19 @@ export default function AdminEventsPage() {
 
     const handleEdit = (event: any) => {
         setSelectedEvent(event);
+        setIsReadOnly(false);
+        setIsModalOpen(true);
+    };
+
+    const handlePreview = (event: any) => {
+        setSelectedEvent(event);
+        setIsReadOnly(true);
         setIsModalOpen(true);
     };
 
     const handleCreateNew = () => {
         setSelectedEvent(null);
+        setIsReadOnly(false);
         setIsModalOpen(true);
     };
 
@@ -335,7 +344,7 @@ export default function AdminEventsPage() {
                                                         </tr>
                                                     )}
                                                     <tr key={event.id} className="hover:bg-white/5 transition-colors group">
-                                                        <td className="p-4 cursor-pointer" onClick={() => handleEdit(event)}>
+                                                        <td className="p-4 cursor-pointer" onClick={() => handlePreview(event)}>
                                                             <div className="w-12 h-12 rounded bg-gray-700 overflow-hidden hover:ring-2 hover:ring-blue-500 transition-all">
                                                                 {event.imageUrl ? (
                                                                     <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
@@ -344,7 +353,7 @@ export default function AdminEventsPage() {
                                                                 )}
                                                             </div>
                                                         </td>
-                                                        <td className="p-4 cursor-pointer" onClick={() => handleEdit(event)}>
+                                                        <td className="p-4 cursor-pointer" onClick={() => handlePreview(event)}>
                                                             <div className="font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1" title={event.title}>
                                                                 {event.title}
                                                             </div>
@@ -413,6 +422,7 @@ export default function AdminEventsPage() {
                     onSubmit={handleUpdate}
                     initialLocation={selectedEvent ? { lat: selectedEvent.lat, lng: selectedEvent.lng } : null}
                     event={selectedEvent}
+                    readOnly={isReadOnly}
                     theme="dark"
                 />
 
