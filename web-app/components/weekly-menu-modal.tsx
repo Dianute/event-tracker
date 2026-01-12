@@ -31,6 +31,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
     // Images for Mon-Fri
     const [images, setImages] = useState<string[]>(['', '', '', '', '']);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+    const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
     // Initial Setup
     useEffect(() => {
@@ -148,6 +149,60 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar-thin">
+
+                    {/* Saved Locations Chips */}
+                    {userLocations.length > 0 && (
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest shrink-0">Quick Fill:</span>
+                            {/* Button 1: First Location */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const loc = userLocations[0];
+                                    setVenue(loc.venue);
+                                    if (loc.lat && loc.lng) setCoords({ lat: loc.lat, lng: loc.lng });
+                                    if (loc.phone) setPhone(loc.phone);
+                                    // Optional: Set title to location name? User might want "Business Lunch"
+                                    // setTitle(loc.name); 
+                                }}
+                                className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
+                            >
+                                {userLocations[0].name}
+                            </button>
+
+                            {/* Dropdown for others */}
+                            {userLocations.length > 1 && (
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                                        className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
+                                    >
+                                        More ▼
+                                    </button>
+                                    {showLocationDropdown && (
+                                        <div className="absolute left-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-20">
+                                            {userLocations.slice(1).map((loc, i) => (
+                                                <button
+                                                    key={i}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setVenue(loc.venue);
+                                                        if (loc.lat && loc.lng) setCoords({ lat: loc.lat, lng: loc.lng });
+                                                        if (loc.phone) setPhone(loc.phone);
+                                                        setShowLocationDropdown(false);
+                                                    }}
+                                                    className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
+                                                >
+                                                    {loc.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* 1. Common Info */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
