@@ -962,6 +962,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           </div>
         </div>
       )}
-    </div >
+    </>
   );
 }
