@@ -110,7 +110,10 @@ export default function AdminEventsPage() {
                         'Content-Type': 'application/json',
                         'x-admin-password': adminPass
                     },
-                    body: JSON.stringify(evt)
+                    body: JSON.stringify({
+                        ...evt,
+                        userEmail: session?.user?.email
+                    })
                 })
             );
 
