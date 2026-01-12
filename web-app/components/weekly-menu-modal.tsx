@@ -8,11 +8,12 @@ interface WeeklyMenuModalProps {
     onClose: () => void;
     onSubmit: (events: any[]) => void;
     initialLocation?: { lat: number; lng: number } | null;
+    userLocations?: any[];
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLocation }: WeeklyMenuModalProps) {
+export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLocation, userLocations = [] }: WeeklyMenuModalProps) {
     // Common Details
     const [title, setTitle] = useState('Business Lunch');
     const [description, setDescription] = useState('Delicious daily lunch menu.');
@@ -163,6 +164,25 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                     onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCoords(null); }}
                                     className="w-full px-4 py-3 pl-10 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors" />
                                 <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
+
+                                {/* SAVED LOCATIONS DROPDOWN */}
+                                {(isSearching && !venue && userLocations.length > 0) && (
+                                    <div className="absolute z-20 w-full mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
+                                        <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm sticky top-0">My Locations</div>
+                                        {userLocations.map((loc, i) => (
+                                            <div key={i} className="p-3 cursor-pointer text-sm truncate flex items-center gap-2 hover:bg-white/10 text-gray-200"
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => {
+                                                    setVenue(loc.venue);
+                                                    setCoords({ lat: loc.lat, lng: loc.lng });
+                                                    if (loc.phone) setPhone(loc.phone);
+                                                    setIsSearching(false);
+                                                }}>
+                                                <MapPin size={12} className="text-green-500" /> {loc.venue}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 {suggestions.length > 0 && (
                                     <div className="absolute z-20 w-full mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                                         {suggestions.map((item, i) => (

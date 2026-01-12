@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Edit, Trash2, ArrowLeft, ExternalLink, Calendar as CalendarIcon, MapPin, Plus, Utensils } from 'lucide-react';
 import EventModal from '@/components/event-modal';
 import WeeklyMenuModal from '@/components/weekly-menu-modal';
@@ -9,10 +10,14 @@ import VerifyAdminAuth from '@/components/VerifyAdminAuth';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export default function AdminEventsPage() {
+    const { data: session } = useSession();
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('ALL');
+
+    // Saved Locations
+    const [userLocations, setUserLocations] = useState<any[]>([]);
 
     // Edit Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,6 +53,18 @@ export default function AdminEventsPage() {
     useEffect(() => {
         fetchEvents();
     }, []);
+
+    // Fetch Locations (for Modal)
+    useEffect(() => {
+        if (session?.user?.email) {
+            fetch(`${API_URL}/api/user-locations`, {
+                headers: { 'x-user-email': session.user.email }
+            })
+                .then(res => res.json())
+                .then(data => setUserLocations(data))
+                .catch(err => console.error(err));
+        }
+    }, [session]);
 
     const handleDelete = (id: string, title: string) => {
         if (!confirm(`Permanently delete "${title}"?`)) return;
@@ -383,6 +400,7 @@ export default function AdminEventsPage() {
                     isOpen={isMenuModalOpen}
                     onClose={() => setIsMenuModalOpen(false)}
                     onSubmit={handleBatchCreate}
+                    userLocations={userLocations}
                 />
             </div>
         </VerifyAdminAuth>
