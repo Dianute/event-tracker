@@ -109,13 +109,15 @@ import EventCard from '@/components/event-card';
 
 
 
-function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
+function LocationMarker({ onMapClick, newLocation, onLocationFound, onShowAuth }: {
   onMapClick?: (lat: number, lng: number) => void,
   newLocation: { lat: number; lng: number } | null,
-  onLocationFound: (pos: L.LatLng) => void
+  onLocationFound: (pos: L.LatLng) => void,
+  onShowAuth?: () => void
 }) {
   const [position, setPosition] = useState<L.LatLng | null>(null);
   const [isLocating, setIsLocating] = useState(false);
+  const { data: session } = useSession();
   const map = useMap();
 
   useEffect(() => {
@@ -179,8 +181,10 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound }: {
 
   useMapEvents({
     click(e) {
-      if (onMapClick) {
-        onMapClick(e.latlng.lat, e.latlng.lng);
+      if (session) {
+        if (onMapClick) onMapClick(e.latlng.lat, e.latlng.lng);
+      } else {
+        if (onShowAuth) onShowAuth();
       }
     },
   });
@@ -654,6 +658,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           onMapClick={onMapClick}
           newLocation={newLocation || null}
           onLocationFound={setUserLocation}
+          onShowAuth={() => setShowAuthModal(true)}
         />
       </MapContainer>
 

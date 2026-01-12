@@ -396,12 +396,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     if (!title && data.title) setTitle(data.title);
                     if (!description && data.description) setDescription(data.description);
                     if (data.type) setType(data.type);
-                    if (!venue && data.venue) setVenue(data.venue);
+                    if (!venue && data.venue && !initialLocation) setVenue(data.venue);
                     if (data.date) setDate(data.date);
                     if (data.timeStart) setTimeStart(data.timeStart);
                     if (data.timeEnd) setTimeEnd(data.timeEnd);
                     if (data.isAllDay !== undefined) setIsAllDay(data.isAllDay);
-                    if (data.currentLocation) setCurrentLocation(data.currentLocation);
+                    if (data.currentLocation && !initialLocation) setCurrentLocation(data.currentLocation);
                     if (data.imageUrl) setImageUrl(data.imageUrl);
                     draftRestored.current = true;
                 } catch (e) {
@@ -414,7 +414,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         if (!isOpen) {
             draftRestored.current = false;
         }
-    }, [isOpen, event]);
+    }, [isOpen, event, initialLocation]);
 
     // Feed Scroll Logic
     useEffect(() => {
