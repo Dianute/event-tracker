@@ -265,10 +265,19 @@ app.post('/events', async (req, res) => {
         }
 
         const id = uuidv4();
-        const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`;
-        const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone];
-
-        const { rows: newEvent } = await db.query(query, params);
+        let newEvent;
+        try {
+            const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`;
+            const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone];
+            const { rows } = await db.query(query, params);
+            newEvent = rows;
+        } catch (insertErr) {
+            console.warn("⚠️ Insert failed (likely missing phone col), retrying without phone...", insertErr.message);
+            const queryFallback = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`;
+            const paramsFallback = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail];
+            const { rows } = await db.query(queryFallback, paramsFallback);
+            newEvent = rows;
+        }
 
         // Auto-save location for user (if provided)
         if (venue && lat && lng && userEmail) {
