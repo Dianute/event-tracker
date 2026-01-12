@@ -319,70 +319,85 @@ export default function AdminEventsPage() {
                                     ) : filteredEvents.length === 0 ? (
                                         <tr><td colSpan={6} className="p-8 text-center text-gray-500">No events found matching "{searchTerm}"</td></tr>
                                     ) : (
-                                        filteredEvents.map(event => (
-                                            <tr key={event.id} className="hover:bg-white/5 transition-colors group">
-                                                <td className="p-4">
-                                                    <div className="w-12 h-12 rounded bg-gray-700 overflow-hidden">
-                                                        {event.imageUrl ? (
-                                                            <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">No Img</div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1" title={event.title}>
-                                                        {event.title}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 line-clamp-1">{event.type}</div>
-                                                </td>
-                                                <td className="p-4 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-300">
-                                                        <CalendarIcon size={14} className="text-purple-500" />
-                                                        {new Date(event.startTime).toLocaleDateString()}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 pl-6">
-                                                        {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        {' - '}
-                                                        {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </div>
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex items-start gap-2 text-sm text-gray-300">
-                                                        <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
-                                                        <span className="line-clamp-2">{event.venue || event.location || 'Online'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-4 text-xs text-gray-400 max-w-[150px] truncate" title={event.userEmail}>
-                                                    {event.userEmail || '-'}
-                                                </td>
-                                                <td className="p-4 text-center">
-                                                    {event.link && event.link !== 'N/A' ? (
-                                                        <a href={event.link} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-white transition-colors block p-2 bg-gray-700/50 rounded hover:bg-gray-700">
-                                                            <ExternalLink size={16} className="mx-auto" />
-                                                        </a>
-                                                    ) : <span className="text-xs text-gray-600">-</span>}
-                                                </td>
-                                                <td className="p-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => handleEdit(event)}
-                                                            className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
-                                                            title="Edit Event"
-                                                        >
-                                                            <Edit size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(event.id, event.title)}
-                                                            className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                                                            title="Delete Event"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
+                                        filteredEvents.map((event, index) => {
+                                            const currentDate = new Date(event.startTime).toLocaleDateString();
+                                            const prevDate = index > 0 ? new Date(filteredEvents[index - 1].startTime).toLocaleDateString() : null;
+                                            const isNewGroup = currentDate !== prevDate;
+
+                                            return (
+                                                <>
+                                                    {isNewGroup && (
+                                                        <tr key={`header-${currentDate}`} className="bg-gray-800/80 border-b border-gray-700/50">
+                                                            <td colSpan={7} className="p-3 pl-4 text-xs font-bold text-blue-400 uppercase tracking-widest sticky top-0">
+                                                                {new Date(event.startTime).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                    <tr key={event.id} className="hover:bg-white/5 transition-colors group">
+                                                        <td className="p-4">
+                                                            <div className="w-12 h-12 rounded bg-gray-700 overflow-hidden">
+                                                                {event.imageUrl ? (
+                                                                    <img src={event.imageUrl} alt="" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-xs">No Img</div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div className="font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-1" title={event.title}>
+                                                                {event.title}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 line-clamp-1">{event.type}</div>
+                                                        </td>
+                                                        <td className="p-4 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2 text-sm text-gray-300">
+                                                                <CalendarIcon size={14} className="text-purple-500" />
+                                                                {new Date(event.startTime).toLocaleDateString()}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 pl-6">
+                                                                {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                {' - '}
+                                                                {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4">
+                                                            <div className="flex items-start gap-2 text-sm text-gray-300">
+                                                                <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
+                                                                <span className="line-clamp-2">{event.venue || event.location || 'Online'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-4 text-xs text-gray-400 max-w-[150px] truncate" title={event.userEmail}>
+                                                            {event.userEmail || '-'}
+                                                        </td>
+                                                        <td className="p-4 text-center">
+                                                            {event.link && event.link !== 'N/A' ? (
+                                                                <a href={event.link} target="_blank" rel="noreferrer" className="text-gray-500 hover:text-white transition-colors block p-2 bg-gray-700/50 rounded hover:bg-gray-700">
+                                                                    <ExternalLink size={16} className="mx-auto" />
+                                                                </a>
+                                                            ) : <span className="text-xs text-gray-600">-</span>}
+                                                        </td>
+                                                        <td className="p-4 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => handleEdit(event)}
+                                                                    className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition-colors"
+                                                                    title="Edit Event"
+                                                                >
+                                                                    <Edit size={18} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(event.id, event.title)}
+                                                                    className="p-2 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                                                                    title="Delete Event"
+                                                                >
+                                                                    <Trash2 size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </>
+                                            );
+                                        })
                                     )}
                                 </tbody>
                             </table>
