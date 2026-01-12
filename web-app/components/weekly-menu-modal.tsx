@@ -116,8 +116,8 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                 title: title,
                 description,
                 type: 'food',
-                startTime: `${dateStr}T${timeStart}:00.000Z`, // Simplified ISO construction
-                endTime: `${dateStr}T${timeEnd}:00.000Z`,
+                startTime: `${dateStr}T${timeStart}:00.000`, // Local ISO (No Z)
+                endTime: `${dateStr}T${timeEnd}:00.000`,
                 lat: coords.lat,
                 lng: coords.lng,
                 venue,
