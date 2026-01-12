@@ -364,14 +364,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       e.description.toLowerCase().includes(query) ||
       e.type.toLowerCase().includes(query);
 
-    // E. Bounds Filter
-    const boundsMatch = (() => {
-      if (!mapBounds) return true;
-      if (typeof e.lat !== 'number' || typeof e.lng !== 'number') return false;
-      return mapBounds.contains([e.lat, e.lng]);
-    })();
+    // E. Bounds Filter - DISABLED by request (Always show full list)
+    // const boundsMatch = ... 
 
-    return timeMatch && categoryMatch && radiusMatch && searchMatch && boundsMatch;
+    return timeMatch && categoryMatch && radiusMatch && searchMatch; // && boundsMatch;
   });
 
   // 2. Second Pass: Anti-Overlap (Smart Pin De-Clutter)
@@ -379,18 +375,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const result: Event[] = [];
     const foodOccupied = new Set<string>();
 
+    // Initial Sort for De-Cluttering (Prioritize Live Food)
     const sorted = [...candidates].sort((a, b) => {
+      // ... (Same as before for pin overlaps)
       if (a.type !== 'food' || b.type !== 'food') return 0;
-      const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
-      const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
-      const aLive = now.getTime() >= aStart;
-      const bLive = now.getTime() >= bStart;
-
-      if (aLive && !bLive) return -1; // Live Priority
-      if (!aLive && bLive) return 1;
-      return aStart - bStart;
+      return (new Date(a.startTime).getTime()) - (new Date(b.startTime).getTime());
     });
 
+    // ... (Food de-clutter logic) ...
     for (const e of sorted) {
       if (e.type === 'food') {
         const key = e.lat.toFixed(4) + ',' + e.lng.toFixed(4);
@@ -402,72 +394,76 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     return result;
   })();
 
-  // Deduplication & Clustering
+  // Deduplication
   const uniqueEvents = new Map<string, Event>();
   filteredEvents.forEach(e => {
     const key = `${e.title}|${e.startTime}`;
     if (!uniqueEvents.has(key)) uniqueEvents.set(key, e);
   });
 
-  const groupedEvents = new Map<string, Event[]>();
-  Array.from(uniqueEvents.values()).forEach(e => {
-    // Safety check for invalid coordinates
-    if (typeof e.lat !== 'number' || typeof e.lng !== 'number') return;
+  // --- SMART LIST SORTING ---
+  const [mapCenter, setMapCenter] = useState<L.LatLng | null>(null);
 
-    const locKey = `${e.lat.toFixed(4)},${e.lng.toFixed(4)}`;
-    if (!groupedEvents.has(locKey)) groupedEvents.set(locKey, []);
-    groupedEvents.get(locKey)?.push(e);
-  });
-
-
-
-  // Smart Sort: Distance if user location known, otherwise Time
-  const smartSortBy = userLocation || radiusFilter ? 'distance' : 'time';
+  // Hook to track map center
+  const MapEvents = () => {
+    const map = useMap();
+    useMapEvents({
+      moveend: () => {
+        setMapCenter(map.getCenter());
+        // Update bounds if we were using them, but we aren't anymore for filtering
+        setMapBounds(map.getBounds());
+      },
+      load: () => {
+        setMapCenter(map.getCenter());
+      }
+    });
+    return null;
+  };
 
   let displayList = Array.from(uniqueEvents.values());
 
-  if (smartSortBy === 'distance') {
-    // Explicit Distance Sort
-    displayList.sort((a, b) => {
-      if (!userLocation) return 0;
+  // Sorting Strategy:
+  // 1. FOCUS: Events near Map Center (if panned away from user)
+  // 2. PROXIMITY: Events near User
+  // 3. TIME: Live Now > Today > Future
+
+  displayList.sort((a, b) => {
+    const nowTime = now.getTime();
+    const aStart = new Date(a.startTime).getTime();
+    const bStart = new Date(b.startTime).getTime();
+
+    // Calculate Scores (Lower is Better/Top)
+    let scoreA = aStart;
+    let scoreB = bStart;
+
+    // 1. Live Boost (Huge)
+    const isALive = nowTime >= aStart && nowTime < (new Date(a.endTime).getTime());
+    const isBLive = nowTime >= bStart && nowTime < (new Date(b.endTime).getTime());
+
+    if (isALive) scoreA -= 10000000000; // -10 Billion
+    if (isBLive) scoreB -= 10000000000;
+
+    // 2. Map Focus Boost (If we have a center)
+    if (mapCenter) {
+      const distA = getDistance(mapCenter.lat, mapCenter.lng, a.lat, a.lng);
+      const distB = getDistance(mapCenter.lat, mapCenter.lng, b.lat, b.lng);
+
+      // Add distance penalty (1m = 1 point)
+      // If you look at it, it's at the top.
+      scoreA += distA * 10;
+      scoreB += distB * 10;
+    }
+    // 3. User Location Fallback (if map center not set or identical)
+    else if (userLocation) {
       const distA = getDistance(userLocation.lat, userLocation.lng, a.lat, a.lng);
       const distB = getDistance(userLocation.lat, userLocation.lng, b.lat, b.lng);
-      return distA - distB;
-    });
-  } else {
-    // Default Time Sort (with Local Priority)
-    if (userLocation) {
-      const LOCAL_RADIUS = 25000; // 25km
-      const localEvents: Event[] = [];
-      const farEvents: Event[] = [];
-
-      displayList.forEach(e => {
-        const dist = getDistance(userLocation.lat, userLocation.lng, e.lat, e.lng);
-        if (dist <= LOCAL_RADIUS) localEvents.push(e);
-        else farEvents.push(e);
-      });
-
-      const sortByTime = (a: Event, b: Event) => {
-        const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
-        const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
-        return startA - startB;
-      };
-
-      localEvents.sort(sortByTime);
-      farEvents.sort(sortByTime);
-
-      displayList = [...localEvents, ...farEvents];
-    } else {
-      // No location? Just pure time sort
-      displayList.sort((a, b) => {
-        const startA = a.startTime ? new Date(a.startTime).getTime() : 0;
-        const startB = b.startTime ? new Date(b.startTime).getTime() : 0;
-        return startA - startB;
-      });
+      scoreA += distA * 5;
+      scoreB += distB * 5;
     }
-  }
 
-  // Fallback Logic: If current view is empty, show upcoming global events
+    return scoreA - scoreB;
+  });
+
   const showingFallback = displayList.length === 0;
 
   if (showingFallback) {
