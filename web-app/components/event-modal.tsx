@@ -618,7 +618,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 onClick={onClose}
                                 className="absolute top-5 right-5 z-20 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white backdrop-blur-md transition-all active:scale-95"
                             >
-                                <Minimize2 size={28} />
+                                <X size={28} />
                             </button>
                             {imageUrl ? (
                                 <>
