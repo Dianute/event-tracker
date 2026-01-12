@@ -460,8 +460,8 @@ export default function AdminEventsPage() {
                                 </table>
                             </div>
                         </div>
+                    )}
                 </div>
-                )}
 
                 {/* Edit Modal */}
                 <EventModal
