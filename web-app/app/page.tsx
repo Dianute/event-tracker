@@ -130,8 +130,37 @@ export default function Home() {
     setSelectedEvent(undefined);
   };
 
+  // Helper: Haversine Distance
+  const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) + Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
   const handleEventSelect = (event: any) => {
     setSelectedEvent(event);
+
+    // Create Feed: Selected Event FIRST, then sorted by distance to it
+    const sortedFeed = [...events].sort((a, b) => {
+      if (a.id === event.id) return -1; // Selected always first
+      if (b.id === event.id) return 1;
+
+      // Use safe coordinates (handle potential missing lat/lng)
+      const latA = a.lat || 0; const lngA = a.lng || 0;
+      const latB = b.lat || 0; const lngB = b.lng || 0;
+      const centerLat = event.lat || 0; const centerLng = event.lng || 0;
+
+      const distA = getDistance(centerLat, centerLng, latA, lngA);
+      const distB = getDistance(centerLat, centerLng, latB, lngB);
+      return distA - distB;
+    });
+
+    setFeedEvents(sortedFeed);
     setIsModalOpen(true);
   };
 
