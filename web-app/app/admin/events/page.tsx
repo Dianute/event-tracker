@@ -340,6 +340,8 @@ export default function AdminEventsPage() {
                                                     </div>
                                                     <div className="text-xs text-gray-500 pl-6">
                                                         {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        {' - '}
+                                                        {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                     </div>
                                                 </td>
                                                 <td className="p-4">
