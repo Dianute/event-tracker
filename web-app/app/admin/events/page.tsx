@@ -66,15 +66,24 @@ export default function AdminEventsPage() {
         fetchEvents();
     }, []);
 
-    // Fetch Locations (for Modal)
+    // Fetch Locations (for Modal) - Updated to support Admin Override
     const fetchUserLocations = () => {
+        const headers: any = {};
         if (session?.user?.email) {
-            fetch(`${API_URL}/api/user-locations`, {
-                headers: { 'x-user-email': session.user.email }
-            })
+            headers['x-user-email'] = session.user.email;
+        } else {
+            // Fallback: Use Admin Secret if available
+            const adminPass = localStorage.getItem('admin_secret');
+            if (adminPass) headers['x-admin-password'] = adminPass;
+        }
+
+        if (Object.keys(headers).length > 0) {
+            fetch(`${API_URL}/api/user-locations`, { headers })
                 .then(res => res.json())
-                .then(data => setUserLocations(data))
-                .catch(err => console.error(err));
+                .then(data => {
+                    if (Array.isArray(data)) setUserLocations(data);
+                })
+                .catch(err => console.error("Location fetch error:", err));
         }
     };
 

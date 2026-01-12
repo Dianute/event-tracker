@@ -401,16 +401,24 @@ app.delete('/events/:id', async (req, res) => {
 // GET /api/user-locations - Fetch user's saved locations
 app.get('/api/user-locations', async (req, res) => {
     const userEmail = req.headers['x-user-email'];
+    const adminPass = req.headers['x-admin-password'];
 
-    if (!userEmail) {
-        return res.status(401).json({ error: 'Unauthorized: x-user-email header required' });
+    // Allow if either User Email OR Admin Password is valid
+    if (!userEmail && adminPass !== ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Unauthorized: x-user-email or Admin Password required' });
     }
 
     try {
-        const { rows } = await db.query(
-            'SELECT * FROM user_locations WHERE userEmail = $1 ORDER BY lastUsed DESC',
-            [userEmail]
-        );
+        let query = 'SELECT * FROM user_locations WHERE userEmail = $1 ORDER BY lastUsed DESC';
+        let params = [userEmail];
+
+        // Admin Fallback: If no user email but valid admin pass, show ALL locations
+        if (!userEmail && adminPass === ADMIN_PASSWORD) {
+            query = 'SELECT * FROM user_locations ORDER BY lastUsed DESC LIMIT 100';
+            params = [];
+        }
+
+        const { rows } = await db.query(query, params);
         res.json(rows.map(toCamelCase));
     } catch (err) {
         console.error('GET /api/user-locations error:', err);
