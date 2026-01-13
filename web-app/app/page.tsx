@@ -145,8 +145,24 @@ export default function Home() {
   const handleEventSelect = (event: any) => {
     setSelectedEvent(event);
 
-    // Create Feed: Selected Event FIRST, then sorted by distance to it
-    const sortedFeed = [...events].sort((a, b) => {
+    // Create Feed: Strictly Filtered & Sorted
+    // 1. Filter: If it's FOOD, it MUST be valid for "Today" (00:00 - 04:00 tmrw) to appear in the scroll list.
+    //    Exception: The selected event itself is always shown.
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart); todayEnd.setDate(todayEnd.getDate() + 1); todayEnd.setHours(4, 0, 0, 0);
+
+    const filteredFeed = events.filter((e: any) => {
+      if (e.id === event.id) return true; // Always show selected
+
+      if (e.type === 'food') {
+        const start = e.startTime ? new Date(e.startTime) : new Date(0);
+        return start >= todayStart && start < todayEnd;
+      }
+      return true; // Show all other types
+    });
+
+    const sortedFeed = [...filteredFeed].sort((a, b) => {
       if (a.id === event.id) return -1; // Selected always first
       if (b.id === event.id) return 1;
 
