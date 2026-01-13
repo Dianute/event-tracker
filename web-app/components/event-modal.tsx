@@ -184,36 +184,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                         <span className="drop-shadow-md">{date} • {timeStart} - {timeEnd} {isOvernight ? '(+1 day)' : ''}</span>
                     </div>
 
-                    {/* PROGRESS BAR */}
-                    {(() => {
-                        const [progress, setProgress] = useState(0);
-                        useEffect(() => {
-                            const updateProgress = () => {
-                                const now = new Date().getTime();
-                                const start = startObj.getTime();
-                                const end = endObj.getTime();
-                                const total = end - start;
-                                if (total <= 0) { setProgress(100); return; }
-                                const elapsed = now - start;
-                                const p = Math.min(100, Math.max(0, (elapsed / total) * 100));
-                                setProgress(p);
-                            };
-                            updateProgress();
-                            const interval = setInterval(updateProgress, 60000); // Update every minute
-                            return () => clearInterval(interval);
-                        }, [startObj, endObj]);
 
-                        if (progress <= 0 || progress >= 100) return null; // Only show if active
-
-                        return (
-                            <div className="w-full max-w-[200px] h-1 bg-white/20 rounded-full overflow-hidden mt-1 mb-1">
-                                <div
-                                    className={`h-full transition-all duration-1000 ${theme === 'cyberpunk' ? 'bg-cyan-400 shadow-[0_0_10px_#22d3ee]' : 'bg-blue-500'}`}
-                                    style={{ width: `${progress}%` }}
-                                />
-                            </div>
-                        );
-                    })()}
                     {/* Location Row (Clickable) */}
                     <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
@@ -271,6 +242,41 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                     </a>
                 )}
             </div>
+
+            {/* 4. Bottom Progress Bar (Attached to Edge) */}
+            {(() => {
+                const [progress, setProgress] = useState(0);
+                useEffect(() => {
+                    const updateProgress = () => {
+                        const now = new Date().getTime();
+                        // Adjust logic: If event hasn't started, progress is 0.
+                        const start = startObj.getTime();
+                        const end = endObj.getTime();
+                        const total = end - start;
+
+                        if (now < start) { setProgress(0); return; }
+                        if (now >= end || total <= 0) { setProgress(100); return; }
+
+                        const elapsed = now - start;
+                        const p = Math.min(100, Math.max(0, (elapsed / total) * 100));
+                        setProgress(p);
+                    };
+                    updateProgress();
+                    const interval = setInterval(updateProgress, 10000); // Check every 10s
+                    return () => clearInterval(interval);
+                }, [startObj, endObj]);
+
+                if (progress <= 0 || progress >= 100) return null; // Only show if LIVE
+
+                return (
+                    <div className="absolute bottom-0 left-0 right-0 h-1.5 z-[60] bg-white/10 pointer-events-none backdrop-blur-[2px]">
+                        <div
+                            className={`h-full transition-all duration-1000 ${theme === 'cyberpunk' ? 'bg-cyan-400 shadow-[0_0_15px_#22d3ee]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`}
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                );
+            })()}
         </div>
     );
 }
