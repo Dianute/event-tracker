@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink, LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import EventModal from '@/components/event-modal';
 import SavedLocationsPage from '@/components/saved-locations';
@@ -258,9 +258,14 @@ export default function DashboardPage() {
                 <header className="mb-8">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-10 border-b border-gray-800 pb-10">
                         <div className="space-y-4">
-                            <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 mb-1 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
-                                <ArrowLeft size={14} /> Back to Map
-                            </Link>
+                            <div className="flex gap-3 mb-1">
+                                <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
+                                    <ArrowLeft size={14} /> Back to Map
+                                </Link>
+                                <Link href="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
+                                    <LayoutDashboard size={14} /> Admin
+                                </Link>
+                            </div>
 
                             <div className="flex items-center gap-4">
                                 <h1 className="text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x leading-tight">
