@@ -268,10 +268,22 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
 
                 if (progress <= 0 || progress >= 100) return null; // Only show if LIVE
 
+                // Category Colors
+                const typeColors: Record<string, string> = {
+                    food: 'bg-orange-500 shadow-[0_0_15px_#f97316]',
+                    music: 'bg-purple-500 shadow-[0_0_15px_#a855f7]',
+                    sports: 'bg-green-500 shadow-[0_0_15px_#22c55e]',
+                    arts: 'bg-pink-500 shadow-[0_0_15px_#ec4899]',
+                    learning: 'bg-yellow-500 shadow-[0_0_15px_#eab308]',
+                    social: 'bg-blue-500 shadow-[0_0_15px_#3b82f6]',
+                    default: 'bg-cyan-500 shadow-[0_0_15px_#06b6d4]'
+                };
+                const barColor = typeColors[type] || typeColors.default;
+
                 return (
                     <div className="absolute bottom-0 left-0 right-0 h-1.5 z-[60] bg-white/10 pointer-events-none backdrop-blur-[2px]">
                         <div
-                            className={`h-full transition-all duration-1000 ${theme === 'cyberpunk' ? 'bg-cyan-400 shadow-[0_0_15px_#22d3ee]' : 'bg-blue-500 shadow-[0_0_10px_#3b82f6]'}`}
+                            className={`h-full transition-all duration-1000 ${barColor}`}
                             style={{ width: `${progress}%` }}
                         />
                     </div>
