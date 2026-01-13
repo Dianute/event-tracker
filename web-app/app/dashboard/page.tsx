@@ -69,7 +69,8 @@ export default function DashboardPage() {
             .then(data => {
                 if (Array.isArray(data)) {
                     const userEvents = data.filter((e: any) => e.userEmail === session.user?.email);
-                    const sorted = userEvents.sort((a: any, b: any) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+                    // Sort Ascending (Chronological) to match Event Manager
+                    const sorted = userEvents.sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
                     setEvents(sorted);
 
                     const views = userEvents.reduce((acc: number, curr: any) => acc + (curr.views || 0), 0);
@@ -400,81 +401,96 @@ export default function DashboardPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-700/50">
-                                        {filteredEvents.map(event => (
-                                            <tr key={event.id} className="hover:bg-white/[0.02] transition-colors group">
-                                                <td className="p-5">
-                                                    <div className="w-16 h-16 rounded-xl bg-gray-900 border border-white/5 overflow-hidden shadow-inner flex shrink-0">
-                                                        {event.imageUrl ? (
-                                                            <img src={event.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-gray-600 text-[10px] font-bold uppercase tracking-tighter">No Image</div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                                <td className="p-5">
-                                                    <div className="font-bold text-white group-hover:text-blue-400 transition-colors mb-0.5 line-clamp-1">
-                                                        {event.title}
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider border border-blue-500/20">{event.type}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-5 whitespace-nowrap">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-300 font-medium">
-                                                        <CalendarIcon size={14} className="text-blue-500" />
-                                                        {new Date(event.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                                    </div>
-                                                    <div className="text-xs text-gray-500 pl-6 mt-0.5">
-                                                        {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                        {' - '}
-                                                        {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </div>
-                                                </td>
-                                                <td className="p-5">
-                                                    <div className="flex flex-col gap-1">
-                                                        <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
-                                                            <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
-                                                            {event.views || 0} Views
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
-                                                            <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
-                                                            {event.clicks || 0} Clicks
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="p-5">
-                                                    <div className="flex items-start gap-2 text-sm text-gray-400">
-                                                        <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
-                                                        <span className="line-clamp-2 leading-relaxed">{event.venue || 'Online Event'}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-5 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
-                                                        <button
-                                                            onClick={() => handleDuplicate(event)}
-                                                            className="p-3 bg-white/5 hover:bg-green-500/20 text-green-400 rounded-xl transition-all active:scale-90 border border-white/5"
-                                                            title="Duplicate for Tomorrow"
-                                                        >
-                                                            <Copy size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleEdit(event)}
-                                                            className="p-3 bg-white/5 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all active:scale-90 border border-white/5"
-                                                            title="Edit"
-                                                        >
-                                                            <Edit size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(event.id, event.title)}
-                                                            className="p-3 bg-white/5 hover:bg-red-500/20 text-red-400 rounded-xl transition-all active:scale-90 border border-white/5"
-                                                            title="Delete"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
+                                        {filteredEvents.map((event, index) => {
+                                            const currentDate = new Date(event.startTime).toLocaleDateString();
+                                            const prevDate = index > 0 ? new Date(filteredEvents[index - 1].startTime).toLocaleDateString() : null;
+                                            const isNewGroup = currentDate !== prevDate;
+
+                                            return (
+                                                <>
+                                                    {isNewGroup && (
+                                                        <tr key={`header-${currentDate}`} className="bg-gray-900/40 border-b border-gray-700/50">
+                                                            <td colSpan={6} className="p-3 pl-4 text-xs font-bold text-cyan-500 uppercase tracking-widest sticky top-0 bg-gray-900/90 backdrop-blur-sm z-10">
+                                                                {new Date(event.startTime).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                    <tr key={event.id} className="hover:bg-white/[0.02] transition-colors group">
+                                                        <td className="p-5">
+                                                            <div className="w-16 h-16 rounded-xl bg-gray-900 border border-white/5 overflow-hidden shadow-inner flex shrink-0">
+                                                                {event.imageUrl ? (
+                                                                    <img src={event.imageUrl} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                                                ) : (
+                                                                    <div className="w-full h-full flex items-center justify-center text-gray-600 text-[10px] font-bold uppercase tracking-tighter">No Image</div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5">
+                                                            <div className="font-bold text-white group-hover:text-blue-400 transition-colors mb-0.5 line-clamp-1">
+                                                                {event.title}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider border border-blue-500/20">{event.type}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5 whitespace-nowrap">
+                                                            <div className="flex items-center gap-2 text-sm text-gray-300 font-medium">
+                                                                <CalendarIcon size={14} className="text-blue-500" />
+                                                                {new Date(event.startTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                            </div>
+                                                            <div className="text-xs text-gray-500 pl-6 mt-0.5">
+                                                                {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                {' - '}
+                                                                {new Date(event.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5">
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                                    <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+                                                                    {event.views || 0} Views
+                                                                </div>
+                                                                <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                                    <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
+                                                                    {event.clicks || 0} Clicks
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5">
+                                                            <div className="flex items-start gap-2 text-sm text-gray-400">
+                                                                <MapPin size={14} className="mt-1 text-cyan-500 shrink-0" />
+                                                                <span className="line-clamp-2 leading-relaxed">{event.venue || 'Online Event'}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="p-5 text-right">
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    onClick={() => handleDuplicate(event)}
+                                                                    className="p-3 bg-white/5 hover:bg-green-500/20 text-green-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                                    title="Duplicate for Tomorrow"
+                                                                >
+                                                                    <Copy size={18} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleEdit(event)}
+                                                                    className="p-3 bg-white/5 hover:bg-blue-500/20 text-blue-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                                    title="Edit"
+                                                                >
+                                                                    <Edit size={18} />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(event.id, event.title)}
+                                                                    className="p-3 bg-white/5 hover:bg-red-500/20 text-red-400 rounded-xl transition-all active:scale-90 border border-white/5"
+                                                                    title="Delete"
+                                                                >
+                                                                    <Trash2 size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </>
+                                            );
+                                        })}
                                     </tbody>
                                 </table>
                             </div>
