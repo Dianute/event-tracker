@@ -162,8 +162,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                     setVenue(loc.venue);
                                     if (loc.lat && loc.lng) setCoords({ lat: loc.lat, lng: loc.lng });
                                     if (loc.phone) setPhone(loc.phone);
-                                    // Optional: Set title to location name? User might want "Business Lunch"
-                                    // setTitle(loc.name); 
+                                    setTitle(loc.name); // Set Title to Location Name 
                                 }}
                                 className="px-3 py-1.5 rounded-full border border-dashed border-gray-500 text-gray-500 text-[10px] font-bold uppercase hover:border-blue-500 hover:text-blue-500 transition-all"
                             >
@@ -190,6 +189,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                                         setVenue(loc.venue);
                                                         if (loc.lat && loc.lng) setCoords({ lat: loc.lat, lng: loc.lng });
                                                         if (loc.phone) setPhone(loc.phone);
+                                                        setTitle(loc.name);
                                                         setShowLocationDropdown(false);
                                                     }}
                                                     className="w-full text-left px-4 py-2 hover:bg-white/5 text-sm text-gray-300 transition-colors"
@@ -231,6 +231,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                                     setVenue(loc.venue);
                                                     setCoords({ lat: loc.lat, lng: loc.lng });
                                                     if (loc.phone) setPhone(loc.phone);
+                                                    setTitle(loc.name);
                                                     setIsSearching(false);
                                                 }}>
                                                 <MapPin size={12} className="text-green-500" /> {loc.venue}
