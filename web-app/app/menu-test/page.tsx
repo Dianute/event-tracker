@@ -35,7 +35,7 @@ Banana Bread - $4`);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleReset = () => {
-        if (!confirm("Reset all changes to default? This cannot be undone.")) return;
+        // if (!confirm("Reset all changes to default? This cannot be undone.")) return; (Removed as requested)
         setRawText(`Brunch Vibes
 Avocado Toast - $12
 Acai Bowl - $14
@@ -262,10 +262,9 @@ Banana Bread - $4`);
                     </div>
                     <button
                         onClick={handleReset}
-                        className="p-2 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
-                        title="Reset to Default"
+                        className="px-3 py-1.5 text-xs font-bold text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors uppercase tracking-wider"
                     >
-                        <RotateCcw size={18} />
+                        RESET
                     </button>
                 </div>
 
