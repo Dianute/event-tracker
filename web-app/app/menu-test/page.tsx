@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2, ChevronLeft, Save, LayoutTemplate } from 'lucide-react';
+import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2, ChevronLeft, Save, LayoutTemplate, Wine } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import * as htmlToImage from 'html-to-image';
 import Link from 'next/link';
@@ -23,7 +23,7 @@ Sweet Treats
 Vegan Brownie - $5
 Banana Bread - $4`);
 
-    const [theme, setTheme] = useState<'cyberpunk' | 'elegant' | 'chalkboard' | 'minimal' | 'tropical'>('minimal');
+    const [theme, setTheme] = useState<'cyberpunk' | 'elegant' | 'chalkboard' | 'minimal' | 'tropical' | 'lounge'>('minimal');
     const [bgImage, setBgImage] = useState<string | null>(null);
     const [logo, setLogo] = useState<string | null>(null);
     const [title, setTitle] = useState('MENU');
@@ -278,6 +278,7 @@ Banana Bread - $4`);
                             <ThemeCard active={theme === 'tropical'} onClick={() => setTheme('tropical')} icon={Palmtree} label="Tropical" color="bg-[#0f4c3a] text-[#f2e8cf]" previewColor="bg-green-900" />
                             <ThemeCard active={theme === 'cyberpunk'} onClick={() => setTheme('cyberpunk')} icon={Sparkles} label="Cyber" color="bg-[#050510] text-cyan-400" previewColor="bg-cyan-950" />
                             <ThemeCard active={theme === 'elegant'} onClick={() => setTheme('elegant')} icon={Coffee} label="Elegant" color="bg-[#fffbf0] text-[#2a2a2a]" previewColor="bg-amber-50" />
+                            <ThemeCard active={theme === 'lounge'} onClick={() => setTheme('lounge')} icon={Wine} label="Lounge" color="bg-zinc-900 text-white" previewColor="bg-zinc-800" />
                             <ThemeCard active={theme === 'chalkboard'} onClick={() => setTheme('chalkboard')} icon={Pencil} label="Chalk" color="bg-[#222] text-white" previewColor="bg-stone-800" />
                         </div>
                     </div>
@@ -411,8 +412,17 @@ Banana Bread - $4`);
                                 ${!customColors && theme === 'cyberpunk' ? 'bg-[#050510] text-cyan-400 font-mono border-2 border-cyan-500 shadow-[0_0_60px_rgba(6,182,212,0.3)]' : ''}
                                 ${!customColors && theme === 'elegant' ? 'bg-[#fffbf0] text-[#2a2a2a] font-serif border-double border-[6px] border-[#1a1a1a] p-[10px]' : ''}
                                 ${!customColors && theme === 'chalkboard' ? 'bg-[#222] text-white font-sans border-[16px] border-[#5d4037] shadow-[2px_2px_4px_#3e2723,inset_0_0_20px_rgba(0,0,0,0.8)]' : ''}
+                                ${!customColors && theme === 'lounge' ? 'flex items-center justify-center p-8 font-serif' : ''}
                             `}
                         >
+                            {/* LOUNGE OVERLAY BACKGROUND */}
+                            {!customColors && theme === 'lounge' && bgImage && (
+                                <div className="absolute inset-0 z-0">
+                                    <img src={bgImage} className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 bg-black/40" />
+                                </div>
+                            )}
+
                             {/* THEME CONTENT (Unchanged) */}
                             <div style={customColors ? {
                                 backgroundColor: customColors.bg,
@@ -421,7 +431,7 @@ Banana Bread - $4`);
                                 borderWidth: '12px',
                                 fontFamily: 'sans-serif',
                                 height: '100%'
-                            } : { height: '100%' }}>
+                            } : { height: theme === 'lounge' ? 'auto' : '100%', width: theme === 'lounge' ? '100%' : 'auto' }}>
 
                                 {/* Dynamic Styles for Custom Colors */}
                                 {customColors && (
@@ -430,14 +440,18 @@ Banana Bread - $4`);
                                 `}</style>
                                 )}
 
-                                {bgImage && (
+                                {bgImage && theme !== 'lounge' && (
                                     <div className="absolute inset-0 z-0">
                                         <img src={bgImage} className="w-full h-full object-cover opacity-100" />
                                         <div className={`absolute inset-0 ${theme === 'cyberpunk' ? 'bg-black/70' : theme === 'chalkboard' ? 'bg-black/40' : 'bg-white/60'} backdrop-blur-[2px]`} />
                                     </div>
                                 )}
 
-                                <div className={`relative z-10 flex flex-col h-full ${theme === 'elegant' && !customColors ? 'border border-[#1a1a1a] h-full p-12' : 'p-16'}`}>
+                                <div className={`relative z-10 flex flex-col h-full 
+                                    ${theme === 'elegant' && !customColors ? 'border border-[#1a1a1a] h-full p-12' : ''}
+                                    ${theme === 'lounge' && !customColors ? 'bg-white/95 backdrop-blur-md shadow-2xl p-12 text-[#1a1a1a] min-h-[70%] justify-center' : ''}
+                                    ${theme !== 'lounge' && theme !== 'elegant' ? 'p-16' : ''}
+                                `}>
 
                                     {theme === 'tropical' && !customColors && (
                                         <>
@@ -467,11 +481,14 @@ Banana Bread - $4`);
                                         ${!customColors && theme === 'cyberpunk' ? 'font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 filter drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]' : ''}
                                         ${!customColors && theme === 'elegant' ? 'font-serif uppercase tracking-[0.2em] text-4xl' : ''}
                                         ${!customColors && theme === 'chalkboard' ? 'font-handwriting text-5xl text-yellow-100 opacity-90 -rotate-2 ml-4' : ''}
+                                        ${!customColors && theme === 'lounge' ? 'font-serif uppercase tracking-[0.15em] font-light text-5xl mb-2' : ''}
                                     `}>
                                             {title}
                                         </h2>
                                         {!customColors && theme === 'minimal' && <div className="w-12 h-1 bg-black mx-auto mt-6" />}
+                                        {!customColors && theme === 'lounge' && <div className="w-24 h-[1px] bg-black/20 mx-auto mt-4 mb-2" />}
                                         {!customColors && theme === 'elegant' && <div className="text-xs uppercase tracking-[0.4em] mt-3 italic text-gray-500">Fine Selection</div>}
+                                        {!customColors && theme === 'lounge' && <div className="text-[10px] uppercase tracking-[0.4em] font-sans text-gray-400">Easy Lounge</div>}
                                     </div>
 
                                     <div className="flex-1 space-y-10">
@@ -484,6 +501,7 @@ Banana Bread - $4`);
                                                 ${!customColors && theme === 'cyberpunk' ? 'text-pink-500 font-bold border-l-4 border-cyan-500 pl-3 uppercase tracking-wider' : ''}
                                                 ${!customColors && theme === 'elegant' ? 'font-serif text-2xl italic text-center text-[#555]' : ''}
                                                 ${!customColors && theme === 'chalkboard' ? 'font-bold text-blue-200 text-2xl border-b-2 border-dashed border-white/20 pb-1 inline-block' : ''}
+                                                ${!customColors && theme === 'lounge' ? 'font-sans text-sm uppercase tracking-[0.2em] text-gray-500 mb-6 font-bold' : ''}
                                             `}>
                                                     {section.title}
                                                 </h3>
@@ -498,6 +516,7 @@ Banana Bread - $4`);
                                                             ${!customColors && theme === 'cyberpunk' ? 'font-bold text-gray-100 group-hover:text-cyan-300 transition-colors' : ''}
                                                             ${!customColors && theme === 'elegant' ? 'font-serif text-[#1a1a1a]' : ''}
                                                             ${!customColors && theme === 'chalkboard' ? 'font-handwriting text-white text-xl' : ''}
+                                                            ${!customColors && theme === 'lounge' ? 'font-sans text-gray-800 text-sm tracking-widest uppercase font-medium' : ''}
                                                         `}>
                                                                 {item.name}
                                                             </span>
@@ -507,6 +526,7 @@ Banana Bread - $4`);
                                                             ${!customColors && theme === 'cyberpunk' ? 'border-gray-700' : ''}
                                                             ${!customColors && theme === 'elegant' ? 'border-gray-300' : 'border-current'}
                                                             ${!customColors && theme === 'minimal' ? 'hidden' : ''}
+                                                            ${!customColors && theme === 'lounge' ? 'hidden' : ''}
                                                         `}></div>
                                                             <span className={`text-lg
                                                             ${customColors ? 'font-bold custom-accent' : ''}
@@ -515,6 +535,7 @@ Banana Bread - $4`);
                                                             ${!customColors && theme === 'cyberpunk' ? 'text-yellow-400 font-mono text-sm' : ''}
                                                             ${!customColors && theme === 'elegant' ? 'font-bold text-[#1a1a1a]' : ''}
                                                             ${!customColors && theme === 'chalkboard' ? 'text-green-300 font-bold' : ''}
+                                                            ${!customColors && theme === 'lounge' ? 'font-sans text-gray-900 font-bold text-sm' : ''}
                                                         `}>
                                                                 {item.price}
                                                             </span>
@@ -529,8 +550,9 @@ Banana Bread - $4`);
                                     ${customColors ? 'tracking-widest opacity-40' : ''}
                                     ${!customColors && theme === 'minimal' ? 'tracking-widest text-gray-300' : 'tracking-widest opacity-40'}
                                     ${!customColors && theme === 'cyberpunk' ? 'text-cyan-900 font-bold' : ''}
+                                    ${!customColors && theme === 'lounge' ? 'text-gray-400 font-serif tracking-[0.2em]' : ''}
                                 `}>
-                                        Created for you
+                                        {(!customColors && theme === 'lounge') ? 'Turgaus Gatvė 1' : 'Created for you'}
                                     </div>
                                 </div>
                             </div>
