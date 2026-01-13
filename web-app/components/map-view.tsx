@@ -695,16 +695,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* Scrollable Section (Filters & Search) */}
           <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar max-w-full">
-            {/* List Toggle */}
-            <button
-              onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
-              className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
-              title="List View"
-            >
-              <List size={20} />
-            </button>
 
-            <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
 
             {/* Search */}
             <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
