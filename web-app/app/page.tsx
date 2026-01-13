@@ -44,7 +44,7 @@ export default function Home() {
 
   // Load events from Backend on mount
   // Load events from Backend
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; event?: Event } | null>(null);
   const eventsRef = useRef<Set<string>>(new Set());
   const isFirstLoad = useRef(true);
   const [currentTheme, setCurrentTheme] = useState<'dark' | 'light' | 'cyberpunk'>('dark');
@@ -78,7 +78,7 @@ export default function Home() {
           if (!isFirstLoad.current) {
             const newCount = data.filter(e => !eventsRef.current.has(e.id)).length;
             if (newCount > 0) {
-              setNotification(`${newCount} New Spot${newCount > 1 ? 's' : ''} Found!`);
+              setNotification({ message: `${newCount} New Spot${newCount > 1 ? 's' : ''} Found!` });
               playNotificationSound();
               setTimeout(() => setNotification(null), 4000);
             }
@@ -190,6 +190,11 @@ export default function Home() {
         setEvents([...events, savedEvent]);
         setSelectedLocation(null);
         fetchLocations();
+
+        // Custom Notification for Added Event
+        setNotification({ message: 'Event Created:', event: savedEvent });
+        playNotificationSound();
+        setTimeout(() => setNotification(null), 5000);
       })
       .catch(err => console.error("Failed to save event:", err));
   };
@@ -267,10 +272,30 @@ export default function Home() {
       />
 
       {/* Notification Toast */}
+      {/* Notification Toast */}
       {notification && (
-        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[5000] bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-bounce-in pointer-events-none backdrop-blur-md bg-opacity-90 border border-white/20">
-          <span className="text-xl">🔔</span>
-          <span className="font-bold">{notification}</span>
+        <div
+          onClick={() => {
+            if (notification.event) handleEventSelect(notification.event);
+            setNotification(null);
+          }}
+          className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-[5000] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-bounce-in cursor-pointer hover:scale-105 active:scale-95 transition-all border backdrop-blur-md
+            ${currentTheme === 'cyberpunk'
+              ? 'bg-black/80 border-cyan-500 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+              : currentTheme === 'light'
+                ? 'bg-white/90 border-gray-200 text-gray-800 shadow-xl'
+                : 'bg-gray-900/90 border-gray-700 text-white shadow-xl'
+            }`}
+        >
+          <div className={`p-2 rounded-full ${currentTheme === 'cyberpunk' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/20 text-blue-400'}`}>
+            {notification.event ? <span className="text-xl">✨</span> : <span className="text-xl">🔔</span>}
+          </div>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest opacity-70">{notification.message}</p>
+            {notification.event && (
+              <p className="text-sm font-black truncate max-w-[200px]">{notification.event.title}</p>
+            )}
+          </div>
         </div>
       )}
     </main>
