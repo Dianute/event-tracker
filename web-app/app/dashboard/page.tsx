@@ -187,6 +187,25 @@ export default function DashboardPage() {
             .catch(e => alert("Network error: " + e.message));
     };
 
+    const handleDeleteMenu = async (id: string, title: string) => {
+        if (!confirm(`Delete template "${title}"?`)) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/menus/${id}`, {
+                method: 'DELETE',
+                headers: { 'x-user-email': session?.user?.email || '' }
+            });
+            if (res.ok) {
+                setMenus(prev => prev.filter(m => m.id !== id));
+            } else {
+                alert("Failed to delete menu.");
+            }
+        } catch (e) {
+            console.error("Delete menu error", e);
+            alert("Network error");
+        }
+    };
+
     const handleUseTemplate = (menu: any) => {
         // Save template data to sessionStorage
         const templateData = {
@@ -540,6 +559,13 @@ export default function DashboardPage() {
                                             <div className="absolute top-2 right-2 bg-black/50 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-pink-400 border border-pink-500/30">
                                                 {menu.theme}
                                             </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteMenu(menu.id, menu.title); }}
+                                                className="absolute top-2 left-2 p-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white rounded-lg backdrop-blur transition-all opacity-0 group-hover:opacity-100"
+                                                title="Delete Template"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                         <div className="p-5">
                                             <h4 className="font-bold text-lg text-white mb-1 line-clamp-1">{menu.title}</h4>
