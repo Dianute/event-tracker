@@ -107,6 +107,7 @@ Banana Bread - $4`);
             try {
                 const colorThief = new ColorThief();
                 const palette = colorThief.getPalette(img, 5); // [[r,g,b], ...]
+                console.log("Extracted Palette:", palette);
 
                 // Helper: RGB to Hex
                 const rgbToHex = (r: number, g: number, b: number) => '#' + [r, g, b].map(x => {
@@ -114,20 +115,36 @@ Banana Bread - $4`);
                     return hex.length === 1 ? '0' + hex : hex;
                 }).join('');
 
-                // Strategy: Pick most vibrant for accent, darkest for text
-                const accentColor = rgbToHex(palette[0][0], palette[0][1], palette[0][2]);
-                const secondaryColor = palette[1] ? rgbToHex(palette[1][0], palette[1][1], palette[1][2]) : '#000000';
+                // Helper: Check if color is very light (near white)
+                const isLight = (r: number, g: number, b: number) => (r > 200 && g > 200 && b > 200);
+
+                // Strategy: Find first non-light color for accent
+                let accentRgb = palette[0];
+                for (const color of palette) {
+                    if (!isLight(color[0], color[1], color[2])) {
+                        accentRgb = color;
+                        break;
+                    }
+                }
+
+                const accentColor = rgbToHex(accentRgb[0], accentRgb[1], accentRgb[2]);
+                // Secondary: Try to find a contrasting text color, valid fallback to black
+                const secondaryColor = palette[1] && !isLight(palette[1][0], palette[1][1], palette[1][2])
+                    ? rgbToHex(palette[1][0], palette[1][1], palette[1][2])
+                    : '#000000';
+
+                console.log("Applied Colors:", { accent: accentColor, text: secondaryColor });
 
                 setCustomColors({
                     accent: accentColor,
                     text: secondaryColor,
-                    bg: '#ffffff', // Keep clean default
+                    bg: '#fafafa', // Slight off-white to show change
                     border: accentColor
                 });
                 setTheme('minimal'); // Base theme
             } catch (error) {
                 console.error("Color theft failed", error);
-                alert("Could not extract colors from this image.");
+                alert("Could not extract colors. Try a different image.");
             }
             setIsMatching(false);
         };
