@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree } from 'lucide-react';
+import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2 } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
+const ColorThief = require('colorthief').default;
 
 export default function MenuGeneratorPage() {
     const [rawText, setRawText] = useState(`Brunch Vibes
@@ -23,6 +24,9 @@ Banana Bread - $4`);
     const [bgImage, setBgImage] = useState<string | null>(null);
     const [logo, setLogo] = useState<string | null>(null);
     const [title, setTitle] = useState('MENU');
+    const [customColors, setCustomColors] = useState<{ accent: string, text: string, bg: string, border: string } | null>(null);
+    const [isMatching, setIsMatching] = useState(false);
+
     const previewRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState(false);
 
@@ -62,27 +66,65 @@ Banana Bread - $4`);
             const reader = new FileReader();
             reader.onload = (ev) => {
                 setLogo(ev.target?.result as string);
+                // Reset custom match when new logo uploaded? No, let user decide.
             };
             reader.readAsDataURL(file);
         }
+    };
+
+    const handleMagicMatch = async () => {
+        if (!logo) return;
+        setIsMatching(true);
+
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = logo;
+
+        img.onload = () => {
+            try {
+                const colorThief = new ColorThief();
+                const palette = colorThief.getPalette(img, 5); // [[r,g,b], ...]
+
+                // Helper: RGB to Hex
+                const rgbToHex = (r: number, g: number, b: number) => '#' + [r, g, b].map(x => {
+                    const hex = x.toString(16);
+                    return hex.length === 1 ? '0' + hex : hex;
+                }).join('');
+
+                // Strategy: Pick most vibrant for accent, darkest for text
+                const accentColor = rgbToHex(...palette[0]);
+                const secondaryColor = palette[1] ? rgbToHex(...palette[1]) : '#000000';
+
+                setCustomColors({
+                    accent: accentColor,
+                    text: secondaryColor,
+                    bg: '#ffffff', // Keep clean default
+                    border: accentColor
+                });
+                setTheme('minimal'); // Base theme
+            } catch (error) {
+                console.error("Color theft failed", error);
+                alert("Could not extract colors from this image.");
+            }
+            setIsMatching(false);
+        };
     };
 
     const handleDownload = async () => {
         if (previewRef.current) {
             setIsExporting(true);
             try {
-                // Ensure images are fully loaded before capturing
                 const dataUrl = await htmlToImage.toPng(previewRef.current, {
                     cacheBust: true,
-                    pixelRatio: 2 // High Res
+                    pixelRatio: 2
                 });
                 const link = document.createElement('a');
-                link.download = 'menu-design.png';
+                link.download = `menu-${title.toLowerCase()}.png`;
                 link.href = dataUrl;
                 link.click();
             } catch (err) {
                 console.error("Export failed", err);
-                alert("Failed to export image. Try again.");
+                alert("Failed to export. Try again.");
             }
             setIsExporting(false);
         }
@@ -90,7 +132,7 @@ Banana Bread - $4`);
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col lg:flex-row lg:h-screen lg:overflow-hidden">
-            {/* Left Panel: Editor (Scrollable on Desktop, Natural on Mobile) */}
+            {/* Left Panel: Editor */}
             <div className="w-full lg:w-[45%] flex flex-col gap-6 p-4 md:p-6 lg:p-8 border-r border-gray-800 bg-[#0a0a0a] lg:overflow-y-auto shrink-0">
                 <div className="space-y-2 shrink-0">
                     <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
@@ -99,7 +141,7 @@ Banana Bread - $4`);
                     <p className="text-gray-500 font-medium text-xs uppercase tracking-widest">Design & Content</p>
                 </div>
 
-                {/* Text Editor (Main Focus) */}
+                {/* Text Editor */}
                 <div className="flex-1 flex flex-col min-h-[40vh] lg:min-h-[400px]">
                     <div className="flex justify-between items-center mb-2">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -119,10 +161,19 @@ Banana Bread - $4`);
 
                 {/* Controls Grid */}
                 <div className="grid grid-cols-2 gap-6 shrink-0 mt-auto pt-6 border-t border-gray-800">
-                    {/* Theme Selector */}
                     <div>
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">Aesthetic</h3>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Aesthetic</h3>
+                            {customColors && (
+                                <button
+                                    onClick={() => setCustomColors(null)}
+                                    className="text-[10px] text-red-400 hover:underline"
+                                >
+                                    Reset Custom
+                                </button>
+                            )}
+                        </div>
+                        <div className={`grid grid-cols-3 gap-2 ${customColors ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                             <ThemeBtn active={theme === 'minimal'} onClick={() => setTheme('minimal')} icon={Type} label="Minimal" color="text-white border-white" />
                             <ThemeBtn active={theme === 'tropical'} onClick={() => setTheme('tropical')} icon={Palmtree} label="Tropical" color="text-green-400 border-green-500" />
                             <ThemeBtn active={theme === 'cyberpunk'} onClick={() => setTheme('cyberpunk')} icon={Sparkles} label="Cyber" color="text-cyan-400 border-cyan-500" />
@@ -131,7 +182,6 @@ Banana Bread - $4`);
                         </div>
                     </div>
 
-                    {/* Images & Actions */}
                     <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-2">
                             {/* Background */}
@@ -151,19 +201,12 @@ Banana Bread - $4`);
                                 </label>
                             </div>
 
-                            {/* Logo Upload */}
+                            {/* Logo Upload & Magic Match */}
                             <div className="relative group">
                                 <label className="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-700 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-purple-500/5 transition-all text-gray-500 gap-1">
                                     {logo ? (
-                                        <div className="relative w-full h-full p-0.5">
+                                        <div className="relative w-full h-full p-0.5 group-hover:opacity-40 transition-opacity">
                                             <img src={logo} className="w-full h-full object-contain rounded-lg" />
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); setLogo(null); }}
-                                                className="absolute -top-1 -right-1 bg-red-500 text-white p-0.5 rounded-full z-10 hover:scale-110 transition-transform"
-                                                title="Remove Logo"
-                                            >
-                                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M18 6L6 18M6 6l12 12" /></svg>
-                                            </button>
                                         </div>
                                     ) : (
                                         <>
@@ -173,6 +216,31 @@ Banana Bread - $4`);
                                     )}
                                     <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
                                 </label>
+
+                                {logo && (
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); handleMagicMatch(); }}
+                                        disabled={isMatching}
+                                        className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20 cursor-pointer"
+                                    >
+                                        <div className="bg-black/80 backdrop-blur-sm p-2 rounded-lg flex flex-col items-center gap-1 border border-purple-500/50 shadow-xl">
+                                            <Wand2 size={16} className={`text-purple-400 ${isMatching ? "animate-spin" : ""}`} />
+                                            <span className="text-[8px] font-bold text-white uppercase tracking-wider">
+                                                {isMatching ? 'Scanning...' : 'Auto-Match'}
+                                            </span>
+                                        </div>
+                                    </button>
+                                )}
+
+                                {logo && (
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); setLogo(null); setCustomColors(null); }}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full z-30 shadow-lg hover:scale-110"
+                                        title="Remove Logo"
+                                    >
+                                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -193,15 +261,14 @@ Banana Bread - $4`);
                             className="w-full bg-white hover:bg-gray-200 text-black font-black text-xs uppercase tracking-widest py-4 rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
                         >
                             {isExporting ? <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Download size={16} />}
-                            {isExporting ? 'Rendering...' : 'Export PNG'}
+                            {isExporting ? 'Render...' : 'Export PNG'}
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Right Panel: Live Preview (Centered) */}
+            {/* Right Panel: Preview */}
             <div className="flex-1 bg-[#050510] relative flex items-center justify-center p-4 md:p-8 lg:p-12 lg:overflow-hidden min-h-[500px] lg:min-h-0">
-                {/* Background Grid Pattern */}
                 <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#888 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
                 <div className="relative w-full h-full flex items-center justify-center overflow-auto custom-scrollbar">
@@ -209,43 +276,51 @@ Banana Bread - $4`);
                         ref={previewRef}
                         className={`
                             w-[550px] min-h-[800px] shrink-0 transition-all duration-500 flex flex-col relative overflow-hidden shadow-2xl
-                            ${theme === 'minimal' ? 'bg-white text-black font-sans' : ''}
-                            ${theme === 'tropical' ? 'bg-[#0f4c3a] text-[#f2e8cf] font-serif border-[12px] border-[#d8b066]' : ''}
-                            ${theme === 'cyberpunk' ? 'bg-[#050510] text-cyan-400 font-mono border-2 border-cyan-500 shadow-[0_0_60px_rgba(6,182,212,0.3)]' : ''}
-                            ${theme === 'elegant' ? 'bg-[#fffbf0] text-[#2a2a2a] font-serif border-double border-[6px] border-[#1a1a1a] p-[10px]' : ''}
-                            ${theme === 'chalkboard' ? 'bg-[#222] text-white font-sans border-[16px] border-[#5d4037] shadow-[2px_2px_4px_#3e2723,inset_0_0_20px_rgba(0,0,0,0.8)]' : ''}
+                            ${!customColors && theme === 'minimal' ? 'bg-white text-black font-sans' : ''}
+                            ${!customColors && theme === 'tropical' ? 'bg-[#0f4c3a] text-[#f2e8cf] font-serif border-[12px] border-[#d8b066]' : ''}
+                            ${!customColors && theme === 'cyberpunk' ? 'bg-[#050510] text-cyan-400 font-mono border-2 border-cyan-500 shadow-[0_0_60px_rgba(6,182,212,0.3)]' : ''}
+                            ${!customColors && theme === 'elegant' ? 'bg-[#fffbf0] text-[#2a2a2a] font-serif border-double border-[6px] border-[#1a1a1a] p-[10px]' : ''}
+                            ${!customColors && theme === 'chalkboard' ? 'bg-[#222] text-white font-sans border-[16px] border-[#5d4037] shadow-[2px_2px_4px_#3e2723,inset_0_0_20px_rgba(0,0,0,0.8)]' : ''}
                         `}
+                        style={customColors ? {
+                            backgroundColor: customColors.bg,
+                            color: customColors.text,
+                            borderColor: customColors.border,
+                            borderWidth: '12px',
+                            fontFamily: 'sans-serif'
+                        } : {}}
                     >
-                        {/* User Background Overlay */}
+                        {/* Dynamic Styles for Custom Colors */}
+                        {customColors && (
+                            <style jsx>{`
+                                .custom-accent { color: ${customColors.accent} !important; border-color: ${customColors.accent} !important; }
+                           `}</style>
+                        )}
+
                         {bgImage && (
                             <div className="absolute inset-0 z-0">
                                 <img src={bgImage} className="w-full h-full object-cover opacity-100" />
-                                {/* Overlay for readability based on theme */}
                                 <div className={`absolute inset-0 ${theme === 'cyberpunk' ? 'bg-black/70' : theme === 'chalkboard' ? 'bg-black/40' : 'bg-white/60'} backdrop-blur-[2px]`} />
                             </div>
                         )}
 
-                        {/* Content Container */}
-                        <div className={`relative z-10 flex flex-col h-full ${theme === 'elegant' ? 'border border-[#1a1a1a] h-full p-12' : 'p-16'}`}>
+                        <div className={`relative z-10 flex flex-col h-full ${theme === 'elegant' && !customColors ? 'border border-[#1a1a1a] h-full p-12' : 'p-16'}`}>
 
-                            {/* Decoration Elements */}
-                            {theme === 'tropical' && (
+                            {theme === 'tropical' && !customColors && (
                                 <>
                                     <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/20 rounded-bl-[100px] blur-xl" />
                                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-green-400/10 rounded-tr-[100px] blur-2xl" />
                                 </>
                             )}
 
-                            {/* LOGO Display - Updated Location */}
                             {logo && (
-                                <div className="mb-4 flex justify-center">
+                                <div className="mb-6 flex justify-center">
                                     <img
                                         src={logo}
                                         className={`
-                                            max-h-24 object-contain
-                                            ${theme === 'cyberpunk' ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : ''}
-                                            ${theme === 'chalkboard' ? 'opacity-90 contrast-125' : ''}
-                                            ${theme === 'tropical' ? 'sepia-[.3]' : ''}
+                                            max-h-28 object-contain
+                                            ${theme === 'cyberpunk' && !customColors ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]' : ''}
+                                            ${theme === 'chalkboard' && !customColors ? 'opacity-90 contrast-125' : ''}
                                         `}
                                     />
                                 </div>
@@ -253,27 +328,29 @@ Banana Bread - $4`);
 
                             <div className="text-center mb-12">
                                 <h2 className={`text-5xl leading-tight
-                                ${theme === 'minimal' ? 'font-black tracking-tighter uppercase' : ''}
-                                ${theme === 'tropical' ? 'font-serif text-[#d8b066] drop-shadow-md italic' : ''}
-                                ${theme === 'cyberpunk' ? 'font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 filter drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]' : ''}
-                                ${theme === 'elegant' ? 'font-serif uppercase tracking-[0.2em] text-4xl' : ''}
-                                ${theme === 'chalkboard' ? 'font-handwriting text-5xl text-yellow-100 opacity-90 -rotate-2 ml-4' : ''}
+                                ${customColors ? 'font-black uppercase tracking-widest custom-accent' : ''}
+                                ${!customColors && theme === 'minimal' ? 'font-black tracking-tighter uppercase' : ''}
+                                ${!customColors && theme === 'tropical' ? 'font-serif text-[#d8b066] drop-shadow-md italic' : ''}
+                                ${!customColors && theme === 'cyberpunk' ? 'font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 filter drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]' : ''}
+                                ${!customColors && theme === 'elegant' ? 'font-serif uppercase tracking-[0.2em] text-4xl' : ''}
+                                ${!customColors && theme === 'chalkboard' ? 'font-handwriting text-5xl text-yellow-100 opacity-90 -rotate-2 ml-4' : ''}
                             `}>
                                     {title}
                                 </h2>
-                                {theme === 'minimal' && <div className="w-12 h-1 bg-black mx-auto mt-6" />}
-                                {theme === 'elegant' && <div className="text-xs uppercase tracking-[0.4em] mt-3 italic text-gray-500">Fine Selection</div>}
+                                {!customColors && theme === 'minimal' && <div className="w-12 h-1 bg-black mx-auto mt-6" />}
+                                {!customColors && theme === 'elegant' && <div className="text-xs uppercase tracking-[0.4em] mt-3 italic text-gray-500">Fine Selection</div>}
                             </div>
 
                             <div className="flex-1 space-y-10">
                                 {parsedData.map((section, i) => (
                                     <div key={i} className="space-y-5">
                                         <h3 className={`text-xl
-                                        ${theme === 'minimal' ? 'font-bold uppercase tracking-wide text-xs text-gray-400 mb-6' : ''}
-                                        ${theme === 'tropical' ? 'font-bold text-[#d8b066] uppercase tracking-widest border-b border-[#d8b066]/30 pb-2' : ''}
-                                        ${theme === 'cyberpunk' ? 'text-pink-500 font-bold border-l-4 border-cyan-500 pl-3 uppercase tracking-wider' : ''}
-                                        ${theme === 'elegant' ? 'font-serif text-2xl italic text-center text-[#555]' : ''}
-                                        ${theme === 'chalkboard' ? 'font-bold text-blue-200 text-2xl border-b-2 border-dashed border-white/20 pb-1 inline-block' : ''}
+                                        ${customColors ? 'font-bold uppercase tracking-wide opacity-50 mb-6' : ''}
+                                        ${!customColors && theme === 'minimal' ? 'font-bold uppercase tracking-wide text-xs text-gray-400 mb-6' : ''}
+                                        ${!customColors && theme === 'tropical' ? 'font-bold text-[#d8b066] uppercase tracking-widest border-b border-[#d8b066]/30 pb-2' : ''}
+                                        ${!customColors && theme === 'cyberpunk' ? 'text-pink-500 font-bold border-l-4 border-cyan-500 pl-3 uppercase tracking-wider' : ''}
+                                        ${!customColors && theme === 'elegant' ? 'font-serif text-2xl italic text-center text-[#555]' : ''}
+                                        ${!customColors && theme === 'chalkboard' ? 'font-bold text-blue-200 text-2xl border-b-2 border-dashed border-white/20 pb-1 inline-block' : ''}
                                     `}>
                                             {section.title}
                                         </h3>
@@ -282,26 +359,29 @@ Banana Bread - $4`);
                                             {section.items.map((item, j) => (
                                                 <li key={j} className="flex justify-between items-baseline gap-4 group">
                                                     <span className={`text-lg
-                                                    ${theme === 'minimal' ? 'font-medium' : ''}
-                                                    ${theme === 'tropical' ? 'font-medium tracking-wide' : ''}
-                                                    ${theme === 'cyberpunk' ? 'font-bold text-gray-100 group-hover:text-cyan-300 transition-colors' : ''}
-                                                    ${theme === 'elegant' ? 'font-serif text-[#1a1a1a]' : ''}
-                                                    ${theme === 'chalkboard' ? 'font-handwriting text-white text-xl' : ''}
+                                                    ${customColors ? 'font-medium' : ''}
+                                                    ${!customColors && theme === 'minimal' ? 'font-medium' : ''}
+                                                    ${!customColors && theme === 'tropical' ? 'font-medium tracking-wide' : ''}
+                                                    ${!customColors && theme === 'cyberpunk' ? 'font-bold text-gray-100 group-hover:text-cyan-300 transition-colors' : ''}
+                                                    ${!customColors && theme === 'elegant' ? 'font-serif text-[#1a1a1a]' : ''}
+                                                    ${!customColors && theme === 'chalkboard' ? 'font-handwriting text-white text-xl' : ''}
                                                 `}>
                                                         {item.name}
                                                     </span>
                                                     <div className={`flex-1 border-b mb-1 opacity-20
-                                                    ${theme === 'tropical' ? 'border-[#f2e8cf]/50 border-dotted' : ''}
-                                                    ${theme === 'cyberpunk' ? 'border-gray-700' : ''}
-                                                    ${theme === 'elegant' ? 'border-gray-300' : 'border-current'}
-                                                    ${theme === 'minimal' ? 'hidden' : ''}
+                                                    ${customColors ? 'border-current' : ''}
+                                                    ${!customColors && theme === 'tropical' ? 'border-[#f2e8cf]/50 border-dotted' : ''}
+                                                    ${!customColors && theme === 'cyberpunk' ? 'border-gray-700' : ''}
+                                                    ${!customColors && theme === 'elegant' ? 'border-gray-300' : 'border-current'}
+                                                    ${!customColors && theme === 'minimal' ? 'hidden' : ''}
                                                 `}></div>
                                                     <span className={`text-lg
-                                                    ${theme === 'minimal' ? 'font-bold' : ''}
-                                                    ${theme === 'tropical' ? 'text-[#d8b066] font-bold' : ''}
-                                                    ${theme === 'cyberpunk' ? 'text-yellow-400 font-mono text-sm' : ''}
-                                                    ${theme === 'elegant' ? 'font-bold text-[#1a1a1a]' : ''}
-                                                    ${theme === 'chalkboard' ? 'text-green-300 font-bold' : ''}
+                                                    ${customColors ? 'font-bold custom-accent' : ''}
+                                                    ${!customColors && theme === 'minimal' ? 'font-bold' : ''}
+                                                    ${!customColors && theme === 'tropical' ? 'text-[#d8b066] font-bold' : ''}
+                                                    ${!customColors && theme === 'cyberpunk' ? 'text-yellow-400 font-mono text-sm' : ''}
+                                                    ${!customColors && theme === 'elegant' ? 'font-bold text-[#1a1a1a]' : ''}
+                                                    ${!customColors && theme === 'chalkboard' ? 'text-green-300 font-bold' : ''}
                                                 `}>
                                                         {item.price}
                                                     </span>
@@ -313,8 +393,9 @@ Banana Bread - $4`);
                             </div>
 
                             <div className={`mt-auto pt-12 text-center text-[10px] uppercase
-                            ${theme === 'minimal' ? 'tracking-widest text-gray-300' : 'tracking-widest opacity-40'}
-                            ${theme === 'cyberpunk' ? 'text-cyan-900 font-bold' : ''}
+                            ${customColors ? 'tracking-widest opacity-40' : ''}
+                            ${!customColors && theme === 'minimal' ? 'tracking-widest text-gray-300' : 'tracking-widest opacity-40'}
+                            ${!customColors && theme === 'cyberpunk' ? 'text-cyan-900 font-bold' : ''}
                         `}>
                                 Created for you
                             </div>
