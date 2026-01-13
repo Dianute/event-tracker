@@ -569,7 +569,6 @@ export default function DashboardPage() {
                                                 <Maximize2 className="text-white opacity-0 group-hover/overlay:opacity-100 transition-opacity drop-shadow-lg" size={32} />
                                             </div>
                                             <button
-                                                <button
                                                 onClick={(e) => { e.stopPropagation(); handleDeleteMenu(menu.id, menu.title); }}
                                                 className="absolute top-2 left-2 p-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white rounded-lg backdrop-blur transition-all opacity-0 group-hover:opacity-100"
                                                 title="Delete Template"
@@ -649,8 +648,7 @@ export default function DashboardPage() {
                 </div>
             )}
 
-            <EventModal
-                {/* Edit Modal */}
+            {/* Edit Modal */}
             <EventModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
