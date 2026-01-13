@@ -2,11 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2, ChevronLeft, Save, LayoutTemplate } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import * as htmlToImage from 'html-to-image';
 import Link from 'next/link';
 const ColorThief = require('colorthief').default;
 
 export default function MenuGeneratorPage() {
+    const { data: session } = useSession(); // Hook for auth
     const [rawText, setRawText] = useState(`Brunch Vibes
 Avocado Toast - $12
 Acai Bowl - $14
@@ -33,8 +35,8 @@ Banana Bread - $4`);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSave = async () => {
-        const email = localStorage.getItem('userEmail');
-        if (!email) return alert("Please set your email in Dashboard first.");
+        const email = session?.user?.email;
+        if (!email) return alert("Please log in to save templates.");
 
         setIsSaving(true);
         try {
