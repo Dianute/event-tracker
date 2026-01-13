@@ -7,8 +7,10 @@ import EventManager from '@/components/admin/EventManager';
 import Link from 'next/link';
 import { LayoutDashboard, Calendar, LogOut, Shield, Activity } from 'lucide-react';
 
+import DashboardPage from '../dashboard/page';
+
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState<'scout' | 'events'>('scout');
+    const [activeTab, setActiveTab] = useState<'scout' | 'events' | 'dashboard'>('scout');
 
     return (
         <VerifyAdminAuth>
@@ -41,10 +43,13 @@ export default function AdminDashboard() {
                             <span className="font-bold text-sm hidden lg:block">Event Manager</span>
                         </button>
 
-                        <Link href="/dashboard" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all duration-200 group">
-                            <Activity size={20} className="group-hover:scale-110 transition-transform" />
+                        <button
+                            onClick={() => setActiveTab('dashboard')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'dashboard' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <Activity size={20} className={`transition-transform duration-300 ${activeTab === 'dashboard' ? 'scale-110' : 'group-hover:scale-110'}`} />
                             <span className="font-bold text-sm hidden lg:block">User Dashboard</span>
-                        </Link>
+                        </button>
                     </nav>
 
                     <div className="p-4 border-t border-white/5">
@@ -64,7 +69,16 @@ export default function AdminDashboard() {
                 {/* Main Content Area */}
                 <main className="flex-1 ml-20 lg:ml-64 p-8 lg:p-12 max-w-[1920px] mx-auto w-full">
                     <div className="max-w-7xl mx-auto">
-                        {activeTab === 'scout' ? <ScoutManager /> : <EventManager />}
+                        {activeTab === 'scout' && <ScoutManager />}
+                        {activeTab === 'events' && <EventManager />}
+                        {activeTab === 'dashboard' && (
+                            <div className="bg-black/20 rounded-3xl border border-white/5 overflow-hidden min-h-[800px]">
+                                {/* Pass minimal props if needed, but Page usually handles itself. 
+                                    We might need to strip the dashboard's own padding or layout if it clashes, 
+                                    but let's try direct embed first. */}
+                                <DashboardPage />
+                            </div>
+                        )}
                     </div>
                 </main>
             </div>
