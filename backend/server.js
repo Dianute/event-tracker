@@ -304,8 +304,8 @@ app.post('/events', async (req, res) => {
                 if (existingLoc.length > 0) {
                     // Update existing location
                     await db.query(
-                        'UPDATE user_locations SET name = $1, lat = $2, lng = $3, phone = $4, usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $5',
-                        [locationName, lat, lng, phone, existingLoc[0].id]
+                        'UPDATE user_locations SET usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $1',
+                        [existingLoc[0].id]
                     );
                 } else {
                     // Insert new location
