@@ -38,9 +38,25 @@ Banana Bread - $4`);
         const email = session?.user?.email;
         if (!email) return alert("Please log in to save templates.");
 
+        if (!previewRef.current) return;
+
         setIsSaving(true);
         try {
+            // 1. Capture Image
+            const blob = await htmlToImage.toBlob(previewRef.current, { cacheBust: true, pixelRatio: 2 });
+            if (!blob) throw new Error("Failed to generate image");
+
+            // 2. Upload Image
+            const formData = new FormData();
+            formData.append('image', blob, `menu-${Date.now()}.png`);
+
             const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+            const uploadRes = await fetch(`${API_URL}/upload`, { method: 'POST', body: formData });
+            const uploadData = await uploadRes.json();
+            if (!uploadData.success) throw new Error("Image upload failed");
+
+            // 3. Save Menu Data + Image URL
             const res = await fetch(`${API_URL}/api/menus`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-user-email': email },
@@ -48,13 +64,17 @@ Banana Bread - $4`);
                     title,
                     content: rawText,
                     theme_config: { theme, customColors, bg: bgImage, logo },
-                    image_url: null
+                    image_url: uploadData.imageUrl // Save the generated image URL
                 })
             });
             const data = await res.json();
-            if (data.success) alert("Menu Saved!");
+            if (data.success) alert("Menu & Image Saved Successfully!");
             else alert("Save failed: " + data.error);
-        } catch (e) { console.error(e); alert("Network Error"); }
+
+        } catch (e) {
+            console.error(e);
+            alert("Save Error: " + (e instanceof Error ? e.message : "Network Error"));
+        }
         setIsSaving(false);
     };
 
