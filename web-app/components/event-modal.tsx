@@ -338,6 +338,34 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     // Dropdown state for saved locations
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
+    // MENUS INTEGRATION
+    const [savedMenus, setSavedMenus] = useState<any[]>([]);
+    useEffect(() => {
+        if (isOpen && type === 'food') {
+            const email = session?.user?.email || localStorage.getItem('userEmail');
+            if (email) {
+                fetch(`${API_URL}/api/menus`, { headers: { 'x-user-email': email } })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data)) setSavedMenus(data);
+                    })
+                    .catch(e => console.error("Menu fetch error", e));
+            }
+        }
+    }, [isOpen, type, session]);
+
+    const handleAttachMenu = (menu: any) => {
+        if (!confirm(`Attach "${menu.title}"? This will overwrite your current description.`)) return;
+
+        // Format Description
+        let text = `MENU: ${menu.title.toUpperCase()}\n\n`;
+        // We assume menu.content is a string (rawText) based on our save logic
+        text += menu.content;
+
+        setDescription(text);
+        if (menu.imageUrl) setImageUrl(menu.imageUrl); // If we have one
+    };
+
     // Derived distance (Legacy use)
     const distanceString = (event && userLocation && event.lat && event.lng)
         ? getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng)
@@ -900,6 +928,28 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     ))}
                                 </div>
                             </div>
+
+                            {/* ATTACH MENU (Only for Food) */}
+                            {type === 'food' && savedMenus.length > 0 && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="block text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                        <Tag size={12} /> Attach Saved Menu
+                                    </label>
+                                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+                                        {savedMenus.map(menu => (
+                                            <button
+                                                key={menu.id}
+                                                type="button"
+                                                onClick={() => handleAttachMenu(menu)}
+                                                className={`shrink-0 px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 text-xs font-bold transition-all flex flex-col items-start gap-0.5 min-w-[100px]`}
+                                            >
+                                                <span className="truncate w-full text-left">{menu.title}</span>
+                                                <span className="text-[9px] opacity-60 font-normal">{new Date(menu.createdAt || Date.now()).toLocaleDateString()}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." rows={2}
                                 className={`w-full px-4 py-3 rounded-xl border outline-none text-sm resize-none ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />

@@ -600,15 +600,83 @@ app.patch('/targets/:id', async (req, res) => {
     if (fields.length === 0) return res.json({ success: true });
 
     try {
-        // Construct dynamic query: "lastEventsFound = $1, lastScrapedAt = $2"
-        const setClause = fields.map((k, i) => `${k} = $${i + 1}`).join(', ');
-        const sql = `UPDATE targets SET ${setClause} WHERE id = $${fields.length + 1}`;
-        await db.query(sql, [...values, id]);
+        const setClause = fields.map((f, i) => `${f} = $${i + 2}`).join(', ');
+        const sql = `UPDATE targets SET ${setClause}, lastScrapedAt = NOW() WHERE id = $1`;
+        await db.query(sql, [id, ...values]);
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
+// ==================== MENUS API ====================
+
+// POST /api/menus - Save a generated menu
+app.post('/api/menus', async (req, res) => {
+    const userEmail = req.headers['x-user-email'];
+    const { title, content, theme_config, image_url } = req.body;
+
+    if (!userEmail) return res.status(401).json({ error: "Unauthorized" });
+
+    const id = uuidv4();
+    try {
+        await db.query(`
+            INSERT INTO menus (id, user_email, title, content, theme_config, image_url)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `, [id, userEmail, title, content, theme_config, image_url]);
+
+        res.json({ success: true, id });
+    } catch (err) {
+        console.error("POST /api/menus error:", err);
+        res.status(500).json({ error: "Failed to save menu" });
+    }
+});
+
+// GET /api/menus - List user menus
+app.get('/api/menus', async (req, res) => {
+    const userEmail = req.headers['x-user-email'];
+    if (!userEmail) return res.status(401).json({ error: "Unauthorized" });
+
+    try {
+        const { rows } = await db.query(`
+            SELECT * FROM menus WHERE user_email = $1 ORDER BY created_at DESC
+        `, [userEmail]);
+        // Convert snake_case to camelCase for frontend consistency
+        const menus = rows.map(row => ({
+            id: row.id,
+            userEmail: row.user_email,
+            title: row.title,
+            content: row.content,
+            themeConfig: row.theme_config,
+            imageUrl: row.image_url,
+            createdAt: row.created_at
+        }));
+        res.json(menus);
+    } catch (err) {
+        console.error("GET /api/menus error:", err);
+        res.status(500).json({ error: "Failed to fetch menus" });
+    }
+});
+
+// DELETE /api/menus/:id
+app.delete('/api/menus/:id', async (req, res) => {
+    const { id } = req.params;
+    const userEmail = req.headers['x-user-email'];
+    if (!userEmail) return res.status(401).json({ error: "Unauthorized" });
+
+    try {
+        const { rowCount } = await db.query(`
+            DELETE FROM menus WHERE id = $1 AND user_email = $2
+        `, [id, userEmail]);
+
+        if (rowCount === 0) return res.status(404).json({ error: "Menu not found or unauthorized" });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to delete menu" });
+    }
+});
+
+
 
 // BACKUP / RESTORE (JSON)
 app.get('/targets/export', async (req, res) => {
