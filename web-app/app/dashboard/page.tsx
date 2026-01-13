@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import EventModal from '@/components/event-modal';
 import SavedLocationsPage from '@/components/saved-locations';
 import Link from 'next/link';
@@ -10,14 +11,16 @@ import Link from 'next/link';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 export default function DashboardPage() {
+    const router = useRouter();
     const { data: session, status } = useSession();
     const [events, setEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
-    const [activeTab, setActiveTab] = useState<'events' | 'locations' | 'history'>('events');
+    const [activeTab, setActiveTab] = useState<'events' | 'locations' | 'history' | 'templates'>('events');
     const [historyEvents, setHistoryEvents] = useState<any[]>([]);
+    const [menus, setMenus] = useState<any[]>([]);
 
     // Derived Stats
     const [totalViews, setTotalViews] = useState(0);
@@ -37,8 +40,22 @@ export default function DashboardPage() {
         }
     };
 
+    const fetchMenus = () => {
+        if (session?.user?.email) {
+            fetch(`${API_URL}/api/menus`, {
+                headers: { 'x-user-email': session.user.email }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setMenus(data);
+                })
+                .catch(err => console.error('Failed to load menus:', err));
+        }
+    };
+
     useEffect(() => {
         fetchLocations();
+        fetchMenus();
     }, [session]);
 
     const fetchEvents = () => {
@@ -170,6 +187,20 @@ export default function DashboardPage() {
             .catch(e => alert("Network error: " + e.message));
     };
 
+    const handleUseTemplate = (menu: any) => {
+        // Save template data to sessionStorage
+        const templateData = {
+            title: menu.title,
+            description: menu.content,
+            imageUrl: menu.imageUrl,
+            isTemplate: true
+        };
+        sessionStorage.setItem('event_template', JSON.stringify(templateData));
+
+        // Redirect to Map
+        router.push('/');
+    };
+
     const filteredEvents = events.filter(e =>
         e.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (e.venue && e.venue.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -228,12 +259,13 @@ export default function DashboardPage() {
                         </div>
 
                         <div className="flex flex-col md:flex-row gap-4">
-                            <button
+                            <Link
+                                href="/menu-test"
                                 className="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
                             >
-                                <CreditCard size={18} className="text-purple-400" />
-                                <span>Go Pro</span>
-                            </button>
+                                <LayoutTemplate size={18} className="text-pink-400" />
+                                <span>Menu Architect</span>
+                            </Link>
                             <button
                                 onClick={() => { setSelectedEvent(null); setIsModalOpen(true); }}
                                 className="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-900/40 active:scale-95 flex items-center justify-center gap-3"
@@ -302,6 +334,12 @@ export default function DashboardPage() {
                             className={`pb-2 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'locations' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
                         >
                             Saved Locations
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('templates')}
+                            className={`pb-2 px-4 text-sm font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === 'templates' ? 'border-pink-500 text-pink-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+                        >
+                            Menu Templates
                         </button>
                     </div>
 
@@ -476,6 +514,57 @@ export default function DashboardPage() {
                 }
 
                 {activeTab === 'locations' && <SavedLocationsPage locations={userLocations} onRefresh={fetchLocations} />}
+
+                {
+                    activeTab === 'templates' && (
+                        <div className="bg-gray-800/40 rounded-2xl border border-gray-700/50 overflow-hidden shadow-2xl backdrop-blur-sm">
+                            <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-pink-500/10 rounded-lg text-pink-400"><LayoutTemplate size={18} /></div>
+                                    <h3 className="font-bold text-gray-300">My Menu Templates</h3>
+                                </div>
+                                <Link href="/menu-test" className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                                    Create New <ExternalLink size={12} />
+                                </Link>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+                                {menus.map(menu => (
+                                    <div key={menu.id} className="bg-gray-900 border border-gray-700 hover:border-pink-500/50 rounded-xl overflow-hidden group transition-all hover:shadow-2xl hover:shadow-pink-900/20">
+                                        <div className="h-40 bg-gray-800 relative overflow-hidden">
+                                            {menu.imageUrl ? (
+                                                <img src={menu.imageUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-600 font-bold uppercase tracking-widest text-xs">No Preview</div>
+                                            )}
+                                            <div className="absolute top-2 right-2 bg-black/50 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-pink-400 border border-pink-500/30">
+                                                {menu.theme}
+                                            </div>
+                                        </div>
+                                        <div className="p-5">
+                                            <h4 className="font-bold text-lg text-white mb-1 line-clamp-1">{menu.title}</h4>
+                                            <p className="text-xs text-gray-500 mb-4">{new Date(menu.createdAt).toLocaleDateString()}</p>
+
+                                            <button
+                                                onClick={() => handleUseTemplate(menu)}
+                                                className="w-full py-3 bg-white hover:bg-gray-200 text-black font-black text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95"
+                                            >
+                                                <Zap size={14} className="fill-black" /> Use Template
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <Link href="/menu-test" className="flex flex-col items-center justify-center h-full min-h-[250px] border-2 border-dashed border-gray-700 hover:border-pink-500/50 rounded-xl group transition-colors bg-white/5 hover:bg-white/10">
+                                    <div className="p-4 bg-gray-800 rounded-full mb-3 group-hover:scale-110 transition-transform">
+                                        <Plus size={24} className="text-gray-400 group-hover:text-pink-400" />
+                                    </div>
+                                    <span className="text-sm font-bold text-gray-400 group-hover:text-white uppercase tracking-wider">Create New Template</span>
+                                </Link>
+                            </div>
+                        </div>
+                    )
+                }
             </div >
 
             {/* Edit Modal */}

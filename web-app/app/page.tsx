@@ -30,6 +30,7 @@ interface Event {
   link?: string;
   imageUrl?: string;
   createdAt?: string;
+  isTemplate?: boolean;
 }
 
 export default function Home() {
@@ -116,6 +117,38 @@ export default function Home() {
   useEffect(() => {
     fetchLocations();
   }, [session]);
+
+  // Check for Pending Template from Dashboard
+  useEffect(() => {
+    const templateData = sessionStorage.getItem('event_template');
+    if (templateData) {
+      try {
+        const data = JSON.parse(templateData);
+
+        // Determine Location: Prefer first saved location, then user geo, then null
+        let startLoc = null;
+        if (userLocations.length > 0) startLoc = { lat: userLocations[0].lat, lng: userLocations[0].lng };
+        else if (userPos) startLoc = userPos;
+
+        setSelectedLocation(startLoc);
+
+        // Set as "Selected Event" but mark as template to allow editing
+        setSelectedEvent({
+          ...data,
+          id: 'template-preview',
+          type: 'food', // Default to food for menus
+          lat: startLoc?.lat || 0,
+          lng: startLoc?.lng || 0,
+          isTemplate: true
+        });
+
+        setIsModalOpen(true);
+        sessionStorage.removeItem('event_template'); // Consume
+      } catch (e) {
+        console.error("Failed to load template", e);
+      }
+    }
+  }, [userLocations, userPos]); // Run when locations load logic might be ready
 
   const handleMapClick = (lat: number, lng: number) => {
     setSelectedLocation({ lat, lng });
@@ -275,7 +308,7 @@ export default function Home() {
         userLocation={userPos}
         event={selectedEvent}
         theme={currentTheme}
-        readOnly={!!selectedEvent}
+        readOnly={!!selectedEvent && !selectedEvent.isTemplate}
         feed={feedEvents}
         userLocations={userLocations}
         onLocationsChange={fetchLocations}
