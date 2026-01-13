@@ -15,7 +15,7 @@ async function migrate() {
                 id TEXT PRIMARY KEY,
                 user_email TEXT NOT NULL,
                 title TEXT,
-                content JSONB,
+                content TEXT,
                 theme_config JSONB,
                 image_url TEXT,
                 created_at TIMESTAMP DEFAULT NOW()
