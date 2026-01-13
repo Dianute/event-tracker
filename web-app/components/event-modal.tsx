@@ -721,8 +721,14 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                         <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
                             {/* FORM FIELDS */}
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What (Title)</label>
+                                <input type="text" required value={title} placeholder="Event Title" onChange={(e) => setTitle(e.target.value)}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
+                            </div>
+
                             <div className="relative">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where (Location)</label>
                                 <input type="text" required value={venue} placeholder="Search address..." onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCurrentLocation(null); }}
                                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
                                     onFocus={() => { if (!venue) setIsSearching(true); }} // Trigger suggestions on focus if empty
@@ -791,12 +797,6 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
                                 />
                                 <Phone className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What</label>
-                                <input type="text" required value={title} placeholder="Event Title" onChange={(e) => setTitle(e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
                             </div>
 
                             <div className="space-y-4">
