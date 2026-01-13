@@ -60,3 +60,15 @@ CREATE TABLE IF NOT EXISTS user_locations (
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_locations_email ON user_locations (userEmail);
+
+CREATE TABLE IF NOT EXISTS menus (
+    id TEXT PRIMARY KEY,
+    user_email TEXT NOT NULL,
+    title TEXT,
+    content TEXT,
+    theme_config JSONB,
+    image_url TEXT,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_menus_user_email ON menus (user_email);
