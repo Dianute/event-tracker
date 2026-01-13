@@ -499,6 +499,15 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     const fallbackEvents = events
       .filter(e => {
         const start = e.startTime ? new Date(e.startTime) : new Date(0);
+        // Consistency: Apply same "Today Only" rule for Food in fallback
+        if (e.type === 'food') {
+          const dayStart = new Date(now);
+          dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(dayStart);
+          dayEnd.setDate(dayEnd.getDate() + 1);
+          dayEnd.setHours(4, 0, 0, 0);
+          return start >= dayStart && start < dayEnd;
+        }
         return start >= now;
       })
       .sort((a, b) => {
