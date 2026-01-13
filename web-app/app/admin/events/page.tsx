@@ -137,8 +137,9 @@ export default function AdminEventsPage() {
             const adminPass = localStorage.getItem('admin_secret') || '';
 
             // Promise.allSettled is safer, but for now Promise.all is okay
-            const promises = newEvents.map(evt =>
-                fetch(`${API_URL}/events`, {
+            // Process Sequentially to prevent duplicate "Saved Location" race condition
+            for (const evt of newEvents) {
+                await fetch(`${API_URL}/events`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -148,10 +149,8 @@ export default function AdminEventsPage() {
                         ...evt,
                         userEmail: session?.user?.email
                     })
-                })
-            );
-
-            await Promise.all(promises);
+                });
+            }
             // Refresh
             fetchEvents();
             setIsMenuModalOpen(false);
