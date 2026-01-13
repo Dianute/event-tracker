@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2 } from 'lucide-react';
 import * as htmlToImage from 'html-to-image';
 const ColorThief = require('colorthief').default;
@@ -153,10 +153,35 @@ Banana Bread - $4`);
         }
     };
 
+
+    // Dynamic Scale for Mobile
+    const [scale, setScale] = useState(1);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const handleResize = () => {
+            const w = window.innerWidth;
+            // Target width 550px.
+            // If screen < 600px, we scale down. Padding 32px.
+            if (w < 600) {
+                const s = (w - 32) / 550;
+                setScale(s);
+            } else {
+                setScale(1);
+            }
+        };
+        handleResize(); // Init
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    if (!mounted) return null; // Prevent hydration mismatch on transform
+
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans flex flex-col lg:flex-row lg:h-screen lg:overflow-hidden">
             {/* Left Panel: Editor */}
-            <div className="w-full lg:w-[45%] flex flex-col gap-6 p-4 md:p-6 lg:p-8 border-r border-gray-800 bg-[#0a0a0a] lg:overflow-y-auto shrink-0">
+            <div className="w-full lg:w-[45%] flex flex-col gap-6 p-4 md:p-6 lg:p-8 border-r border-gray-800 bg-[#0a0a0a] lg:overflow-y-auto shrink-0 z-10 shadow-2xl lg:shadow-none">
                 <div className="space-y-2 shrink-0">
                     <h1 className="text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
                         Menu Architect
@@ -301,31 +326,43 @@ Banana Bread - $4`);
                 </div>
             </div>
 
-            {/* Right Panel: Preview */}
-            <div className="flex-1 bg-[#050510] relative flex items-start justify-center p-2 md:p-8 lg:p-12 min-h-[500px] lg:min-h-0 overflow-hidden lg:overflow-hidden">
+            {/* Right Panel: Preview - Dynamic JS Scale Logic */}
+            <div className="flex-1 bg-[#050510] relative flex items-start justify-center p-8 lg:p-12 overflow-y-auto lg:overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(#888 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
 
-                {/* Preview Scaler Container: scales down the fixed-size menu to fit screen */}
-                <div className="relative w-full h-full flex justify-center lg:items-center overflow-auto lg:overflow-visible custom-scrollbar">
-                    <div className="origin-top scale-[0.6] sm:scale-[0.7] md:scale-[0.8] lg:scale-100 transition-transform duration-300">
-                        <div
-                            ref={previewRef}
-                            className={`
-                                w-[550px] min-h-[800px] shrink-0 flex flex-col relative overflow-hidden shadow-2xl
-                                ${!customColors && theme === 'minimal' ? 'bg-white text-black font-sans' : ''}
-                                ${!customColors && theme === 'tropical' ? 'bg-[#0f4c3a] text-[#f2e8cf] font-serif border-[12px] border-[#d8b066]' : ''}
-                                ${!customColors && theme === 'cyberpunk' ? 'bg-[#050510] text-cyan-400 font-mono border-2 border-cyan-500 shadow-[0_0_60px_rgba(6,182,212,0.3)]' : ''}
-                                ${!customColors && theme === 'elegant' ? 'bg-[#fffbf0] text-[#2a2a2a] font-serif border-double border-[6px] border-[#1a1a1a] p-[10px]' : ''}
-                                ${!customColors && theme === 'chalkboard' ? 'bg-[#222] text-white font-sans border-[16px] border-[#5d4037] shadow-[2px_2px_4px_#3e2723,inset_0_0_20px_rgba(0,0,0,0.8)]' : ''}
-                            `}
-                            style={customColors ? {
-                                backgroundColor: customColors.bg,
-                                color: customColors.text,
-                                borderColor: customColors.border,
-                                borderWidth: '12px',
-                                fontFamily: 'sans-serif'
-                            } : {}}
-                        >
+                <div
+                    className="relative transition-all duration-300 ease-out origin-top shadow-2xl"
+                    style={{
+                        width: 550 * scale,
+                        height: 800 * scale,
+                        // We use a wrapper with explicit Scaled Dimensions to reserve space in flow layout
+                    }}
+                >
+                    <div
+                        ref={previewRef}
+                        style={{
+                            transform: `scale(${scale})`,
+                            transformOrigin: 'top left',
+                        }}
+                        className={`
+                            w-[550px] min-h-[800px] absolute top-0 left-0
+                            ${!customColors && theme === 'minimal' ? 'bg-white text-black font-sans' : ''}
+                            ${!customColors && theme === 'tropical' ? 'bg-[#0f4c3a] text-[#f2e8cf] font-serif border-[12px] border-[#d8b066]' : ''}
+                            ${!customColors && theme === 'cyberpunk' ? 'bg-[#050510] text-cyan-400 font-mono border-2 border-cyan-500 shadow-[0_0_60px_rgba(6,182,212,0.3)]' : ''}
+                            ${!customColors && theme === 'elegant' ? 'bg-[#fffbf0] text-[#2a2a2a] font-serif border-double border-[6px] border-[#1a1a1a] p-[10px]' : ''}
+                            ${!customColors && theme === 'chalkboard' ? 'bg-[#222] text-white font-sans border-[16px] border-[#5d4037] shadow-[2px_2px_4px_#3e2723,inset_0_0_20px_rgba(0,0,0,0.8)]' : ''}
+                        `}
+                    >
+                        {/* THEME CONTENT (Unchanged) */}
+                        <div style={customColors ? {
+                            backgroundColor: customColors.bg,
+                            color: customColors.text,
+                            borderColor: customColors.border,
+                            borderWidth: '12px',
+                            fontFamily: 'sans-serif',
+                            height: '100%'
+                        } : { height: '100%' }}>
+
                             {/* Dynamic Styles for Custom Colors */}
                             {customColors && (
                                 <style jsx>{`
