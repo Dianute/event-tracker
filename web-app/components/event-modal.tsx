@@ -183,6 +183,37 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                         <div className="p-2 rounded-full bg-white/10 backdrop-blur-md"><Clock size={16} className="text-blue-400" /></div>
                         <span className="drop-shadow-md">{date} • {timeStart} - {timeEnd} {isOvernight ? '(+1 day)' : ''}</span>
                     </div>
+
+                    {/* PROGRESS BAR */}
+                    {(() => {
+                        const [progress, setProgress] = useState(0);
+                        useEffect(() => {
+                            const updateProgress = () => {
+                                const now = new Date().getTime();
+                                const start = startObj.getTime();
+                                const end = endObj.getTime();
+                                const total = end - start;
+                                if (total <= 0) { setProgress(100); return; }
+                                const elapsed = now - start;
+                                const p = Math.min(100, Math.max(0, (elapsed / total) * 100));
+                                setProgress(p);
+                            };
+                            updateProgress();
+                            const interval = setInterval(updateProgress, 60000); // Update every minute
+                            return () => clearInterval(interval);
+                        }, [startObj, endObj]);
+
+                        if (progress <= 0 || progress >= 100) return null; // Only show if active
+
+                        return (
+                            <div className="w-full max-w-[200px] h-1 bg-white/20 rounded-full overflow-hidden mt-1 mb-1">
+                                <div
+                                    className={`h-full transition-all duration-1000 ${theme === 'cyberpunk' ? 'bg-cyan-400 shadow-[0_0_10px_#22d3ee]' : 'bg-blue-500'}`}
+                                    style={{ width: `${progress}%` }}
+                                />
+                            </div>
+                        );
+                    })()}
                     {/* Location Row (Clickable) */}
                     <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
