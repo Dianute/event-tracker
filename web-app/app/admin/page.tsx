@@ -39,6 +39,11 @@ export default function AdminDashboard() {
                             <Calendar size={20} className={`transition-transform duration-300 ${activeTab === 'events' ? 'scale-110' : 'group-hover:scale-110'}`} />
                             <span className="font-bold text-sm hidden lg:block">Event Manager</span>
                         </button>
+
+                        <Link href="/dashboard" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/5 transition-all duration-200 group">
+                            <Activity size={20} className="group-hover:scale-110 transition-transform" />
+                            <span className="font-bold text-sm hidden lg:block">User Dashboard</span>
+                        </Link>
                     </nav>
 
                     <div className="p-4 border-t border-white/5">
