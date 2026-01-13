@@ -265,13 +265,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Admin Quick Link (Top Left) */}
-      <div className="fixed top-6 left-6 z-[1000]">
-        <a href="/admin/events" className="p-3 bg-black/40 hover:bg-black/60 text-white/50 hover:text-white backdrop-blur-md rounded-full shadow-lg transition-all flex items-center justify-center border border-white/5">
-          <span className="sr-only">Admin Dashboard</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-        </a>
-      </div>
+
 
       <EventModal
         isOpen={isModalOpen}
