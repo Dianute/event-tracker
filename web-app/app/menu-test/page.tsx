@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2, ChevronLeft, Save, LayoutTemplate, Wine } from 'lucide-react';
+import { Download, Coffee, Sparkles, Pencil, Upload, Image as ImageIcon, Type, Palmtree, Wand2, ChevronLeft, Save, LayoutTemplate, Wine, RotateCcw } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import * as htmlToImage from 'html-to-image';
 import Link from 'next/link';
@@ -33,6 +33,28 @@ Banana Bread - $4`);
     const previewRef = useRef<HTMLDivElement>(null);
     const [isExporting, setIsExporting] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+
+    const handleReset = () => {
+        if (!confirm("Reset all changes to default? This cannot be undone.")) return;
+        setRawText(`Brunch Vibes
+Avocado Toast - $12
+Acai Bowl - $14
+Matcha Latte - $6
+
+Lunch Hour
+Poke Bowl - $16
+Truffle Burger - $18
+Caesar Salad - $12
+
+Sweet Treats
+Vegan Brownie - $5
+Banana Bread - $4`);
+        setTheme('minimal');
+        setBgImage(null);
+        setLogo(null);
+        setTitle('MENU');
+        setCustomColors(null);
+    };
 
     const handleSave = async () => {
         const email = session?.user?.email;
@@ -238,6 +260,13 @@ Banana Bread - $4`);
                             <p className="text-[10px] text-gray-500 font-medium tracking-wider uppercase">v2.0 Professional</p>
                         </div>
                     </div>
+                    <button
+                        onClick={handleReset}
+                        className="p-2 text-gray-500 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                        title="Reset to Default"
+                    >
+                        <RotateCcw size={18} />
+                    </button>
                 </div>
 
                 {/* Scrollable Controls */}
