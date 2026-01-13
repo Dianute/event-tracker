@@ -139,6 +139,8 @@ export default function Home() {
           type: 'food', // Default to food for menus
           lat: startLoc?.lat || 0,
           lng: startLoc?.lng || 0,
+          startTime: new Date().toISOString(),
+          endTime: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
           isTemplate: true
         });
 
