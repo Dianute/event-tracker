@@ -4,7 +4,8 @@ import { useState } from 'react';
 import VerifyAdminAuth from '@/components/VerifyAdminAuth';
 import ScoutManager from '@/components/admin/ScoutManager';
 import EventManager from '@/components/admin/EventManager';
-import { LayoutDashboard, Calendar, LogOut, Shield } from 'lucide-react';
+import Link from 'next/link';
+import { LayoutDashboard, Calendar, LogOut, Shield, Activity } from 'lucide-react';
 
 export default function AdminDashboard() {
     const [activeTab, setActiveTab] = useState<'scout' | 'events'>('scout');
