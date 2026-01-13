@@ -40,7 +40,8 @@ Banana Bread - $4`);
 
         setIsSaving(true);
         try {
-            const res = await fetch('http://localhost:8080/api/menus', {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+            const res = await fetch(`${API_URL}/api/menus`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'x-user-email': email },
                 body: JSON.stringify({
