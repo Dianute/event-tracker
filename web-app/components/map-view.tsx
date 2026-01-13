@@ -10,19 +10,27 @@ import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List,
 // Custom Emoji Marker Helper
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) => {
+const createEmojiIcon = (emoji: string, theme: string, isNew?: boolean, isFinished?: boolean) => {
+  // Theme-based Styles
+  let containerClass = 'bg-white border-white text-black shadow-md'; // Default Light
+  if (theme === 'cyberpunk') containerClass = 'bg-black/90 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.6)] rounded-xl'; // Neon Squircle
+  else if (theme === 'dark') containerClass = 'bg-gray-900/90 border-gray-600 text-gray-200 shadow-xl'; // Dark Circle
+
+  // Specific adjustments
+  const shapeClass = theme === 'cyberpunk' ? 'rounded-xl' : 'rounded-full';
+  const borderClass = theme === 'cyberpunk' ? 'border' : 'border-2';
+
   const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' :
-    isFinished ? 'animate-sand-drift' : 'transform hover:scale-110';
+    isFinished ? 'grayscale opacity-50' : 'transform hover:scale-110';
 
   const newBadge = isNew && !isFinished ? '<div class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg z-50 animate-pulse">NEW</div>' : '';
-  const finishedStyle = isFinished ? 'grayscale opacity-70' : '';
 
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div class="relative flex items-center justify-center w-10 h-10 bg-white rounded-full shadow-md text-2xl border-2 border-white transition-transform ${animationClass} ${finishedStyle}">
-            ${emoji}
+    html: `<div class="relative flex items-center justify-center w-10 h-10 ${containerClass} ${shapeClass} ${borderClass} text-2xl transition-transform ${animationClass}">
+            <span class="${theme === 'cyberpunk' ? 'drop-shadow-[0_0_5px_rgba(255,255,255,0.5)]' : ''}">${emoji}</span>
             ${newBadge}
-            ${isFinished ? '<div class="absolute -top-2 -right-2 bg-gray-600 text-[8px] text-white px-1 rounded shadow">ENDED</div>' : ''}
+            ${isFinished ? '<div class="absolute -top-2 -right-2 bg-gray-600/90 text-[8px] text-white px-1 rounded shadow backdrop-blur-sm">ENDED</div>' : ''}
            </div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
@@ -30,16 +38,16 @@ const createEmojiIcon = (emoji: string, isNew?: boolean, isFinished?: boolean) =
   });
 };
 
-const getEventIcon = (type: string, isNew?: boolean, isFinished?: boolean) => {
+const getEventIcon = (type: string, theme: string, isNew?: boolean, isFinished?: boolean) => {
   switch (type) {
-    case 'food': return createEmojiIcon('🍔', isNew, isFinished);
-    case 'sports': return createEmojiIcon('⚽', isNew, isFinished);
-    case 'music': return createEmojiIcon('🎵', isNew, isFinished);
-    case 'arts': return createEmojiIcon('🎨', isNew, isFinished);
-    case 'learning': return createEmojiIcon('📚', isNew, isFinished);
+    case 'food': return createEmojiIcon('🍔', theme, isNew, isFinished);
+    case 'sports': return createEmojiIcon('⚽', theme, isNew, isFinished);
+    case 'music': return createEmojiIcon('🎵', theme, isNew, isFinished);
+    case 'arts': return createEmojiIcon('🎨', theme, isNew, isFinished);
+    case 'learning': return createEmojiIcon('📚', theme, isNew, isFinished);
     case 'social':
     default:
-      return createEmojiIcon('🍻', isNew, isFinished);
+      return createEmojiIcon('🍻', theme, isNew, isFinished);
   }
 };
 
@@ -222,7 +230,7 @@ function LocationMarker({ onMapClick, newLocation, onLocationFound, onShowAuth }
       </div>
 
       {newLocation && (
-        <Marker position={[newLocation.lat, newLocation.lng]} icon={createEmojiIcon('📍')} opacity={0.8}>
+        <Marker position={[newLocation.lat, newLocation.lng]} icon={createEmojiIcon('📍', 'default')} opacity={0.8}>
           <Popup className="custom-popup">New Event Location</Popup>
         </Marker>
       )}
@@ -641,9 +649,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           const markerIcon = isCluster ? L.divIcon({
             className: 'cluster-marker',
-            html: `<div class="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-full shadow-lg border-2 border-white font-bold text-lg">${group.length}</div>`,
+            html: `<div class="flex items-center justify-center w-12 h-12 ${isCyber ? 'bg-black/80 border-cyan-500 text-cyan-400 shadow-[0_0_15px_#22d3ee]' : 'bg-blue-600 text-white shadow-lg'} rounded-xl border-2 font-bold text-lg backdrop-blur-md">${group.length}</div>`,
             iconSize: [48, 48]
-          }) : getEventIcon(event.type, false, !!isPast);
+          }) : getEventIcon(event.type, mapTheme, false, !!isPast);
 
           return (
             <Marker
