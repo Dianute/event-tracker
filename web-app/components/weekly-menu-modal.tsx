@@ -180,7 +180,7 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                                         More ▼
                                     </button>
                                     {showLocationDropdown && (
-                                        <div className="absolute left-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-20">
+                                        <div className="absolute left-0 mt-2 w-48 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl max-h-60 overflow-y-auto z-20">
                                             {userLocations.slice(1).map((loc, i) => (
                                                 <button
                                                     key={i}

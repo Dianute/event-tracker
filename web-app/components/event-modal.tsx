@@ -681,7 +681,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             </button>
 
                                             {showLocationDropdown && (
-                                                <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl overflow-hidden z-50">
+                                                <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl max-h-60 overflow-y-auto z-50">
                                                     {userLocations.slice(1).map(loc => (
                                                         <div key={loc.id} className="group flex items-center w-full hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 relative">
                                                             <button
