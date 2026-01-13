@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink, LayoutDashboard } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink, LayoutDashboard, X, Maximize2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import EventModal from '@/components/event-modal';
 import SavedLocationsPage from '@/components/saved-locations';
@@ -21,6 +21,7 @@ export default function DashboardPage() {
     const [activeTab, setActiveTab] = useState<'events' | 'locations' | 'history' | 'templates'>('events');
     const [historyEvents, setHistoryEvents] = useState<any[]>([]);
     const [menus, setMenus] = useState<any[]>([]);
+    const [previewMenu, setPreviewMenu] = useState<any | null>(null);
 
     // Derived Stats
     const [totalViews, setTotalViews] = useState(0);
@@ -564,7 +565,11 @@ export default function DashboardPage() {
                                             <div className="absolute top-2 right-2 bg-black/50 backdrop-blur px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider text-pink-400 border border-pink-500/30">
                                                 {menu.theme}
                                             </div>
+                                            <div onClick={() => setPreviewMenu(menu)} className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors cursor-pointer flex items-center justify-center group/overlay">
+                                                <Maximize2 className="text-white opacity-0 group-hover/overlay:opacity-100 transition-opacity drop-shadow-lg" size={32} />
+                                            </div>
                                             <button
+                                                <button
                                                 onClick={(e) => { e.stopPropagation(); handleDeleteMenu(menu.id, menu.title); }}
                                                 className="absolute top-2 left-2 p-2 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white rounded-lg backdrop-blur transition-all opacity-0 group-hover:opacity-100"
                                                 title="Delete Template"
@@ -598,7 +603,54 @@ export default function DashboardPage() {
                 }
             </div >
 
-            {/* Edit Modal */}
+            {/* Menu Preview Modal */}
+            {previewMenu && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={() => setPreviewMenu(null)}>
+                    <div className="bg-gray-900 border border-white/10 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-gray-900/50">
+                            <h3 className="font-bold text-white text-lg">{previewMenu.title}</h3>
+                            <button onClick={() => setPreviewMenu(null)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6 bg-[#050505] flex justify-center">
+                            {previewMenu.imageUrl ? (
+                                <img src={previewMenu.imageUrl} alt={previewMenu.title} className="max-w-full h-auto rounded-lg shadow-lg border border-white/5" />
+                            ) : (
+                                <div className="text-gray-500 text-center py-20">
+                                    <LayoutTemplate size={48} className="mx-auto mb-4 opacity-50" />
+                                    <p>No preview image available</p>
+                                    <div className="mt-4 p-4 bg-white/5 rounded text-left text-xs font-mono whitespace-pre-wrap max-w-md mx-auto">
+                                        {previewMenu.content}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-5 border-t border-white/5 bg-gray-900/50 flex justify-end gap-3">
+                            <button
+                                onClick={() => setPreviewMenu(null)}
+                                className="px-6 py-3 rounded-xl font-bold text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={() => {
+                                    handleUseTemplate(previewMenu);
+                                    setPreviewMenu(null);
+                                }}
+                                className="px-8 py-3 bg-white hover:bg-gray-200 text-black font-black text-sm uppercase tracking-widest rounded-xl transition-transform active:scale-95 flex items-center gap-2 shadow-lg shadow-white/10"
+                            >
+                                <Zap size={16} className="fill-black" /> Use Template
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <EventModal
+                {/* Edit Modal */}
             <EventModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
