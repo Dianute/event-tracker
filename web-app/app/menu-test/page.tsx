@@ -115,8 +115,8 @@ Banana Bread - $4`);
                 }).join('');
 
                 // Strategy: Pick most vibrant for accent, darkest for text
-                const accentColor = rgbToHex(...palette[0]);
-                const secondaryColor = palette[1] ? rgbToHex(...palette[1]) : '#000000';
+                const accentColor = rgbToHex(palette[0][0], palette[0][1], palette[0][2]);
+                const secondaryColor = palette[1] ? rgbToHex(palette[1][0], palette[1][1], palette[1][2]) : '#000000';
 
                 setCustomColors({
                     accent: accentColor,
