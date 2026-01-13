@@ -208,7 +208,7 @@ Banana Bread - $4`);
                 </div>
 
                 {/* Controls Grid */}
-                <div className="grid grid-cols-2 gap-6 shrink-0 mt-auto pt-6 border-t border-gray-800">
+                <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 shrink-0 mt-auto pt-6 border-t border-gray-800">
                     <div>
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">Aesthetic</h3>
@@ -221,7 +221,7 @@ Banana Bread - $4`);
                                 </button>
                             )}
                         </div>
-                        <div className={`grid grid-cols-3 gap-2 ${customColors ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
+                        <div className={`grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-3 gap-2 ${customColors ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
                             <ThemeBtn active={theme === 'minimal'} onClick={() => setTheme('minimal')} icon={Type} label="Minimal" color="text-white border-white" />
                             <ThemeBtn active={theme === 'tropical'} onClick={() => setTheme('tropical')} icon={Palmtree} label="Tropical" color="text-green-400 border-green-500" />
                             <ThemeBtn active={theme === 'cyberpunk'} onClick={() => setTheme('cyberpunk')} icon={Sparkles} label="Cyber" color="text-cyan-400 border-cyan-500" />
@@ -486,7 +486,7 @@ function ThemeBtn({ active, onClick, icon: Icon, label, color }: any) {
         <button
             onClick={onClick}
             className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200
-            ${active ? `${color} bg-opacity-10 bg-current` : 'border-gray-800 text-gray-500 hover:border-gray-700 hover:text-gray-300 hover:bg-white/5'}
+            ${active ? `${color} bg-white/10 shadow-inner` : 'border-gray-800 text-gray-500 hover:border-gray-700 hover:text-gray-300 hover:bg-white/5'}
         `}
         >
             <Icon size={20} className="mb-2" />
