@@ -1,502 +1,66 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Download, Upload } from 'lucide-react';
+import { useState } from 'react';
 import VerifyAdminAuth from '@/components/VerifyAdminAuth';
+import ScoutManager from '@/components/admin/ScoutManager';
+import EventManager from '@/components/admin/EventManager';
+import { LayoutDashboard, Calendar, LogOut, Shield } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-
-export default function AdminPage() {
-    const [logs, setLogs] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState("IDLE");
-    const [customUrl, setCustomUrl] = useState("");
-    const [targets, setTargets] = useState<any[]>([]);
-    const [newTarget, setNewTarget] = useState({ name: "", url: "", city: "" });
-    const [previewEvent, setPreviewEvent] = useState<any | null>(null);
-    const [testError, setTestError] = useState<string | null>(null);
-    const [testingId, setTestingId] = useState<string | null>(null);
-
-    const fetchHistory = () => {
-        setLoading(true);
-        fetch(`${API_URL}/scout/history`, {
-            headers: { 'x-admin-password': localStorage.getItem('admin_secret') || '' }
-        })
-            .then(res => res.json())
-            .then(data => {
-                // If auth fails, it might redirect or error, but VerifyAdminAuth handles the UI block.
-                // However, fetching history might need auth? 
-                // Actually I didn't protect GET /history in backend (it's public visible maybe? No, let's assume public for now or add header to be safe)
-                if (Array.isArray(data)) {
-                    setLogs(data);
-                    if (data.length > 0 && data[0].status === 'RUNNING') {
-                        setStatus("RUNNING");
-                    } else {
-                        setStatus("IDLE");
-                    }
-                }
-            })
-            .catch(err => console.error(err))
-            .finally(() => setLoading(false));
-    };
-
-    const fetchTargets = () => {
-        fetch(`${API_URL}/targets?_t=${Date.now()}`, {
-            headers: { 'x-admin-password': localStorage.getItem('admin_secret') || '' }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setTargets(data);
-            })
-            .catch(console.error);
-    };
-
-    const handleDeleteTarget = (id: string) => {
-        if (!confirm("Are you sure?")) return;
-        fetch(`${API_URL}/targets/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-admin-password': localStorage.getItem('admin_secret') || ''
-            }
-        })
-            .then(res => {
-                if (!res.ok) return res.json().then(e => { throw new Error(e.error || 'Failed') });
-                fetchTargets();
-            })
-            .catch(err => alert("Delete failed: " + err.message));
-    };
-
-    const handleTestTarget = (url: string, id: string) => {
-        setTestingId(id);
-        fetch(`${API_URL}/scout/test`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-admin-password': localStorage.getItem('admin_secret') || ''
-            },
-            body: JSON.stringify({ url })
-        })
-            .then(res => {
-                if (res.status === 401) throw new Error("Unauthorized");
-                return res.json();
-            })
-            .then(data => {
-                if (data.success && data.preview) {
-                    setPreviewEvent(data.preview);
-                } else {
-                    setTestError(data.log || "Unknown error occurred during test.");
-                }
-            })
-            .catch(err => setTestError("Network request failed: " + err.message))
-            .finally(() => setTestingId(null));
-    };
-
-    const handleAddTarget = () => {
-        if (!newTarget.name || !newTarget.url) return alert("Name and URL required");
-
-        let selector = "a[href*='/e/']";
-        if (newTarget.url.includes('bilietai.lt')) selector = ".event_short";
-        else if (newTarget.url.includes('kakava.lt')) selector = "a.event-card";
-
-        fetch(`${API_URL}/targets`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-admin-password': localStorage.getItem('admin_secret') || ''
-            },
-            body: JSON.stringify({ ...newTarget, selector })
-        }).then((res) => {
-            if (res.status === 401) return alert("Unauthorized");
-            fetchTargets();
-            setNewTarget({ name: "", url: "", city: "" });
-        });
-    };
-
-    useEffect(() => {
-        fetchHistory();
-        fetchTargets();
-        const interval = setInterval(fetchHistory, 5000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const handleRunScout = () => {
-        setLoading(true);
-        const body = customUrl ? { url: customUrl } : {};
-
-        fetch(`${API_URL}/scout/run`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-admin-password': localStorage.getItem('admin_secret') || ''
-            },
-            body: JSON.stringify(body)
-        })
-            .then(res => {
-                if (res.status === 401) throw new Error("Unauthorized");
-                return res.json();
-            })
-            .then(() => {
-                setStatus("RUNNING");
-                setTimeout(fetchHistory, 1000);
-                setCustomUrl("");
-            })
-            .catch(err => alert("Failed to start scout: " + err.message))
-            .finally(() => setLoading(false));
-    };
+export default function AdminDashboard() {
+    const [activeTab, setActiveTab] = useState<'scout' | 'events'>('scout');
 
     return (
         <VerifyAdminAuth>
-            <div className="min-h-screen bg-gray-900 text-white p-6 font-mono">
-                <div className="max-w-4xl mx-auto">
-                    <header className="mb-8 border-b border-gray-700 pb-6">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
-                            <div>
-                                <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 animate-gradient-x mb-2">
-                                    Scout Command Center 🕵️‍♂️
-                                </h1>
-                                <p className="text-gray-400 text-sm">Manage scraping targets & monitor missions</p>
-                            </div>
-
-                            <div className="flex items-center gap-4 self-start md:self-auto bg-gray-800/50 p-2 rounded-xl border border-gray-700">
-                                <div className={`px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider flex items-center gap-2 ${status === 'RUNNING' ? 'bg-yellow-500/20 text-yellow-500 animate-pulse border border-yellow-500/30' : 'bg-green-500/20 text-green-500 border border-green-500/30'}`}>
-                                    <span className={`w-2 h-2 rounded-full ${status === 'RUNNING' ? 'bg-yellow-500' : 'bg-green-500'}`} />
-                                    {status}
-                                </div>
-                                <a href="/" className="text-gray-400 hover:text-white text-sm font-bold flex items-center gap-1 transition-colors px-2">
-                                    Map <span className="text-xs">↗</span>
-                                </a>
-                            </div>
+            <div className="flex min-h-screen bg-[#050510] text-gray-100 font-sans selection:bg-cyan-500/30">
+                {/* Sidebar */}
+                <aside className="w-20 lg:w-64 bg-black/40 border-r border-white/5 flex flex-col fixed h-full z-50 backdrop-blur-xl transition-all duration-300">
+                    <div className="p-6 flex items-center gap-3 border-b border-white/5">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+                            <Shield size={18} className="text-white" />
                         </div>
+                        <span className="font-black text-xl tracking-tight hidden lg:block bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                            Nexus<span className="text-cyan-500">Admin</span>
+                        </span>
+                    </div>
 
-                        {/* Action Grid */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <a
-                                href="/admin/events"
-                                className="col-span-2 md:col-span-1 flex flex-col items-center justify-center gap-2 p-4 bg-purple-600/10 hover:bg-purple-600/20 border border-purple-500/30 hover:border-purple-500/50 text-purple-200 rounded-xl transition-all group active:scale-[0.98]"
-                            >
-                                <span className="text-2xl group-hover:-translate-y-1 transition-transform">🎹</span>
-                                <span className="font-bold text-sm">Manage Events</span>
-                            </a>
+                    <nav className="flex-1 p-4 space-y-2">
+                        <button
+                            onClick={() => setActiveTab('scout')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'scout' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <LayoutDashboard size={20} className={`transition-transform duration-300 ${activeTab === 'scout' ? 'scale-110' : 'group-hover:scale-110'}`} />
+                            <span className="font-bold text-sm hidden lg:block">Scout Control</span>
+                        </button>
 
-                            <button
-                                onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = `${API_URL}/targets/export`;
-                                    link.download = 'targets_backup.json';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                }}
-                                className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 rounded-xl transition-all active:scale-[0.98]"
-                            >
-                                <Download size={20} />
-                                <span className="font-bold text-xs uppercase">Backup</span>
-                            </button>
+                        <button
+                            onClick={() => setActiveTab('events')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'events' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <Calendar size={20} className={`transition-transform duration-300 ${activeTab === 'events' ? 'scale-110' : 'group-hover:scale-110'}`} />
+                            <span className="font-bold text-sm hidden lg:block">Event Manager</span>
+                        </button>
+                    </nav>
 
-                            <label className="flex flex-col items-center justify-center gap-2 p-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 text-gray-300 rounded-xl transition-all cursor-pointer active:scale-[0.98]">
-                                <Upload size={20} />
-                                <span className="font-bold text-xs uppercase">Restore</span>
-                                <input
-                                    type="file"
-                                    accept=".json"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        const file = e.target.files?.[0];
-                                        if (!file) return;
-                                        const reader = new FileReader();
-                                        reader.onload = async (ev) => {
-                                            try {
-                                                const json = JSON.parse(ev.target?.result as string);
-                                                const res = await fetch(`${API_URL}/targets/import`, {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'x-admin-password': localStorage.getItem('admin_secret') || ''
-                                                    },
-                                                    body: JSON.stringify(json)
-                                                });
-                                                if (res.ok) {
-                                                    alert("Targets restored successfully!");
-                                                    fetchTargets();
-                                                } else {
-                                                    alert("Failed to restore targets.");
-                                                }
-                                            } catch (err) {
-                                                alert("Invalid JSON file.");
-                                            }
-                                        };
-                                        reader.readAsText(file);
-                                    }}
-                                />
-                            </label>
-                        </div>
-                    </header>
+                    <div className="p-4 border-t border-white/5">
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem('admin_secret');
+                                window.location.reload();
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors group"
+                        >
+                            <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
+                            <span className="font-bold text-sm hidden lg:block">Logout</span>
+                        </button>
+                    </div>
+                </aside>
 
-                    {/* Controls */}
-                    <section className="mb-10 bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                        <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-                            <div className="flex-1 w-full">
-                                <h2 className="text-xl font-bold mb-2">Manual Override</h2>
-                                <p className="text-gray-400 text-sm mb-4">Force the agent to scan specific targets immediately.</p>
-
-                                <label className="block text-xs uppercase text-gray-500 font-bold mb-1">Target URL (Optional)</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. https://www.bilietai.lt/lit/renginiai/koncertai/kaunas"
-                                    value={customUrl}
-                                    onChange={(e) => setCustomUrl(e.target.value)}
-                                    className="w-full bg-gray-900 border border-gray-600 rounded px-4 py-2 text-white focus:outline-none focus:border-cyan-500 transition-colors"
-                                />
-                            </div>
-                            <button
-                                onClick={handleRunScout}
-                                disabled={loading || status === 'RUNNING'}
-                                className="px-6 py-3 h-[46px] bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg font-bold transition-all shadow-cyan-500/20 shadow-lg whitespace-nowrap"
-                            >
-                                {status === 'RUNNING' ? 'Scout Deployed...' : customUrl ? '🚀 Scout URL' : '🚀 Launch All'}
-                            </button>
-                        </div>
-                    </section>
-
-                    {/* Target Manager */}
-                    <section className="mb-10">
-                        <h2 className="text-xl font-bold mb-4">Target Manager</h2>
-                        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-900/50 text-gray-400">
-                                    <tr>
-                                        <th className="p-4">Name</th>
-                                        <th className="p-4">City</th>
-                                        <th className="p-4">Last Scrape</th>
-                                        <th className="p-4">URL</th>
-                                        <th className="p-4">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {targets.map((t) => (
-                                        <tr key={t.id} className="border-t border-gray-700 hover:bg-white/5">
-                                            <td className="p-4 font-bold">{t.name}</td>
-                                            <td className="p-4">{t.city || '-'}</td>
-                                            <td className="p-4">
-                                                {t.lastEventsFound !== undefined ? (
-                                                    <div>
-                                                        <span className="font-bold text-cyan-300">{t.lastEventsFound} events</span>
-                                                        <br />
-                                                        <span className="text-xs text-gray-500">
-                                                            {t.lastScrapedAt ? new Date(t.lastScrapedAt).toLocaleString() : ''}
-                                                        </span>
-                                                    </div>
-                                                ) : <span className="text-gray-600">-</span>}
-                                            </td>
-                                            <td className="p-4 text-gray-400 truncate max-w-[200px]" title={t.url}>{t.url}</td>
-                                            <td className="p-4 flex gap-2">
-                                                <button
-                                                    onClick={() => handleTestTarget(t.url, t.id)}
-                                                    disabled={!!testingId}
-                                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-xs font-bold disabled:opacity-50"
-                                                >
-                                                    {testingId === t.id ? 'Testing...' : '▶ Test'}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteTarget(t.id)}
-                                                    className="text-red-400 hover:text-red-300 font-bold text-xs uppercase"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {targets.length === 0 && (
-                                        <tr><td colSpan={5} className="p-8 text-center text-gray-500">No targets configured.</td></tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Add Target Form */}
-                        <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                            <h3 className="text-lg font-bold mb-4">Add New Target</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <input
-                                    className="bg-gray-900 border border-gray-600 rounded p-2 text-white"
-                                    placeholder="Name (e.g. Bilietai Siauliai)"
-                                    value={newTarget.name}
-                                    onChange={e => setNewTarget({ ...newTarget, name: e.target.value })}
-                                />
-                                <select
-                                    className="bg-gray-900 border border-gray-600 rounded p-2 text-white"
-                                    value={newTarget.city}
-                                    onChange={e => setNewTarget({ ...newTarget, city: e.target.value })}
-                                >
-                                    <option value="">Select City (Optional)</option>
-                                    <option value="Vilnius">Vilnius</option>
-                                    <option value="Kaunas">Kaunas</option>
-                                    <option value="Klaipėda">Klaipėda</option>
-                                    <option value="Šiauliai">Šiauliai</option>
-                                    <option value="Panevėžys">Panevėžys</option>
-                                    <option value="Palanga">Palanga</option>
-                                </select>
-                                <input
-                                    className="bg-gray-900 border border-gray-600 rounded p-2 text-white md:col-span-2"
-                                    placeholder="URL"
-                                    value={newTarget.url}
-                                    onChange={e => setNewTarget({ ...newTarget, url: e.target.value })}
-                                />
-                            </div>
-                            <button
-                                onClick={handleAddTarget}
-                                className="px-6 py-2 bg-green-600 hover:bg-green-500 rounded font-bold transition-colors"
-                            >
-                                + Add Target
-                            </button>
-                        </div>
-                    </section>
-
-                    {/* History Log */}
-                    <section>
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                            <span>Mission Log</span>
-                            <span className="text-xs bg-gray-700 px-2 py-1 rounded text-gray-300">{logs.length} entries</span>
-                            <button onClick={fetchHistory} className="ml-auto text-xs bg-gray-700 hover:bg-gray-600 px-2 py-1 rounded text-white transition-colors">
-                                Refresh ↻
-                            </button>
-                        </h2>
-
-                        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-gray-900/50 text-gray-400">
-                                    <tr>
-                                        <th className="p-4">Status</th>
-                                        <th className="p-4">Events Found</th>
-                                        <th className="p-4">Start Time</th>
-                                        <th className="p-4">Duration</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {logs.map((log) => (
-                                        <tr key={log.id} className="border-t border-gray-700 hover:bg-white/5 transition-colors">
-                                            <td className="p-4">
-                                                <span className={`inline-block px-2 py-1 rounded text-xs font-bold 
-                            ${log.status === 'SUCCESS' ? 'text-green-400 bg-green-900/30' :
-                                                        log.status === 'FAILED' ? 'text-red-400 bg-red-900/30' :
-                                                            'text-yellow-400 bg-yellow-900/30'}`}>
-                                                    {log.status}
-                                                </span>
-                                            </td>
-                                            <td className="p-4 font-bold text-cyan-300">
-                                                {log.eventsFound !== null ? log.eventsFound : '-'}
-                                            </td>
-                                            <td className="p-4 text-gray-400">
-                                                {new Date(log.startTime).toLocaleString()}
-                                            </td>
-                                            <td className="p-4 text-gray-500">
-                                                {log.endTime ?
-                                                    `${((new Date(log.endTime).getTime() - new Date(log.startTime).getTime()) / 1000).toFixed(1)}s`
-                                                    : '...'}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {logs.length === 0 && (
-                                        <tr>
-                                            <td colSpan={4} className="p-8 text-center text-gray-500">
-                                                No missions recorded yet.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </section>
-                    {/* Preview Event Modal */}
-                    {previewEvent && (
-                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-                            <div className="bg-gray-800 p-6 rounded-xl max-w-lg w-full border border-cyan-500/50 shadow-2xl animate-in zoom-in-95 duration-200">
-                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-cyan-400">
-                                    <span>🎉 Target Successfully Parsed!</span>
-                                </h3>
-                                <div className="space-y-4 mb-6">
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase">Title</label>
-                                        <p className="font-bold text-white text-lg">{previewEvent.title}</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase">Start Time</label>
-                                            <p className="text-sm text-gray-300">{new Date(previewEvent.startTime).toLocaleString()}</p>
-                                        </div>
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase">Venue</label>
-                                            <p className="text-sm text-gray-300">{previewEvent.venue || previewEvent.location}</p>
-                                        </div>
-                                    </div>
-                                    {previewEvent.lat && (
-                                        <div>
-                                            <label className="text-xs font-bold text-gray-500 uppercase">Coordinates</label>
-                                            <p className="text-sm text-gray-300 flex items-center gap-2">
-                                                {previewEvent.lat.toFixed(6)}, {previewEvent.lng.toFixed(6)}
-                                                <a
-                                                    href={`https://www.google.com/maps?q=${previewEvent.lat},${previewEvent.lng}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-cyan-500 hover:underline"
-                                                >
-                                                    (View Map)
-                                                </a>
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="bg-black/40 rounded p-3 mb-4">
-                                    <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Raw Data</label>
-                                    <pre className="text-[10px] text-gray-400 overflow-x-auto">
-                                        {JSON.stringify(previewEvent, null, 2)}
-                                    </pre>
-                                </div>
-                                <button
-                                    onClick={() => setPreviewEvent(null)}
-                                    className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded font-bold transition-colors shadow-lg shadow-cyan-500/20"
-                                >
-                                    Close Preview
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Error Log Modal */}
-                    {testError && (
-                        <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-                            <div className="bg-gray-800 p-6 rounded-xl max-w-2xl w-full border border-red-500/50 shadow-2xl flex flex-col max-h-[90vh]">
-                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-red-400">
-                                    <span>⚠️ Test Failed</span>
-                                </h3>
-                                <p className="text-sm text-gray-400 mb-2">Copy this log to debug the issue:</p>
-                                <textarea
-                                    readOnly
-                                    value={testError}
-                                    className="w-full h-64 bg-black/50 border border-gray-700 rounded p-4 font-mono text-xs text-red-200 mb-4 focus:outline-none focus:border-red-500 resize-none"
-                                />
-                                <div className="flex gap-4">
-                                    <button
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(testError);
-                                            alert("Copied to clipboard!");
-                                        }}
-                                        className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 rounded font-bold transition-colors"
-                                    >
-                                        Copy Log
-                                    </button>
-                                    <button
-                                        onClick={() => setTestError(null)}
-                                        className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded font-bold transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
+                {/* Main Content Area */}
+                <main className="flex-1 ml-20 lg:ml-64 p-8 lg:p-12 max-w-[1920px] mx-auto w-full">
+                    <div className="max-w-7xl mx-auto">
+                        {activeTab === 'scout' ? <ScoutManager /> : <EventManager />}
+                    </div>
+                </main>
             </div>
         </VerifyAdminAuth>
     );
