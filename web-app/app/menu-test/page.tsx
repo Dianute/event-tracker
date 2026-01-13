@@ -260,19 +260,20 @@ Banana Bread - $4`);
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 }
 
-            function ThemeBtn({active, onClick, icon: Icon, label, color }: any) {
+function ThemeBtn({ active, onClick, icon: Icon, label, color }: any) {
     return (
-            <button
-                onClick={onClick}
-                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200
+        <button
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200
                 ${active ? `${color} bg-opacity-10 bg-current` : 'border-gray-800 text-gray-500 hover:border-gray-700 hover:text-gray-300 hover:bg-white/5'}
             `}
-            >
-                <Icon size={20} className="mb-2" />
-                <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
-            </button>
-            )
+        >
+            <Icon size={20} className="mb-2" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+        </button>
+    )
 }
