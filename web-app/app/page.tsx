@@ -279,7 +279,7 @@ export default function Home() {
             if (notification.event) handleEventSelect(notification.event);
             setNotification(null);
           }}
-          className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-[5000] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-bounce-in cursor-pointer hover:scale-105 active:scale-95 transition-all border backdrop-blur-md
+          className={`fixed top-24 left-1/2 transform -translate-x-1/2 z-[5000] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-bounce-in cursor-pointer pointer-events-auto hover:scale-105 active:scale-95 transition-all border backdrop-blur-md
             ${currentTheme === 'cyberpunk'
               ? 'bg-black/80 border-cyan-500 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)]'
               : currentTheme === 'light'
