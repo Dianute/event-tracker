@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useRef, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Calendar, Clock, MapPin, ChefHat, ArrowRight, Check, Type, Sparkles, Image as ImageIcon, LayoutTemplate, X, Maximize2, ChevronDown } from 'lucide-react';
