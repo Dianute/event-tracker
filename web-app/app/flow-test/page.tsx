@@ -11,8 +11,9 @@ export default function FlowTestPage() {
 
     // Step 1: Basics
     const [title, setTitle] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [eventDate, setEventDate] = useState('');
+    const [startTime, setStartTime] = useState('');
+    const [endTime, setEndTime] = useState('');
     const [selectedLocation, setSelectedLocation] = useState(''); // ID of saved location
     const [venueName, setVenueName] = useState(''); // Text fallback
     const [userLocations, setUserLocations] = useState<any[]>([]);
@@ -44,11 +45,15 @@ export default function FlowTestPage() {
 
         // Default Times (Next Hour)
         const now = new Date();
-        now.setMinutes(0, 0, 0); // Round to hour
+        const dateStr = now.toISOString().split('T')[0];
+        setEventDate(dateStr);
+
+        now.setMinutes(0, 0, 0);
         now.setHours(now.getHours() + 1);
-        setStartDate(new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16));
+        setStartTime(now.toTimeString().slice(0, 5)); // HH:mm
+
         now.setHours(now.getHours() + 3);
-        setEndDate(new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16));
+        setEndTime(now.toTimeString().slice(0, 5)); // HH:mm
     }, [session]);
 
     const uploadImage = async (blob: Blob): Promise<string> => {
@@ -79,13 +84,21 @@ export default function FlowTestPage() {
         if (!session?.user?.email) return alert("Please sign in first");
         setIsPublishing(true);
 
+        const combinedStart = new Date(`${eventDate}T${startTime}`);
+        const combinedEnd = new Date(`${eventDate}T${endTime}`);
+
+        // Handle overnight events (if end < start, assume next day)
+        if (combinedEnd < combinedStart) {
+            combinedEnd.setDate(combinedEnd.getDate() + 1);
+        }
+
         const newEvent = {
             title,
             description: `Event Menu:\n${menuText}`,
             imageUrl: generatedImage,
             venue: venueName,
-            startTime: new Date(startDate).toISOString(),
-            endTime: new Date(endDate).toISOString(),
+            startTime: combinedStart.toISOString(),
+            endTime: combinedEnd.toISOString(),
             type: 'food',
             userEmail: session.user.email,
             lat: 0, // In future, use lat/lng from saved ID
@@ -149,29 +162,45 @@ export default function FlowTestPage() {
 
                             <div>
                                 <label className="block text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Event Timing</label>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-4">
+                                    {/* Date Picker */}
                                     <div className="bg-gray-900 border border-gray-700 rounded-xl p-3 flex items-center gap-3">
-                                        <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><Clock size={16} /></div>
+                                        <div className="p-2 bg-green-500/20 rounded-lg text-green-400"><Calendar size={16} /></div>
                                         <div className="flex-1">
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Starts</p>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Date</p>
                                             <input
-                                                type="datetime-local"
-                                                value={startDate}
-                                                onChange={e => setStartDate(e.target.value)}
+                                                type="date"
+                                                value={eventDate}
+                                                onChange={e => setEventDate(e.target.value)}
                                                 className="w-full bg-transparent text-sm font-bold text-white focus:outline-none [color-scheme:dark]"
                                             />
                                         </div>
                                     </div>
-                                    <div className="bg-gray-900 border border-gray-700 rounded-xl p-3 flex items-center gap-3">
-                                        <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Clock size={16} /></div>
-                                        <div className="flex-1">
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Ends</p>
-                                            <input
-                                                type="datetime-local"
-                                                value={endDate}
-                                                onChange={e => setEndDate(e.target.value)}
-                                                className="w-full bg-transparent text-sm font-bold text-white focus:outline-none [color-scheme:dark]"
-                                            />
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-gray-900 border border-gray-700 rounded-xl p-3 flex items-center gap-3">
+                                            <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400"><Clock size={16} /></div>
+                                            <div className="flex-1">
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Starts</p>
+                                                <input
+                                                    type="time"
+                                                    value={startTime}
+                                                    onChange={e => setStartTime(e.target.value)}
+                                                    className="w-full bg-transparent text-sm font-bold text-white focus:outline-none [color-scheme:dark]"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-900 border border-gray-700 rounded-xl p-3 flex items-center gap-3">
+                                            <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400"><Clock size={16} /></div>
+                                            <div className="flex-1">
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase mb-1">Ends</p>
+                                                <input
+                                                    type="time"
+                                                    value={endTime}
+                                                    onChange={e => setEndTime(e.target.value)}
+                                                    className="w-full bg-transparent text-sm font-bold text-white focus:outline-none [color-scheme:dark]"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -217,7 +246,7 @@ export default function FlowTestPage() {
 
                             <button
                                 onClick={handleNext}
-                                disabled={!title || !venueName || !startDate || !endDate}
+                                disabled={!title || !venueName || !eventDate || !startTime || !endTime}
                                 className="w-full py-4 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest rounded-xl transition-all active:scale-95 flex items-center justify-center gap-2 mt-4"
                             >
                                 Next Step <ArrowRight size={18} />
@@ -315,7 +344,7 @@ export default function FlowTestPage() {
                             <div>
                                 <h3 className="font-bold text-white text-lg">{title}</h3>
                                 <p className="text-xs text-blue-400 font-bold uppercase tracking-wider mb-1">
-                                    {startDate ? new Date(startDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    {eventDate} • {startTime}
                                 </p>
                                 <p className="text-xs text-gray-500 line-clamp-2">{venueName}</p>
                             </div>
