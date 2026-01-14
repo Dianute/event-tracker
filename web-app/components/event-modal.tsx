@@ -312,6 +312,7 @@ interface EventModalProps {
 export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], userLocations = [], onLocationsChange, allEvents = [] }: EventModalProps) {
 
     const [title, setTitle] = useState('');
+    const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
     const [description, setDescription] = useState('');
     const [type, setType] = useState('social');
 
@@ -801,11 +802,11 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {/* FORM FIELDS */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What (Title)</label>
-                                <input type="text" required value={title} placeholder="Event Title" onChange={(e) => setTitle(e.target.value)}
+                                <input type="text" required value={title} placeholder="Event Title" onChange={(e) => { setTitle(e.target.value); setShowTitleSuggestions(true); }}
                                     className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
 
                                 {/* SMART AUTO-FILL DROPDOWN */}
-                                {title.length > 2 && (
+                                {(title.length > 2 && showTitleSuggestions) && (
                                     <div className="relative">
                                         {(() => {
                                             const seenTitles = new Set();
@@ -864,6 +865,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                                     setTimeStart(fmt(s));
                                                                     setTimeEnd(fmt(e));
                                                                 }
+                                                                setShowTitleSuggestions(false);
                                                             }}
                                                             className={`w-full text-left p-3 text-sm truncate flex items-center justify-between group transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
                                                         >
