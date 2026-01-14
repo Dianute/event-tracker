@@ -332,18 +332,20 @@ app.post('/events', async (req, res) => {
             // Upsert User (Ensure they exist)
             await db.query(`INSERT INTO users (email) VALUES ($1) ON CONFLICT (email) DO NOTHING`, [userEmail]);
 
-            // Check Block Status
-            const { rows: userRows } = await db.query("SELECT is_blocked, role FROM users WHERE email = $1", [userEmail]);
-            if (userRows[0] && userRows[0].is_blocked) {
-                return res.status(403).json({ error: "Your account has been restricted. Please contact support." });
-            }
+            // Check Block & Trust Status
+            const { rows: userRows } = await db.query("SELECT is_blocked, is_trusted, role FROM users WHERE email = $1", [userEmail]);
 
-            // If Admin Header is present, auto-approve
-            if (adminPass === ADMIN_PASSWORD || (userRows[0] && userRows[0].role === 'admin')) {
-                userStatus = 'approved';
+            if (userRows[0]) {
+                if (userRows[0].is_blocked) {
+                    return res.status(403).json({ error: "Your account has been restricted. Please contact support." });
+                }
+                // Auto-Approve if Trusted OR Admin
+                if (userRows[0].is_trusted || userRows[0].role === 'admin' || adminPass === ADMIN_PASSWORD) {
+                    userStatus = 'approved';
+                }
             }
         } else {
-            // Anonymous posts (if allowed) - pending by default
+            // Anonymous posts - pending
             userStatus = 'pending';
         }
 
@@ -356,8 +358,7 @@ app.post('/events', async (req, res) => {
             newEvent = rows;
         } catch (insertErr) {
             console.warn("⚠️ Insert failed, retrying fallback...", insertErr.message);
-            // Fallback for schemas missing 'phone' or 'status' (should be covered by migration, but safety first)
-            // Note: If 'status' is missing, this backup query will work but result in NULL status (which we handled in GET).
+            // Fallback for missing status column (should be fixed by migration)
             const queryFallback = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`;
             const paramsFallback = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail];
             const { rows } = await db.query(queryFallback, paramsFallback);
