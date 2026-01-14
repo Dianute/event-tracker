@@ -778,7 +778,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                             <button
                                                                 type="button"
                                                                 onClick={(e) => {
-                                                                    e.stopPropagation();
+                                                                    e.stopPropagation(); // Prevent selection
                                                                     handleDeleteLocation(loc.id, loc.name);
                                                                 }}
                                                                 className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-gray-600 hover:text-red-400 opacity-60 group-hover:opacity-100 transition-all"
