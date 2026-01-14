@@ -267,7 +267,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [showAuthModal, setShowAuthModal] = useState(false);
   // Filters
   const [timeFilter, setTimeFilter] = useState<'all' | 'live' | 'today' | 'week'>('all'); // Replaces showHappeningNow
-  const [radiusFilter, setRadiusFilter] = useState<number | null>(null); // Replaces sortBy (sorts by dist when active)
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -361,12 +360,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     // B. Category Filter
     const categoryMatch = selectedCategory === 'all' || e.type === selectedCategory;
 
-    // C. Radius Filter
-    const radiusMatch = (() => {
-      if (!radiusFilter || !userLocation) return true;
-      const dist = getDistance(userLocation.lat, userLocation.lng, e.lat, e.lng);
-      return dist <= radiusFilter;
-    })();
+
 
     // D. Search Filter
     const query = searchQuery.toLowerCase();
@@ -378,7 +372,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     // E. Bounds Filter - DISABLED by request (Always show full list)
     // const boundsMatch = ... 
 
-    return timeMatch && categoryMatch && radiusMatch && searchMatch; // && boundsMatch;
+    return timeMatch && categoryMatch && searchMatch; // && boundsMatch;
   });
 
   // 2. Second Pass: Anti-Overlap (Smart Pin De-Clutter)
@@ -523,25 +517,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     }
   }
 
-  // Function to cycle radius
-  const cycleRadiusFilters = () => {
-    if (!userLocation) {
-      alert("Please enable location to use distance filters.");
-      // Ideally this would trigger map.locate() again but simple alert is ok for now logic-wise
-      return;
-    }
-    if (radiusFilter === null) setRadiusFilter(1000); // 1km
-    else if (radiusFilter === 1000) setRadiusFilter(5000); // 5km
-    else if (radiusFilter === 5000) setRadiusFilter(10000); // 10km
-    else setRadiusFilter(null); // Back to World
-  };
 
-  const getRadiusLabel = () => {
-    if (radiusFilter === 1000) return '1 km';
-    if (radiusFilter === 5000) return '5 km';
-    if (radiusFilter === 10000) return '10 km';
-    return 'World';
-  }
 
   // Function to cycle time
   const cycleTimeFilters = () => {
@@ -745,27 +721,22 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
 
 
-            {/* Radius Filter */}
-            <button
-              key="radius-btn"
-              onClick={cycleRadiusFilters}
-              className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap shrink-0
-                    ${radiusFilter ? 'text-blue-300 border-blue-500/30 bg-blue-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
-              title="Filter by Radius"
-            >
-              {getRadiusLabel()}
-            </button>
+
 
             {/* Time Filter */}
             <button
               key="time-btn"
               onClick={cycleTimeFilters}
-              className={`h-8 px-3 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
-                    ${timeFilter !== 'all' ? 'text-green-300 border-green-500/30 bg-green-500/10' : 'text-gray-400 border-transparent hover:bg-white/10'}`}
+              className={`h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
+                    ${timeFilter !== 'all' ? 'px-3 text-green-300 border-green-500/30 bg-green-500/10' : 'w-8 text-white/50 border-transparent hover:text-white hover:bg-white/10'}`}
               title="Filter by Time"
             >
-              {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
-              {getTimeLabel()}
+              {timeFilter === 'all' ? <Clock size={20} /> : (
+                <>
+                  {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
+                  {getTimeLabel()}
+                </>
+              )}
             </button>
 
             {/* Refresh */}
