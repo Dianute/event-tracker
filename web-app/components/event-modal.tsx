@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Phone, ChevronLeft, ChevronRight, Share2, Copy, Check, Info, ZoomIn, ZoomOut, Sparkles, ArrowRight } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Phone, ChevronLeft, ChevronRight, Share2, Copy, Check, Info, ZoomIn, ZoomOut, Sparkles, ArrowRight, RotateCw } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
 
@@ -334,6 +334,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     // Zoom & Scroll State
     const [isFullImage, setIsFullImage] = useState(false);
     const [zoomedImage, setZoomedImage] = useState('');
+    const [rotation, setRotation] = useState(0); // New Rotation State
     const scrollRef = useRef<HTMLDivElement>(null);
     const { data: session } = useSession();
 
@@ -657,7 +658,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     onClick={() => setIsFullImage(false)}>
 
                     {/* Fixed Close Button (Always Visible) */}
-                    <button onClick={(e) => { e.stopPropagation(); setIsFullImage(false); setZoomedImage(''); }}
+                    <button onClick={(e) => { e.stopPropagation(); setIsFullImage(false); setZoomedImage(''); setRotation(0); }}
                         className="absolute top-6 right-6 z-[3020] p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-red-500/50">
                         <X size={28} />
                     </button>
@@ -681,11 +682,17 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         <Plus size={24} />
                                     </button>
                                 </div>
+                                {/* Mobile Rotate Button (Bottom Center or Top Left) */}
+                                <button onClick={(e) => { e.stopPropagation(); setRotation(r => r + 90); }}
+                                    className="absolute top-6 left-6 z-[3020] p-3 rounded-full bg-black/50 text-white backdrop-blur-md border border-white/20 active:scale-90 transition-transform hover:bg-blue-500/50">
+                                    <RotateCw size={24} />
+                                </button>
                                 <TransformComponent wrapperClass="!w-full !h-full" contentClass="!w-full !h-full flex items-center justify-center">
                                     <img
                                         src={zoomedImage || imageUrl}
                                         alt="Zoom"
-                                        className="max-w-full max-h-full object-contain p-2"
+                                        style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 0.3s ease' }}
+                                        className="max-w-full max-h-full object-contain" // Removed p-2 for max size
                                     // Removed stopPropagation so clicking image also closes (Tap to Dismiss)
                                     />
                                 </TransformComponent>
