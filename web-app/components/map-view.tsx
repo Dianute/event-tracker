@@ -717,17 +717,22 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             {/* Search */}
             <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
               {isSearchOpen ? (
-                <div className="flex items-center w-full">
+                <div className="flex items-center w-full relative">
                   <input
                     autoFocus
                     type="text"
                     placeholder="Search tags..."
-                    className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400 min-w-0"
+                    className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400 min-w-0 pr-6"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onBlur={() => !searchQuery && setIsSearchOpen(false)}
                   />
-                  {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white ml-1">×</button>}
+                  <button
+                    onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); setIsSearchOpen(false); }}
+                    className="absolute right-0 text-white/50 hover:text-white transition-colors p-1"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               ) : (
                 <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
