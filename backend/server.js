@@ -1,4 +1,3 @@
-require('dotenv').config(); // Load .env file
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -53,7 +52,7 @@ const upload = multer({
 // Middleware
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password', 'x-user-email']
 }));
 app.use(bodyParser.json({ limit: '200mb' }));
@@ -87,30 +86,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT");
             await db.query("ALTER TABLE user_locations ADD COLUMN IF NOT EXISTS phone TEXT");
             // New Analytics Columns
-            // New Analytics Columns
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_location INT DEFAULT 0");
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0");
-
-            // --- USER MODERATION SYSTEM ---
-            // 1. Users Table
-            await db.query(`CREATE TABLE IF NOT EXISTS users (
-                email TEXT PRIMARY KEY,
-                is_blocked BOOLEAN DEFAULT FALSE,
-                is_trusted BOOLEAN DEFAULT FALSE,
-                role TEXT DEFAULT 'user',
-                created_at TIMESTAMP DEFAULT NOW()
-            )`);
-
-            // Add is_trusted if table existed before
-            await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_trusted BOOLEAN DEFAULT FALSE");
-
-            // 2. Event Status
-            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'");
-
-            // 3. Auto-Approve existing events (Migration)
-            await db.query("UPDATE events SET status = 'approved' WHERE status IS NULL OR status = 'pending'");
-
-            console.log("✅ Schema patched successfully (Analytics + Users + Moderation)");
+            console.log("✅ Schema patched successfully (phone column)");
         } catch (migErr) {
             console.warn("⚠️ Schema patch warning:", migErr.message);
         }
@@ -201,44 +179,20 @@ app.get('/events', async (req, res) => {
         const { history } = req.query; // ?history=true
 
         // Fetch all events
-        // TODO: Move filtering to SQL for performance, but for now JS filter is fine for <10k events
         const { rows } = await db.query("SELECT * FROM events");
 
         // Convert casing
         const formattedRows = rows.map(toCamelCase);
 
-        let resultEvents = formattedRows;
-
-        // --- MODERATION FILTER ---
-        // Default: Show only APPROVED (or null)
-        // If ?status=pending (Admin) -> Show pending
-        // If ?status=all (Admin) -> Show all
-        // If ?userEmail=... (My Dashboard) -> Show all MY events
-        const { status: statusFilter, userEmail: filterEmail } = req.query;
-
-        if (filterEmail) {
-            // Dashboard: Show my events regardless of status
-            // Already filtered by client logic usually, but let's just pass them through here if specifically requested by email
-            // Actually, the main /events calls don't filter by SQL userEmail yet.
-            // Let's implement the logic: If request is just generic /events, filter approved.
-        } else if (statusFilter === 'pending') {
-            resultEvents = resultEvents.filter(e => e.status === 'pending');
-        } else if (statusFilter === 'all') {
-            // Show all
-        } else {
-            // Public Feed: Approved Only
-            resultEvents = resultEvents.filter(e => !e.status || e.status === 'approved');
-        }
-
-
+        let resultEvents;
         if (history === 'true') {
             // HISTORY: Return events that are NOT active (ended)
             // Note: History logic shouldn't care about the buffer, ideally pure history.
             // But to be consistent with "Disappeared from map", we use the same check negated.
-            resultEvents = resultEvents.filter(ev => !isEventActive(ev.endTime, ev.type));
+            resultEvents = formattedRows.filter(ev => !isEventActive(ev.endTime, ev.type));
         } else {
             // DEFAULT: Active events only
-            resultEvents = resultEvents.filter(ev => isEventActive(ev.endTime, ev.type));
+            resultEvents = formattedRows.filter(ev => isEventActive(ev.endTime, ev.type));
         }
 
         res.json(resultEvents);
@@ -326,40 +280,15 @@ app.post('/events', async (req, res) => {
             return res.json({ message: "Event already exists", id: existing[0].id });
         }
 
-        // --- MODERATION LOGIC ---
-        // 1. Sync User & Check Block Status
-        let userStatus = 'pending';
-        if (userEmail) {
-            // Upsert User (Ensure they exist)
-            await db.query(`INSERT INTO users (email) VALUES ($1) ON CONFLICT (email) DO NOTHING`, [userEmail]);
-
-            // Check Block & Trust Status
-            const { rows: userRows } = await db.query("SELECT is_blocked, is_trusted, role FROM users WHERE email = $1", [userEmail]);
-
-            if (userRows[0]) {
-                if (userRows[0].is_blocked) {
-                    return res.status(403).json({ error: "Your account has been restricted. Please contact support." });
-                }
-                // Auto-Approve if Trusted OR Admin
-                if (userRows[0].is_trusted || userRows[0].role === 'admin' || adminPass === ADMIN_PASSWORD) {
-                    userStatus = 'approved';
-                }
-            }
-        } else {
-            // Anonymous posts - pending
-            userStatus = 'pending';
-        }
-
         const id = uuidv4();
         let newEvent;
         try {
-            const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`;
-            const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone, userStatus];
+            const query = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`;
+            const params = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail, phone];
             const { rows } = await db.query(query, params);
             newEvent = rows;
         } catch (insertErr) {
-            console.warn("⚠️ Insert failed, retrying fallback...", insertErr.message);
-            // Fallback for missing status column (should be fixed by migration)
+            console.warn("⚠️ Insert failed (likely missing phone col), retrying without phone...", insertErr.message);
             const queryFallback = `INSERT INTO events (id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`;
             const paramsFallback = [id, title, description, type, lat, lng, startTime, endTime, venue, date, link, imageUrl, userEmail];
             const { rows } = await db.query(queryFallback, paramsFallback);
@@ -803,69 +732,6 @@ app.get('/scout/history', async (req, res) => {
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
-    }
-});
-
-// ==================== ADMIN: USER MANAGEMENT ====================
-
-// GET /api/users - List all users with stats
-app.get('/api/users', requireAuth, async (req, res) => {
-    try {
-        // Get users and count their events
-        const query = `
-            SELECT u.*, COUNT(e.id) as event_count 
-            FROM users u
-            LEFT JOIN events e ON u.email = e.userEmail
-            GROUP BY u.email
-            ORDER BY u.created_at DESC
-        `;
-        const { rows } = await db.query(query);
-        res.json(rows.map(toCamelCase));
-    } catch (err) {
-        console.error("Fetch Users Error:", err);
-        res.status(500).json({ error: "Failed to fetch users" });
-    }
-});
-
-// PATCH /api/users/:email/block - Toggle Block
-app.patch('/api/users/:email/block', requireAuth, async (req, res) => {
-    const { email } = req.params;
-    const { isBlocked } = req.body; // true/false
-
-    try {
-        await db.query("UPDATE users SET is_blocked = $1 WHERE email = $2", [isBlocked, decodeURIComponent(email)]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error("Block User Error:", err);
-        res.status(500).json({ error: "Failed to update user" });
-    }
-});
-
-// PATCH /api/users/:email/trust - Toggle Trust (Auto-Approve)
-app.patch('/api/users/:email/trust', requireAuth, async (req, res) => {
-    const { email } = req.params;
-    const { isTrusted } = req.body; // true/false
-
-    try {
-        await db.query("UPDATE users SET is_trusted = $1 WHERE email = $2", [isTrusted, decodeURIComponent(email)]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error("Trust User Error:", err);
-        res.status(500).json({ error: "Failed to update user trust" });
-    }
-});
-
-
-// PATCH /api/events/:id/status - Approve/Reject
-app.patch('/api/events/:id/status', requireAuth, async (req, res) => {
-    const { id } = req.params;
-    const { status } = req.body; // 'approved' | 'rejected' | 'pending'
-
-    try {
-        await db.query("UPDATE events SET status = $1 WHERE id = $2", [status, id]);
-        res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ error: "Failed to update status" });
     }
 });
 

@@ -4,15 +4,13 @@ import { useState } from 'react';
 import VerifyAdminAuth from '@/components/VerifyAdminAuth';
 import ScoutManager from '@/components/admin/ScoutManager';
 import EventManager from '@/components/admin/EventManager';
-import UserManager from '@/components/admin/UserManager';
-import ModerationManager from '@/components/admin/ModerationManager';
 import Link from 'next/link';
-import { LayoutDashboard, Calendar, LogOut, Shield, Activity, Users, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Calendar, LogOut, Shield, Activity } from 'lucide-react';
 
 import DashboardPage from '../dashboard/page';
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState<'scout' | 'events' | 'dashboard' | 'users' | 'moderation'>('scout');
+    const [activeTab, setActiveTab] = useState<'scout' | 'events' | 'dashboard'>('scout');
 
     return (
         <VerifyAdminAuth>
@@ -28,8 +26,7 @@ export default function AdminDashboard() {
                         </span>
                     </div>
 
-                    <nav className="flex-1 p-4 space-y-2 overflow-y-auto hide-scrollbar">
-                        <div className="px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-widest hidden lg:block">System</div>
+                    <nav className="flex-1 p-4 space-y-2">
                         <button
                             onClick={() => setActiveTab('scout')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'scout' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
@@ -46,32 +43,12 @@ export default function AdminDashboard() {
                             <span className="font-bold text-sm hidden lg:block">Event Manager</span>
                         </button>
 
-                        <div className="mt-6 px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-widest hidden lg:block">Moderation</div>
-
-                        <button
-                            onClick={() => setActiveTab('moderation')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'moderation' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                        >
-                            <CheckSquare size={20} className={`transition-transform duration-300 ${activeTab === 'moderation' ? 'scale-110' : 'group-hover:scale-110'}`} />
-                            <span className="font-bold text-sm hidden lg:block">Approval Queue</span>
-                        </button>
-
-                        <button
-                            onClick={() => setActiveTab('users')}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'users' ? 'bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                        >
-                            <Users size={20} className={`transition-transform duration-300 ${activeTab === 'users' ? 'scale-110' : 'group-hover:scale-110'}`} />
-                            <span className="font-bold text-sm hidden lg:block">User Access</span>
-                        </button>
-
-                        <div className="mt-6 px-4 py-2 text-xs font-bold text-gray-600 uppercase tracking-widest hidden lg:block">Analytics</div>
-
                         <button
                             onClick={() => setActiveTab('dashboard')}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'dashboard' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
                             <Activity size={20} className={`transition-transform duration-300 ${activeTab === 'dashboard' ? 'scale-110' : 'group-hover:scale-110'}`} />
-                            <span className="font-bold text-sm hidden lg:block">Live Dashboard</span>
+                            <span className="font-bold text-sm hidden lg:block">User Dashboard</span>
                         </button>
                     </nav>
 
@@ -94,10 +71,11 @@ export default function AdminDashboard() {
                     <div className="max-w-7xl mx-auto">
                         {activeTab === 'scout' && <ScoutManager />}
                         {activeTab === 'events' && <EventManager />}
-                        {activeTab === 'users' && <UserManager />}
-                        {activeTab === 'moderation' && <ModerationManager />}
                         {activeTab === 'dashboard' && (
                             <div className="bg-black/20 rounded-3xl border border-white/5 overflow-hidden min-h-[800px]">
+                                {/* Pass minimal props if needed, but Page usually handles itself. 
+                                    We might need to strip the dashboard's own padding or layout if it clashes, 
+                                    but let's try direct embed first. */}
                                 <DashboardPage />
                             </div>
                         )}

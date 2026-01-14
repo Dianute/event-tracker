@@ -65,44 +65,31 @@ export default function DashboardPage() {
         if (!session?.user?.email) return;
         setLoading(true);
 
-        // 1. Fetch Active (Approved) Events
+        // 1. Fetch Active Events
         fetch(`${API_URL}/events`)
             .then(res => res.json())
-            .then(async (approvedData) => {
-                // 2. Also fetch Pending events for this user
-                const pendingRes = await fetch(`${API_URL}/events?status=pending`);
-                const pendingData = await pendingRes.json();
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const userEvents = data.filter((e: any) => e.userEmail === session.user?.email);
+                    // Sort Ascending (Chronological) to match Event Manager
+                    const sorted = userEvents.sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+                    setEvents(sorted);
 
-                // Combine approved and pending, filter by user
-                const allData = Array.isArray(approvedData) ? approvedData : [];
-                const pendingUserEvents = Array.isArray(pendingData)
-                    ? pendingData.filter((e: any) => e.userEmail === session.user?.email)
-                    : [];
+                    const views = userEvents.reduce((acc: number, curr: any) => acc + (curr.views || 0), 0);
+                    const clicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks || 0), 0);
+                    const locClicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks_location || 0), 0);
+                    const phoneClicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks_phone || 0), 0);
 
-                // Merge and deduplicate
-                const combined = [...allData, ...pendingUserEvents];
-                const uniqueEvents = Array.from(new Map(combined.map(e => [e.id, e])).values());
-
-                const userEvents = uniqueEvents.filter((e: any) => e.userEmail === session.user?.email);
-
-                // Sort Ascending (Chronological)
-                const sorted = userEvents.sort((a: any, b: any) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-                setEvents(sorted);
-
-                const views = userEvents.reduce((acc: number, curr: any) => acc + (curr.views || 0), 0);
-                const clicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks || 0), 0);
-                const locClicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks_location || 0), 0);
-                const phoneClicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks_phone || 0), 0);
-
-                setTotalViews(views);
-                setTotalClicks(clicks);
-                setTotalLocationClicks(locClicks);
-                setTotalPhoneClicks(phoneClicks);
+                    setTotalViews(views);
+                    setTotalClicks(clicks);
+                    setTotalLocationClicks(locClicks);
+                    setTotalPhoneClicks(phoneClicks);
+                }
             })
             .catch(err => console.error(err))
             .finally(() => setLoading(false));
 
-        // 3. Fetch History (Silent bg fetch)
+        // 2. Fetch History (Silent bg fetch)
         fetch(`${API_URL}/events?history=true`)
             .then(res => res.json())
             .then(data => {
@@ -474,13 +461,8 @@ export default function DashboardPage() {
                                                                 </div>
                                                             </td>
                                                             <td className="p-5">
-                                                                <div className="font-bold text-white group-hover:text-blue-400 transition-colors mb-0.5 line-clamp-1 flex items-center gap-2">
+                                                                <div className="font-bold text-white group-hover:text-blue-400 transition-colors mb-0.5 line-clamp-1">
                                                                     {event.title}
-                                                                    {event.status === 'pending' && (
-                                                                        <span className="px-2 py-0.5 bg-amber-500/10 text-amber-400 text-[10px] font-bold rounded border border-amber-500/20 uppercase tracking-wider">
-                                                                            Pending
-                                                                        </span>
-                                                                    )}
                                                                 </div>
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider border border-blue-500/20">{event.type}</span>
