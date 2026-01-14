@@ -188,6 +188,8 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                     {/* Location Row (Clickable) */}
                     <a
                         href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-3 text-sm font-medium text-gray-200 hover:text-white transition-colors group/loc"
                     >
