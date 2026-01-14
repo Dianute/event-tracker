@@ -803,6 +803,79 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What (Title)</label>
                                 <input type="text" required value={title} placeholder="Event Title" onChange={(e) => setTitle(e.target.value)}
                                     className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
+
+                                {/* SMART AUTO-FILL DROPDOWN */}
+                                {title.length > 2 && (
+                                    <div className="relative">
+                                        {(() => {
+                                            const seenTitles = new Set();
+                                            // Robust Source Selection
+                                            const source = (allEvents && allEvents.length > 0) ? allEvents : (feed || []);
+                                            const userEmail = session?.user?.email;
+
+                                            const candidates = source.filter(e => {
+                                                if (!e.title) return false;
+                                                // Privacy: Allow "legacy/public" (no email) OR specific match
+                                                if (e.userEmail && userEmail && e.userEmail !== userEmail) return false;
+
+                                                const normalized = e.title.trim().toLowerCase();
+                                                const input = title.trim().toLowerCase();
+
+                                                if (seenTitles.has(normalized)) return false;
+
+                                                if (normalized.includes(input)) {
+                                                    seenTitles.add(normalized);
+                                                    return true;
+                                                }
+                                                return false;
+                                            }).slice(0, 3);
+
+                                            if (candidates.length === 0) return null;
+
+                                            return (
+                                                <div className={`absolute z-30 w-full mt-1 border rounded-xl shadow-xl overflow-hidden ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
+                                                    <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm flex items-center gap-2">
+                                                        <Sparkles size={10} className="text-yellow-500" />
+                                                        <span>Past Events</span>
+                                                    </div>
+                                                    {candidates.map((suggestion: any, i: number) => (
+                                                        <button
+                                                            key={i}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setTitle(suggestion.title);
+                                                                if (suggestion.description) setDescription(suggestion.description);
+                                                                if (suggestion.venue) {
+                                                                    setVenue(suggestion.venue);
+                                                                    // If loc exists, set it
+                                                                    if (suggestion.lat && suggestion.lng) {
+                                                                        setCurrentLocation({ lat: suggestion.lat, lng: suggestion.lng });
+                                                                    }
+                                                                }
+                                                                if (suggestion.type) setType(suggestion.type);
+                                                                if (suggestion.phone) setPhone(suggestion.phone);
+                                                                if (suggestion.imageUrl) setImageUrl(suggestion.imageUrl);
+
+                                                                // Smart Time
+                                                                if (suggestion.startTime && suggestion.endTime) {
+                                                                    const s = new Date(suggestion.startTime);
+                                                                    const e = new Date(suggestion.endTime);
+                                                                    const fmt = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+                                                                    setTimeStart(fmt(s));
+                                                                    setTimeEnd(fmt(e));
+                                                                }
+                                                            }}
+                                                            className={`w-full text-left p-3 text-sm truncate flex items-center justify-between group transition-colors ${theme === 'light' ? 'text-gray-700 hover:bg-gray-100' : 'text-gray-200 hover:bg-white/10'}`}
+                                                        >
+                                                            <span>{suggestion.title}</span>
+                                                            <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="relative">
