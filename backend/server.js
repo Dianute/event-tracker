@@ -302,11 +302,13 @@ app.post('/events', async (req, res) => {
                 );
 
                 if (existingLoc.length > 0) {
-                    // Update existing location
-                    await db.query(
-                        'UPDATE user_locations SET usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $1',
-                        [existingLoc[0].id]
-                    );
+                    // Update existing location (and add phone if new)
+                    const updateSql = phone
+                        ? 'UPDATE user_locations SET usageCount = usageCount + 1, lastUsed = NOW(), phone = $1 WHERE id = $2'
+                        : 'UPDATE user_locations SET usageCount = usageCount + 1, lastUsed = NOW() WHERE id = $1'; // Don't wipe existing phone if new event has none
+
+                    const updateParams = phone ? [phone, existingLoc[0].id] : [existingLoc[0].id];
+                    await db.query(updateSql, updateParams);
                 } else {
                     // Insert new location
                     const locationId = uuidv4();

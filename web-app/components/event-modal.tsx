@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Phone, ChevronLeft, ChevronRight, Share2, Copy, Check, Info, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Camera, Image as ImageIcon, Clock, MapPin, ExternalLink, Calendar, Tag, Plus, Minus, Navigation, Maximize2, Phone, ChevronLeft, ChevronRight, Share2, Copy, Check, Info, ZoomIn, ZoomOut, Sparkles, ArrowRight } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useSession } from "next-auth/react";
 

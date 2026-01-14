@@ -313,7 +313,9 @@ export default function Home() {
         readOnly={!!selectedEvent && !selectedEvent.isTemplate}
         feed={feedEvents}
         userLocations={userLocations}
+        userLocations={userLocations}
         onLocationsChange={fetchLocations}
+        allEvents={events}
       />
 
       {/* Notification Toast */}
