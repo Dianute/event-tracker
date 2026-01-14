@@ -95,9 +95,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             await db.query(`CREATE TABLE IF NOT EXISTS users (
                 email TEXT PRIMARY KEY,
                 is_blocked BOOLEAN DEFAULT FALSE,
+                is_trusted BOOLEAN DEFAULT FALSE,
                 role TEXT DEFAULT 'user',
                 created_at TIMESTAMP DEFAULT NOW()
             )`);
+
+            // Add is_trusted if table existed before
+            await db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_trusted BOOLEAN DEFAULT FALSE");
 
             // 2. Event Status
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'");
