@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink, LayoutDashboard, X, Maximize2 } from 'lucide-react';
+import { Edit, Trash2, ArrowLeft, Calendar as CalendarIcon, MapPin, Plus, Activity, BarChart3, CreditCard, Zap, Copy, LayoutTemplate, ExternalLink, LayoutDashboard, X, Maximize2, Phone, Navigation } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import EventModal from '@/components/event-modal';
 import SavedLocationsPage from '@/components/saved-locations';
@@ -26,6 +26,8 @@ export default function DashboardPage() {
     // Derived Stats
     const [totalViews, setTotalViews] = useState(0);
     const [totalClicks, setTotalClicks] = useState(0);
+    const [totalLocationClicks, setTotalLocationClicks] = useState(0);
+    const [totalPhoneClicks, setTotalPhoneClicks] = useState(0);
 
     // Fetch user's saved locations from API
     const [userLocations, setUserLocations] = useState<any[]>([]);
@@ -75,8 +77,13 @@ export default function DashboardPage() {
 
                     const views = userEvents.reduce((acc: number, curr: any) => acc + (curr.views || 0), 0);
                     const clicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks || 0), 0);
+                    const locClicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks_location || 0), 0);
+                    const phoneClicks = userEvents.reduce((acc: number, curr: any) => acc + (curr.clicks_phone || 0), 0);
+
                     setTotalViews(views);
                     setTotalClicks(clicks);
+                    setTotalLocationClicks(locClicks);
+                    setTotalPhoneClicks(phoneClicks);
                 }
             })
             .catch(err => console.error(err))
@@ -303,7 +310,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
                         <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-blue-500/30 transition-all">
                             <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
                             <div className="flex items-center gap-4 mb-3">
@@ -332,12 +339,31 @@ export default function DashboardPage() {
                                 <div className="p-3 bg-purple-500/10 text-purple-400 rounded-2xl">
                                     <BarChart3 size={24} />
                                 </div>
-                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Interactions</span>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Link Clicks</span>
                             </div>
-                            <div className="flex items-baseline gap-2">
-                                <div className="text-4xl font-black text-white">{totalClicks}</div>
-                                <span className="text-green-400 text-xs font-bold text-opacity-50">Clicks</span>
+                            <div className="text-4xl font-black text-white">{totalClicks}</div>
+                        </div>
+
+                        <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-red-500/30 transition-all">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all"></div>
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="p-3 bg-red-500/10 text-red-400 rounded-2xl">
+                                    <Navigation size={24} />
+                                </div>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Directions</span>
                             </div>
+                            <div className="text-4xl font-black text-white">{totalLocationClicks}</div>
+                        </div>
+
+                        <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-green-500/30 transition-all">
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20 transition-all"></div>
+                            <div className="flex items-center gap-4 mb-3">
+                                <div className="p-3 bg-green-500/10 text-green-400 rounded-2xl">
+                                    <Phone size={24} />
+                                </div>
+                                <span className="text-xs font-black text-gray-500 uppercase tracking-widest">Calls</span>
+                            </div>
+                            <div className="text-4xl font-black text-white">{totalPhoneClicks}</div>
                         </div>
                     </div>
 
@@ -463,6 +489,20 @@ export default function DashboardPage() {
                                                                         <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
                                                                         {event.clicks || 0} Clicks
                                                                     </div>
+                                                                    <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                                        <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
+                                                                        {event.clicks || 0} Clicks
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                                        <div className="w-2 h-2 rounded-full bg-red-500/50"></div>
+                                                                        {event.clicks_location || 0} Directions
+                                                                    </div>
+                                                                    {event.phone && (
+                                                                        <div className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                                                                            <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+                                                                            {event.clicks_phone || 0} Calls
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </td>
                                                             <td className="p-5">

@@ -114,6 +114,16 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
         ? getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng)
         : null;
 
+    // Analytics Helper
+    const trackClick = (interactionType: 'location' | 'phone') => {
+        if (!event?.id) return;
+        fetch(`${API_URL}/api/analytics/click`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId: event.id, type: interactionType })
+        }).catch(err => console.error("Tracking failed", err));
+    };
+
     return (
         <div className="w-full h-full relative bg-black group cursor-pointer overflow-hidden" onClick={() => setShowControls(!showControls)}>
 
@@ -190,7 +200,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                         href={`https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.stopPropagation(); trackClick('location'); }}
                         className="flex items-center gap-3 text-sm font-medium text-gray-200 hover:text-white transition-colors group/loc"
                     >
                         <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/loc:bg-white/20 transition-colors">
@@ -212,7 +222,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                     {event.phone && (
                         <a
                             href={`tel:${event.phone}`}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => { e.stopPropagation(); trackClick('phone'); }}
                             className="flex items-center gap-3 text-sm font-medium text-gray-200 hover:text-white transition-colors group/phone"
                         >
                             <div className="p-2 rounded-full bg-white/10 backdrop-blur-md group-hover/phone:bg-white/20 transition-colors">

@@ -522,12 +522,22 @@ app.post('/api/analytics/view', async (req, res) => {
 
 // POST /api/analytics/click - Increment Click
 app.post('/api/analytics/click', async (req, res) => {
-    const { eventId } = req.body;
+    const { eventId, type } = req.body;
     if (!eventId) return res.status(400).json({ error: "No Event ID" });
 
     try {
-        await db.query("UPDATE events SET clicks = COALESCE(clicks, 0) + 1 WHERE id = $1", [eventId]);
-        res.json({ success: true });
+        // Map type to column (Whitelist for security)
+        const columnMap = {
+            'location': 'clicks_location',
+            'phone': 'clicks_phone',
+            'default': 'clicks'
+        };
+        const targetCol = columnMap[type] || columnMap.default;
+
+        // Safe interpolation since we control the targetCol string from strict map
+        await db.query(`UPDATE events SET ${targetCol} = COALESCE(${targetCol}, 0) + 1 WHERE id = $1`, [eventId]);
+
+        res.json({ success: true, type: targetCol });
     } catch (err) {
         console.error("Analytics Error (Click):", err);
         res.status(500).json({ error: "Failed to track click" });
