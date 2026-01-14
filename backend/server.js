@@ -211,8 +211,8 @@ app.post('/upload', upload.single('image'), async (req, res) => {
         // Optimize Image (Resize & Convert to WebP buffer)
         const buffer = await sharp(req.file.buffer)
             .rotate()
-            .resize({ width: 800, withoutEnlargement: true }) // Downscale to 800px max
-            .webp({ quality: 65 }) // Medium quality for DB storage size
+            .resize({ width: 1600, withoutEnlargement: true }) // Increased to 1600px for better detail
+            .webp({ quality: 85 }) // Increased quality for readable text
             .toBuffer();
 
         // Convert to Base64 Data URI
@@ -236,8 +236,8 @@ const downloadImage = async (url) => {
 
         // Process to Base64
         const processedBuffer = await sharp(buffer)
-            .resize({ width: 600, withoutEnlargement: true }) // Smaller for auto-scraped content
-            .webp({ quality: 60 })
+            .resize({ width: 1280, withoutEnlargement: true }) // Increased for auto-scraped content
+            .webp({ quality: 80 })
             .toBuffer();
 
         return `data:image/webp;base64,${processedBuffer.toString('base64')}`;
