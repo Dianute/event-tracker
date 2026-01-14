@@ -123,10 +123,10 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                     <>
                         {/* Ambient Blur Background */}
                         <div className="absolute inset-0 z-0">
-                            <img src={imageUrl} alt="" className="w-full h-full object-cover blur-3xl opacity-40 scale-110" />
+                            <img src={imageUrl} alt="" className="w-full h-full object-cover blur-3xl opacity-60 scale-110 saturate-150" />
                         </div>
 
-                        {/* Main Image - Top Aligned, Contained, No Padding */}
+                        {/* Main Image - Top Aligned with Shadow */}
                         <img src={imageUrl} alt={title}
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -136,7 +136,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
                                     onZoom(imageUrl);
                                 }
                             }}
-                            className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 ${showControls ? 'object-contain object-top' : 'object-contain object-center bg-black/90'}`}
+                            className={`relative z-10 w-full h-full cursor-zoom-in transition-all duration-300 drop-shadow-2xl ${showControls ? 'object-contain object-top' : 'object-contain object-center bg-black/90'}`}
                         />
                     </>
                 ) : (
