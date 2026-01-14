@@ -714,8 +714,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             </button>
             <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
 
-            <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
-
             {/* Search */}
             <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
               {isSearchOpen ? (
