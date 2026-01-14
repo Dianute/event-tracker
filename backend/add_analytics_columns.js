@@ -1,25 +1,22 @@
-const { Pool } = require('pg');
-require('dotenv').config();
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
-});
+const db = require('./db');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 async function migrate() {
     try {
-        console.log("Adding analytics columns...");
+        console.log("Adding analytics columns using shared DB connection...");
 
-        await pool.query(`
+        await db.query(`
             ALTER TABLE events 
             ADD COLUMN IF NOT EXISTS clicks_location INT DEFAULT 0,
             ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0;
         `);
 
         console.log("Columns added successfully.");
+        process.exit(0);
     } catch (err) {
         console.error("Migration failed:", err);
-    } finally {
-        await pool.end();
+        process.exit(1);
     }
 }
 

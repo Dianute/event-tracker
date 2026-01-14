@@ -85,6 +85,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
         try {
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT");
             await db.query("ALTER TABLE user_locations ADD COLUMN IF NOT EXISTS phone TEXT");
+            // New Analytics Columns
+            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_location INT DEFAULT 0");
+            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0");
             console.log("✅ Schema patched successfully (phone column)");
         } catch (migErr) {
             console.warn("⚠️ Schema patch warning:", migErr.message);
