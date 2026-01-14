@@ -306,9 +306,10 @@ interface EventModalProps {
     savedLocations?: { venue: string; lat: number; lng: number }[];
     userLocations?: any[]; // Persistent saved locations from API
     onLocationsChange?: () => void;
+    allEvents?: any[]; // For Smart Auto-Fill
 }
 
-export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], userLocations = [], onLocationsChange }: EventModalProps) {
+export default function EventModal({ isOpen, onClose, onSubmit, initialLocation, userLocation, event, theme = 'dark', readOnly = false, feed = [], savedLocations = [], userLocations = [], onLocationsChange, allEvents = [] }: EventModalProps) {
 
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
