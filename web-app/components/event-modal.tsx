@@ -692,7 +692,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         src={zoomedImage || imageUrl}
                                         alt="Zoom"
                                         style={{ transform: `rotate(${rotation}deg)`, transition: 'transform 0.3s ease' }}
-                                        className="max-w-full max-h-full object-contain" // Removed p-2 for max size
+                                        className="w-full h-full object-contain"
                                     // Removed stopPropagation so clicking image also closes (Tap to Dismiss)
                                     />
                                 </TransformComponent>
