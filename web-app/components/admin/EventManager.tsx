@@ -466,6 +466,7 @@ export default function EventManager() {
                 theme="dark"
                 userLocations={userLocations}
                 onLocationsChange={fetchUserLocations}
+                allEvents={events}
             />
 
             {/* Weekly Menu Modal */}

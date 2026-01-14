@@ -683,6 +683,7 @@ export default function DashboardPage() {
                 event={selectedEvent}
                 theme="dark"
                 userLocations={userLocations}
+                allEvents={events}
             />
         </div >
     );
