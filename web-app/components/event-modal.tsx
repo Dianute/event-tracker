@@ -117,11 +117,22 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
     // Analytics Helper
     const trackClick = (interactionType: 'location' | 'phone') => {
         if (!event?.id) return;
+        const payload = { eventId: event.id, type: interactionType };
+        console.log(`[Analytics] Tracking ${interactionType} for event ${event.id}`, payload);
+
         fetch(`${API_URL}/api/analytics/click`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ eventId: event.id, type: interactionType })
-        }).catch(err => console.error("Tracking failed", err));
+            body: JSON.stringify(payload)
+        })
+            .then(res => {
+                console.log(`[Analytics] Response status: ${res.status}`);
+                if (!res.ok) {
+                    return res.text().then(text => console.error(`[Analytics] Failed: ${text}`));
+                }
+                console.log("[Analytics] Success!");
+            })
+            .catch(err => console.error("[Analytics] Network Error:", err));
     };
 
     return (
