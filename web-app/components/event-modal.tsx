@@ -735,8 +735,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 {isEditMode ? (
                     // --- EDIT / CREATE FORM ---
                     <>
-                        {/* HEADER IMAGE */}
-                        <div className={`relative w-full h-40 border-b flex items-center justify-center overflow-hidden shrink-0 transition-colors
+                        {/* HEADER IMAGE - Responsive Height */}
+                        <div className={`relative w-full h-32 md:h-40 border-b flex items-center justify-center overflow-hidden shrink-0 transition-colors
                              ${theme === 'cyberpunk' ? 'bg-cyan-950/20 border-cyan-500/20' : theme === 'light' ? 'bg-gray-100 border-gray-200' : 'bg-zinc-800/50 border-white/10'}`}>
                             <button
                                 onClick={onClose}
@@ -752,18 +752,18 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             ) : (
                                 <div className="w-full h-full flex">
                                     <label className="flex-1 h-full flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors border-r border-white/5 relative group">
-                                        <div className={`p-4 rounded-full transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${theme === 'cyberpunk' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/10 text-blue-500'}`}>
-                                            <Camera size={32} />
+                                        <div className={`p-3 md:p-4 rounded-full transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${theme === 'cyberpunk' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-blue-500/10 text-blue-500'}`}>
+                                            <Camera size={28} className="md:w-8 md:h-8" />
                                         </div>
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">Camera</span>
+                                        <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">Camera</span>
                                         <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                     </label>
 
                                     <label className="flex-1 h-full flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-white/5 active:bg-white/10 transition-colors relative group">
-                                        <div className={`p-4 rounded-full transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${theme === 'light' ? 'bg-gray-200 text-gray-600' : 'bg-purple-500/10 text-purple-500'}`}>
-                                            <ImageIcon size={32} />
+                                        <div className={`p-3 md:p-4 rounded-full transition-transform duration-300 group-hover:scale-110 group-active:scale-95 ${theme === 'light' ? 'bg-gray-200 text-gray-600' : 'bg-purple-500/10 text-purple-500'}`}>
+                                            <ImageIcon size={28} className="md:w-8 md:h-8" />
                                         </div>
-                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">Gallery</span>
+                                        <span className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-widest group-hover:text-white transition-colors">Gallery</span>
                                         <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
                                     </label>
                                 </div>
@@ -771,7 +771,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             {isUploading && <div className="absolute inset-0 bg-black/60 flex items-center justify-center flex-col gap-2 backdrop-blur-sm"><div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" /><span className="text-xs font-bold text-white">Uploading...</span></div>}
                         </div>
 
-                        <div className="p-6 pt-4 pb-2 flex items-center justify-between">
+                        <div className="p-4 md:p-6 pt-4 pb-2 flex items-center justify-between">
                             <h2 className={`text-xl font-bold ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Create New Event</h2>
 
                             {/* Saved Spots - Two Buttons: Last Used + Dropdown */}
@@ -843,12 +843,12 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             )}
                         </div>
 
-                        <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto space-y-4 scrollbar-thin">
+                        <form onSubmit={handleSubmit} className="flex-1 min-h-0 px-4 md:px-6 pb-6 md:pb-6 overflow-y-auto space-y-4 scrollbar-thin scroll-pb-[env(safe-area-inset-bottom)] pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                             {/* FORM FIELDS */}
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">What (Title)</label>
                                 <input type="text" required value={title} placeholder="Event Title" onChange={(e) => { setTitle(e.target.value); setShowTitleSuggestions(true); }}
-                                    className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none text-base md:text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
 
                                 {/* SMART AUTO-FILL DROPDOWN */}
                                 {(title.length > 2 && showTitleSuggestions) && (
@@ -941,7 +941,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <div className="relative">
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Where (Location)</label>
                                 <input type="text" required value={venue} placeholder="Search address..." onChange={(e) => { setVenue(e.target.value); setIsSearching(true); setCurrentLocation(null); }}
-                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-base md:text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
                                     onFocus={() => { if (!venue) setIsSearching(true); }} // Trigger suggestions on focus if empty
                                 />
                                 <MapPin className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
@@ -1005,7 +1005,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     value={phone}
                                     placeholder="+370 600 12345"
                                     onChange={(e) => setPhone(e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-base md:text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
                                 />
                                 <Phone className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
                             </div>
@@ -1030,7 +1030,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         </div>
                                     </div>
                                     <input type="date" required value={date} onChange={(e) => setDate(e.target.value)}
-                                        className={`w-full px-4 py-3 rounded-xl border outline-none text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
+                                        className={`w-full px-4 py-3 rounded-xl border outline-none text-base md:text-sm font-medium ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
                                 </div>
                                 {!isAllDay && (
                                     <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
@@ -1086,7 +1086,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             )}
 
                             <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Details..." rows={2}
-                                className={`w-full px-4 py-3 rounded-xl border outline-none text-sm resize-none ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
+                                className={`w-full px-4 py-3 rounded-xl border outline-none text-base md:text-sm resize-none ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`} />
 
                             <button type="submit" className="w-full py-4 bg-blue-600 font-bold rounded-xl text-white hover:bg-blue-500 transition-colors shadow-lg">{event ? 'Update Event' : 'Create Event'}</button>
                         </form>
