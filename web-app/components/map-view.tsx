@@ -739,14 +739,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               )}
             </button>
 
-            {/* Refresh */}
-            <button
-              onClick={onRefresh}
-              className={`w-8 h-8 flex items-center justify-center rounded-full transition-all text-gray-300 hover:text-white hover:bg-white/10 shrink-0`}
-              title="Refresh Events"
-            >
-              <RotateCw size={16} />
-            </button>
+
           </div>
 
           <div className="w-px h-6 bg-white/20 mx-1 md:mx-2 shrink-0"></div>
