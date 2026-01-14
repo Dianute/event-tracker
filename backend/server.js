@@ -840,6 +840,21 @@ app.patch('/api/users/:email/block', requireAuth, async (req, res) => {
     }
 });
 
+// PATCH /api/users/:email/trust - Toggle Trust (Auto-Approve)
+app.patch('/api/users/:email/trust', requireAuth, async (req, res) => {
+    const { email } = req.params;
+    const { isTrusted } = req.body; // true/false
+
+    try {
+        await db.query("UPDATE users SET is_trusted = $1 WHERE email = $2", [isTrusted, decodeURIComponent(email)]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Trust User Error:", err);
+        res.status(500).json({ error: "Failed to update user trust" });
+    }
+});
+
+
 // PATCH /api/events/:id/status - Approve/Reject
 app.patch('/api/events/:id/status', requireAuth, async (req, res) => {
     const { id } = req.params;
