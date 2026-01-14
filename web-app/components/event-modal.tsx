@@ -340,6 +340,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
     // Dropdown state for saved locations
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
+    // Auto-Fill History Cache
+    const [historyCache, setHistoryCache] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isOpen && session?.user?.email) {
+            // Silently fetch full history for autocomplete
+            fetch(`${API_URL}/events?history=true`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setHistoryCache(data);
+                })
+                .catch(err => console.error("History fetch error", err));
+        }
+    }, [isOpen, session]);
+
     // MENUS INTEGRATION
     const [savedMenus, setSavedMenus] = useState<any[]>([]);
     useEffect(() => {
@@ -811,10 +826,23 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                         {(() => {
                                             const seenTitles = new Set();
                                             // Robust Source Selection
-                                            const source = (allEvents && allEvents.length > 0) ? allEvents : (feed || []);
+                                            // 1. Unified Source Construction
+                                            let pool = [...(allEvents || []), ...(feed || [])];
+
+                                            // 2. Add History
+                                            if (historyCache && historyCache.length > 0) pool = [...pool, ...historyCache];
+
+                                            // 3. Add Saved Locations
+                                            if (savedLocations && savedLocations.length > 0) {
+                                                pool = [...pool, ...savedLocations.map((loc: any) => ({
+                                                    title: loc.name || loc.venue, venue: loc.venue,
+                                                    lat: loc.lat, lng: loc.lng, description: loc.note || '',
+                                                    type: 'location', isLocation: true
+                                                }))];
+                                            }
                                             const userEmail = session?.user?.email;
 
-                                            const candidates = source.filter(e => {
+                                            const candidates = pool.filter(e => {
                                                 if (!e.title) return false;
                                                 // Privacy: Allow "legacy/public" (no email) OR specific match
                                                 if (e.userEmail && userEmail && e.userEmail !== userEmail) return false;
@@ -829,7 +857,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                     return true;
                                                 }
                                                 return false;
-                                            }).slice(0, 3);
+                                            }).slice(0, 7);
 
                                             if (candidates.length === 0) return null;
 
