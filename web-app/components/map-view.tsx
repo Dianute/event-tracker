@@ -39,20 +39,19 @@ const createEmojiIcon = (emoji: string, theme: string, isNew?: boolean, isFinish
 };
 
 const createCustomImageIcon = (url: string, theme: string, isNew?: boolean, isFinished?: boolean) => {
-  // Theme-based Styles for container
-  let containerClass = 'bg-white border-white shadow-md';
-  if (theme === 'cyberpunk') containerClass = 'bg-black/90 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]';
-  else if (theme === 'dark') containerClass = 'bg-gray-900/90 border-gray-600 shadow-xl';
+  // Transparent container with a drop shadow for the image itself
+  const containerClass = 'drop-shadow-xl hover:scale-110 transition-transform';
 
-  const borderClass = theme === 'cyberpunk' ? 'border' : 'border-2';
-  const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' :
-    isFinished ? 'grayscale opacity-50' : 'transform hover:scale-110';
+  const animationClass = isNew && !isFinished ? 'animate-bounce-slow' :
+    isFinished ? 'grayscale opacity-50' : 'transform';
 
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div class="relative flex items-center justify-center w-10 h-10 ${containerClass} rounded-full ${borderClass} overflow-hidden transition-transform ${animationClass}">
-                <img src="${url}" class="w-full h-full object-cover" alt="icon" />
-                ${isFinished ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><div class="text-[8px] text-white font-bold uppercase rotate-45 border border-white px-1">Ended</div></div>' : ''}
+    // Removed: bg-*, border-*, rounded-full. Added: object-contain
+    html: `<div class="relative flex items-center justify-center w-10 h-10 ${containerClass} ${animationClass}">
+                <img src="${url}" class="w-full h-full object-contain filter drop-shadow-sm" alt="icon" />
+                ${isFinished ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg"><div class="text-[8px] text-white font-bold uppercase rotate-45 border border-white px-1">Ended</div></div>' : ''}
+                ${isNew && !isFinished ? '<div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div><div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white"></div>' : ''}
                </div>`,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
