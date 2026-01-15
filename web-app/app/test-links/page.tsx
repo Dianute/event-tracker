@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, Copy, ExternalLink, Trash2, Globe, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { Check, Copy, ExternalLink, Trash2, Globe, Link as LinkIcon, Plus, X, Layout } from 'lucide-react';
 
 interface LinkItem {
     id: string;
@@ -10,35 +10,107 @@ interface LinkItem {
     notes?: string;
 }
 
+interface Batch {
+    id: string;
+    name: string;
+    links: LinkItem[];
+    createdAt: number;
+}
+
 export default function LinkTesterPage() {
     const [inputRaw, setInputRaw] = useState('');
-    const [links, setLinks] = useState<LinkItem[]>([]);
     const [activeTab, setActiveTab] = useState<'input' | 'list'>('input');
     const [lastClickedId, setLastClickedId] = useState<string | null>(null);
 
-    // Load from local storage on mount to save progress
+    // BATCH STATE
+    const [batches, setBatches] = useState<Batch[]>([]);
+    const [activeBatchId, setActiveBatchId] = useState<string>('');
+
+    // Load & Migrate
     useEffect(() => {
-        const saved = localStorage.getItem('link-tester-data');
-        if (saved) {
+        const savedBatches = localStorage.getItem('link-tester-batches');
+
+        if (savedBatches) {
             try {
-                setLinks(JSON.parse(saved));
-                setActiveTab('list');
-            } catch (e) {
-                console.error("Failed to load saved links");
-            }
+                const parsed = JSON.parse(savedBatches);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    setBatches(parsed);
+                    setActiveBatchId(parsed[0].id);
+                    return;
+                }
+            } catch (e) { console.error("Failed to parse batches"); }
+        }
+
+        // Migration / Default Fallback
+        const legacy = localStorage.getItem('link-tester-data');
+        if (legacy) {
+            try {
+                const legacyLinks = JSON.parse(legacy);
+                const defaultBatch: Batch = {
+                    id: crypto.randomUUID(),
+                    name: 'Default Batch',
+                    links: legacyLinks,
+                    createdAt: Date.now()
+                };
+                setBatches([defaultBatch]);
+                setActiveBatchId(defaultBatch.id);
+                localStorage.removeItem('link-tester-data'); // Clear legacy
+            } catch (e) { }
+        } else {
+            // New User
+            const newBatch: Batch = {
+                id: crypto.randomUUID(),
+                name: 'Batch #1',
+                links: [],
+                createdAt: Date.now()
+            };
+            setBatches([newBatch]);
+            setActiveBatchId(newBatch.id);
         }
     }, []);
 
-    // Save to local storage whenever links change
+    // Persist Batches
     useEffect(() => {
-        localStorage.setItem('link-tester-data', JSON.stringify(links));
-    }, [links]);
+        if (batches.length > 0) {
+            localStorage.setItem('link-tester-batches', JSON.stringify(batches));
+        }
+    }, [batches]);
+
+    const activeBatch = batches.find(b => b.id === activeBatchId) || batches[0];
+    const links = activeBatch?.links || [];
+
+    const updateActiveBatch = (newLinks: LinkItem[]) => {
+        setBatches(prev => prev.map(b =>
+            b.id === activeBatchId ? { ...b, links: newLinks } : b
+        ));
+    };
+
+    const createBatch = () => {
+        const newBatch: Batch = {
+            id: crypto.randomUUID(),
+            name: `Batch #${batches.length + 1}`,
+            links: [],
+            createdAt: Date.now()
+        };
+        setBatches(prev => [...prev, newBatch]);
+        setActiveBatchId(newBatch.id);
+        setActiveTab('input');
+    };
+
+    const deleteBatch = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (batches.length <= 1) return alert("Cannot delete the last batch.");
+        if (!confirm("Delete this batch permanently?")) return;
+
+        const newBatches = batches.filter(b => b.id !== id);
+        setBatches(newBatches);
+        if (activeBatchId === id) setActiveBatchId(newBatches[0].id);
+    };
 
     const processLinks = () => {
         if (!inputRaw.trim()) return;
 
-        // Split by newlines or commas
-        const newLinks = inputRaw
+        const newBatchLinks = inputRaw
             .split(/[\n,]+/)
             .map(s => s.trim())
             .filter(s => s.length > 0)
@@ -48,52 +120,52 @@ export default function LinkTesterPage() {
                 checked: false
             }));
 
-        setLinks(prev => {
-            const combined = [...prev, ...newLinks];
-            return combined.sort((a, b) => Number(a.checked) - Number(b.checked));
-        });
+        const combined = [...links, ...newBatchLinks];
+        // Sort: Unchecked on top (false < true)
+        combined.sort((a, b) => Number(a.checked) - Number(b.checked));
+
+        updateActiveBatch(combined);
         setInputRaw('');
         setActiveTab('list');
     };
 
     const toggleCheck = (id: string) => {
-        setLinks(prev => {
-            const updated = prev.map(item =>
-                item.id === id ? { ...item, checked: !item.checked } : item
-            );
-            // Sort: Unchecked on top (false < true)
-            return updated.sort((a, b) => Number(a.checked) - Number(b.checked));
-        });
+        const updated = links.map(item =>
+            item.id === id ? { ...item, checked: !item.checked } : item
+        );
+        updated.sort((a, b) => Number(a.checked) - Number(b.checked));
+        updateActiveBatch(updated);
     };
 
     const deleteLink = (id: string) => {
-        setLinks(prev => prev.filter(item => item.id !== id));
+        updateActiveBatch(links.filter(item => item.id !== id));
     };
 
     const clearAll = () => {
-        if (confirm("Clear all links?")) {
-            setLinks([]);
+        if (confirm("Clear all links in this batch?")) {
+            updateActiveBatch([]);
             setActiveTab('input');
         }
     };
 
     const resetChecks = () => {
         if (confirm("Reset all checkmarks?")) {
-            setLinks(prev => prev.map(l => ({ ...l, checked: false })));
+            updateActiveBatch(links.map(l => ({ ...l, checked: false })));
         }
     };
 
     const stats = {
         total: links.length,
-        checked: links.filter(l => l.checked).length,
-        remaining: links.filter(l => !l.checked).length
+        checked: links.filter(l => l.checked).length
     };
 
     const progress = stats.total > 0 ? (stats.checked / stats.total) * 100 : 0;
 
+    if (!activeBatch) return null; // Hydration guard
+
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 p-6 md:p-12 font-sans">
-            <div className="max-w-5xl mx-auto space-y-8">
+            <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -122,6 +194,41 @@ export default function LinkTesterPage() {
                     )}
                 </div>
 
+                {/* BATCH TABS */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {batches.map(batch => (
+                        <div
+                            key={batch.id}
+                            onClick={() => setActiveBatchId(batch.id)}
+                            className={`group flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-bold cursor-pointer transition-all select-none whitespace-nowrap
+                                ${activeBatchId === batch.id
+                                    ? 'bg-gray-900 text-white border-gray-900 shadow-lg'
+                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'}`}
+                        >
+                            <Layout size={14} className={activeBatchId === batch.id ? "text-white" : "text-gray-400"} />
+                            {batch.name}
+
+                            {/* Delete Batch (Hover) */}
+                            {batches.length > 1 && (
+                                <button
+                                    onClick={(e) => deleteBatch(batch.id, e)}
+                                    className={`ml-1 p-0.5 rounded-full transition-colors ${activeBatchId === batch.id ? 'hover:bg-white/20' : 'hover:bg-gray-200 text-gray-300 hover:text-red-500'}`}
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
+                        </div>
+                    ))}
+
+                    <button
+                        onClick={createBatch}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-dashed border-gray-300 text-gray-400 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-bold"
+                    >
+                        <Plus size={16} />
+                        New Batch
+                    </button>
+                </div>
+
                 {/* Input Area */}
                 <div className="grid md:grid-cols-3 gap-6">
                     {/* Left Column: Input */}
@@ -142,7 +249,9 @@ export default function LinkTesterPage() {
                         </div>
 
                         <div className={`bg-white rounded-2xl border border-gray-200 shadow-sm p-4 transition-all ${activeTab === 'input' ? 'ring-2 ring-blue-500/10' : 'opacity-70 grayscale'}`}>
-                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Paste Links Below</label>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 flex justify-between">
+                                <span>Add to "{activeBatch.name}"</span>
+                            </label>
                             <textarea
                                 value={inputRaw}
                                 onChange={(e) => setInputRaw(e.target.value)}
@@ -155,7 +264,7 @@ export default function LinkTesterPage() {
                                 className="w-full mt-4 py-3 bg-gray-900 hover:bg-black text-white rounded-xl font-bold shadow-lg shadow-gray-200 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 <LinkIcon size={16} />
-                                Process Links
+                                Add to Batch
                             </button>
                         </div>
 
@@ -165,7 +274,7 @@ export default function LinkTesterPage() {
                                     Reset Progress
                                 </button>
                                 <button onClick={clearAll} className="w-full py-2 text-xs font-bold text-red-400 hover:text-red-500 transition-colors uppercase tracking-wider">
-                                    Clear All Links
+                                    Clear Batch
                                 </button>
                             </div>
                         )}
@@ -178,7 +287,7 @@ export default function LinkTesterPage() {
                                 <div className="p-4 bg-white rounded-full shadow-sm">
                                     <Globe size={32} className="text-gray-300" />
                                 </div>
-                                <p className="font-medium text-sm">No links added yet. Paste some on the left!</p>
+                                <p className="font-medium text-sm">Batch is empty. Add links on the left!</p>
                             </div>
                         ) : (
                             <div className={`space-y-3 ${activeTab === 'input' ? 'opacity-50 pointer-events-none' : ''}`}>
