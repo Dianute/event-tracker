@@ -59,7 +59,7 @@ const getEmoji = (type: string) => {
     }
 };
 
-export default function EventCard({ event, userLocation, onClick, variant = 'standard' }: { event: Event, userLocation: any, onClick?: () => void, variant?: 'standard' | 'ticker' | 'compact' | 'visual' }) {
+export default function EventCard({ event, userLocation, onClick, variant = 'standard', customIcon }: { event: Event, userLocation: any, onClick?: () => void, variant?: 'standard' | 'ticker' | 'compact' | 'visual', customIcon?: string | null }) {
     const [status, setStatus] = useState<{ label: string; color: string; progress?: number; timeText?: string }>({ label: '', color: 'gray' });
 
     useEffect(() => {
@@ -136,6 +136,13 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         ? `${formatDistance(getDistance(userLocation.lat, userLocation.lng, event.lat, event.lng))} away`
         : 'Locating...';
 
+    const renderIcon = (emojiClass = "text-2xl", imgClass = "w-8 h-8") => {
+        if (customIcon) {
+            return <img src={customIcon} alt="icon" className={`${imgClass} object-contain filter drop-shadow-md transition-transform group-hover:scale-110`} />;
+        }
+        return <span className={emojiClass}>{getEmoji(event.type)}</span>;
+    };
+
     if (variant === 'standard') {
         return (
             <div
@@ -160,8 +167,8 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 )}
 
                 <div className="relative z-10 flex items-start gap-3 mt-1">
-                    <div className="shrink-0 pt-0.5 text-2xl filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
-                        {getEmoji(event.type)}
+                    <div className="shrink-0 pt-0.5 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+                        {renderIcon("text-2xl", "w-8 h-8")}
                     </div>
 
                     <div className="flex-1 min-w-0 pr-8">
@@ -207,7 +214,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         return (
             <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-2xl border border-white/10 w-full relative overflow-hidden group">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xl">{getEmoji(event.type)}</span>
+                    <span className="shrink-0">{renderIcon("text-xl", "w-6 h-6")}</span>
                     <div className="flex-1 overflow-hidden whitespace-nowrap mask-linear-fade">
                         <h4 className="font-bold text-sm text-white animate-marquee inline-block">{event.title} &nbsp; • &nbsp; {event.title} &nbsp; • &nbsp; </h4>
                     </div>
@@ -233,7 +240,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                         <span>{distanceText}</span>
                     </div>
                 </div>
-                <span className="text-lg">{getEmoji(event.type)}</span>
+                <span className="shrink-0">{renderIcon("text-lg", "w-5 h-5")}</span>
             </div>
         );
     }

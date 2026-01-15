@@ -1036,20 +1036,24 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 </div>
               </div>
 
-              {activeList.map(event => (
-                <div key={event.id} className="w-full">
-                  <EventCard
-                    event={event}
-                    userLocation={userLocation}
-                    variant="standard"
-                    onClick={() => {
-                      // Don't close list - preserve context for "Back" navigation
-                      if (map) map.flyTo([event.lat, event.lng], 16);
-                      if (onEventSelect) onEventSelect(event);
-                    }}
-                  />
-                </div>
-              ))}
+              {activeList.map(event => {
+                const category = categories.find(c => c.id === event.type);
+                return (
+                  <div key={event.id} className="w-full">
+                    <EventCard
+                      event={event}
+                      userLocation={userLocation}
+                      variant="standard"
+                      customIcon={category?.customPinUrl}
+                      onClick={() => {
+                        // Don't close list - preserve context for "Back" navigation
+                        if (map) map.flyTo([event.lat, event.lng], 16);
+                        if (onEventSelect) onEventSelect(event);
+                      }}
+                    />
+                  </div>
+                );
+              })}
 
               {activeList.length === 0 && (
                 <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found.</div>
