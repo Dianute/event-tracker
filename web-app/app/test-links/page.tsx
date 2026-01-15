@@ -180,9 +180,15 @@ export default function LinkTesterPage() {
 
                                         {/* Content */}
                                         <div className="flex-1 min-w-0">
-                                            <div className={`font-mono text-sm truncate transition-colors ${link.checked ? 'text-green-800 line-through opacity-60' : 'text-gray-700 font-medium'}`}>
+                                            <a
+                                                href={link.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className={`font-mono text-sm truncate transition-colors hover:underline hover:text-blue-600 block ${link.checked ? 'text-green-800 line-through opacity-60' : 'text-gray-700 font-medium'}`}
+                                            >
                                                 {link.url}
-                                            </div>
+                                            </a>
                                             {link.checked && <div className="text-[10px] font-bold text-green-600 uppercase tracking-wider mt-0.5">Completed</div>}
                                         </div>
 
