@@ -978,27 +978,31 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
 
         {
-          displayList.slice(0, 20).map(event => (
-            <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
-              <EventCard
-                event={event}
-                userLocation={userLocation}
-                onClick={() => {
-                  // Analytics: Track Click
-                  fetch(`${API_URL}/api/analytics/click`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ eventId: event.id })
-                  }).catch(err => console.error("Click track error", err));
+          displayList.slice(0, 20).map(event => {
+            const category = categories.find(c => c.id === event.type);
+            return (
+              <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+                <EventCard
+                  event={event}
+                  userLocation={userLocation}
+                  customIcon={category?.customPinUrl}
+                  onClick={() => {
+                    // Analytics: Track Click
+                    fetch(`${API_URL}/api/analytics/click`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ eventId: event.id })
+                    }).catch(err => console.error("Click track error", err));
 
-                  if (map) {
-                    map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
-                  }
-                  if (onEventSelect) onEventSelect(event);
-                }}
-              />
-            </div>
-          ))
+                    if (map) {
+                      map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                    }
+                    if (onEventSelect) onEventSelect(event);
+                  }}
+                />
+              </div>
+            );
+          })
         }
       </div>
 
