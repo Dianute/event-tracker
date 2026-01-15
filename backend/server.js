@@ -97,6 +97,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
 
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
+            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS custom_pin_url TEXT");
 
             // New Global Suggestions
             await db.query(`
