@@ -1040,6 +1040,6 @@ app.get('/cleanup', (req, res) => {
     res.json({ message: "Cleanup started" });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Backend Server connecting to Postgres on port ${PORT}`);
 });
