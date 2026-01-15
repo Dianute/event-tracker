@@ -94,6 +94,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             // New Categories Columns
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE");
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
+            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS featured_expires_at TIMESTAMP");
 
             console.log("✅ Schema patched successfully (phone & category columns)");
         } catch (migErr) {
@@ -138,6 +139,80 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
         console.error('❌ Error initializing schema:', err);
     }
 })();
+
+// ==================== ENDPOINTS ====================
+
+// ... (Existing endpoints) ...
+
+// ==================== CATEGORIES API ====================
+
+// GET /categories - List all categories
+app.get('/categories', async (req, res) => {
+    try {
+        const { rows } = await db.query("SELECT * FROM categories ORDER BY sortOrder ASC");
+
+        // Transform response: camelCase + Check Expiration
+        const now = new Date();
+        const categories = rows.map(row => {
+            let isFeatured = row.is_featured;
+
+            // Check Expiration
+            if (isFeatured && row.featured_expires_at) {
+                const expiry = new Date(row.featured_expires_at);
+                if (expiry < now) {
+                    isFeatured = false; // Expired
+                }
+            }
+
+            return {
+                id: row.id,
+                label: row.label,
+                emoji: row.emoji,
+                color: row.color,
+                sortOrder: row.sortorder, // Note: PG returns lowercase unless quoted
+                isFeatured: isFeatured,
+                defaultImageUrl: row.default_image_url,
+                featuredExpiresAt: row.featured_expires_at
+            };
+        });
+
+        res.json(categories);
+    } catch (err) {
+        console.error("GET /categories error:", err);
+        res.status(500).json({ error: "Failed to fetch categories" });
+    }
+});
+
+// POST /categories - Create or Update Category (Admin Only)
+app.post('/categories', requireAuth, async (req, res) => {
+    const { id, label, emoji, color, sortOrder, isFeatured, defaultImageUrl, featuredExpiresAt } = req.body;
+
+    // Validation
+    if (!id || !label) {
+        return res.status(400).json({ error: "ID and Label are required" });
+    }
+
+    try {
+        await db.query(`
+            INSERT INTO categories (id, label, emoji, color, sortOrder, is_featured, default_image_url, featured_expires_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) 
+            DO UPDATE SET 
+                label = EXCLUDED.label,
+                emoji = EXCLUDED.emoji,
+                color = EXCLUDED.color,
+                sortOrder = EXCLUDED.sortOrder,
+                is_featured = EXCLUDED.is_featured,
+                default_image_url = EXCLUDED.default_image_url,
+                featured_expires_at = EXCLUDED.featured_expires_at
+        `, [id, label, emoji, color, sortOrder || 0, isFeatured || false, defaultImageUrl || null, featuredExpiresAt || null]);
+
+        res.json({ success: true, id });
+    } catch (err) {
+        console.error("POST /categories error:", err);
+        res.status(500).json({ error: "Failed to save category" });
+    }
+});
 
 // Routes
 
