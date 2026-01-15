@@ -271,9 +271,11 @@ export default function DashboardPage() {
                                 <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-cyan-400 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
                                     <ArrowLeft size={14} /> Back to Map
                                 </Link>
-                                <Link href="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
-                                    <LayoutDashboard size={14} /> Admin
-                                </Link>
+                                {session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL && (
+                                    <Link href="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-purple-400 transition-colors text-xs font-black uppercase tracking-widest bg-white/5 px-4 py-2 rounded-full hover:bg-white/10 border border-white/5">
+                                        <LayoutDashboard size={14} /> Admin
+                                    </Link>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-4">
