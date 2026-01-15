@@ -6,6 +6,19 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const db = require('./db'); // NEW: PostgreSQL Pool
+const { exec } = require('child_process');
+
+// --- CRASH PREVENTION ---
+process.on('uncaughtException', (err) => {
+    console.error('🔥 UNCAUGHT EXCEPTION:', err);
+    // Keep running if possible, but risky state.
+    // In production managed by pm2/railway, exit is usually better to restart, 
+    // but to debug the 502 loop, logging is key.
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('🔥 UNHANDLED REJECTION:', reason);
+});
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -674,7 +687,7 @@ app.post('/api/analytics/click', async (req, res) => {
     }
 });
 
-const { exec } = require('child_process');
+// { exec } moved to top imports
 
 // API: Preview Link
 app.post('/api/preview-link', requireAuth, (req, res) => {
