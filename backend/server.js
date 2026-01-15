@@ -112,6 +112,27 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             `);
             await db.query(`CREATE INDEX IF NOT EXISTS idx_global_suggestions_usage ON global_suggestions (usage_count DESC);`);
 
+            // --- BACKFILL GLOBAL SUGGESTIONS (One-time or idempotent) ---
+            // Populate global suggestions from existing events if the table is empty
+            const { rows: globalCount } = await db.query('SELECT COUNT(*) FROM global_suggestions');
+            if (parseInt(globalCount[0].count) === 0) {
+                console.log("Empty global_suggestions. Backfilling from history...");
+                await db.query(`
+                    INSERT INTO global_suggestions (id, title, venue, lat, lng, usage_count)
+                    SELECT 
+                        md5(title || venue) as id, -- Deterministic ID for backfill
+                        title, 
+                        venue, 
+                        MAX(lat) as lat, 
+                        MAX(lng) as lng, 
+                        COUNT(*) as usage_count
+                    FROM events 
+                    WHERE title IS NOT NULL AND venue IS NOT NULL AND lat IS NOT NULL AND lng IS NOT NULL
+                    GROUP BY title, venue
+                `);
+                console.log("✅ Backfill complete.");
+            }
+
             console.log("✅ Schema patched successfully (phone, category & global suggestions)");
         } catch (migErr) {
             console.warn("⚠️ Schema patch warning:", migErr.message);
