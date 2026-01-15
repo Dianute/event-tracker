@@ -50,13 +50,13 @@ const createCustomImageIcon = (url: string, theme: string, isNew?: boolean, isFi
 
   return L.divIcon({
     className: 'custom-marker',
-    html: `<div class="relative flex items-center justify-center w-14 h-14 ${containerClass} rounded-full ${borderClass} overflow-hidden transition-transform ${animationClass}">
+    html: `<div class="relative flex items-center justify-center w-10 h-10 ${containerClass} rounded-full ${borderClass} overflow-hidden transition-transform ${animationClass}">
                 <img src="${url}" class="w-full h-full object-cover" alt="icon" />
                 ${isFinished ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><div class="text-[8px] text-white font-bold uppercase rotate-45 border border-white px-1">Ended</div></div>' : ''}
                </div>`,
-    iconSize: [56, 56],
-    iconAnchor: [28, 28],
-    popupAnchor: [0, -28],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20],
   });
 };
 
