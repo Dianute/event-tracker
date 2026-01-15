@@ -14,6 +14,7 @@ export default function LinkTesterPage() {
     const [inputRaw, setInputRaw] = useState('');
     const [links, setLinks] = useState<LinkItem[]>([]);
     const [activeTab, setActiveTab] = useState<'input' | 'list'>('input');
+    const [lastClickedId, setLastClickedId] = useState<string | null>(null);
 
     // Load from local storage on mount to save progress
     useEffect(() => {
@@ -66,6 +67,12 @@ export default function LinkTesterPage() {
         if (confirm("Clear all links?")) {
             setLinks([]);
             setActiveTab('input');
+        }
+    };
+
+    const resetChecks = () => {
+        if (confirm("Reset all checkmarks?")) {
+            setLinks(prev => prev.map(l => ({ ...l, checked: false })));
         }
     };
 
@@ -146,9 +153,14 @@ export default function LinkTesterPage() {
                         </div>
 
                         {links.length > 0 && (
-                            <button onClick={clearAll} className="w-full py-2 text-xs font-bold text-red-400 hover:text-red-500 transition-colors uppercase tracking-wider">
-                                Reset / Clear All
-                            </button>
+                            <div className="space-y-2">
+                                <button onClick={resetChecks} className="w-full py-3 bg-white border border-gray-200 shadow-sm rounded-xl text-xs font-bold text-gray-700 hover:text-blue-600 hover:border-blue-200 transition-all uppercase tracking-wider">
+                                    Reset Progress
+                                </button>
+                                <button onClick={clearAll} className="w-full py-2 text-xs font-bold text-red-400 hover:text-red-500 transition-colors uppercase tracking-wider">
+                                    Clear All Links
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -168,9 +180,10 @@ export default function LinkTesterPage() {
                                         key={link.id}
                                         onClick={() => toggleCheck(link.id)}
                                         className={`group relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 cursor-pointer select-none
+                        ${link.id === lastClickedId ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-lg bg-blue-50/10' : ''}
                         ${link.checked
                                                 ? 'bg-green-50 border-green-200 shadow-sm'
-                                                : 'bg-white border-gray-200 hover:border-blue-300 shadow-sm hover:shadow-md'}`}
+                                                : (link.id !== lastClickedId ? 'bg-white border-gray-200 hover:border-blue-300 shadow-sm hover:shadow-md' : '')}`}
                                     >
                                         {/* Check Toggle */}
                                         <div className={`shrink-0 w-8 h-8 rounded-full border-2 flex items-center justify-center transition-all duration-300
@@ -184,12 +197,13 @@ export default function LinkTesterPage() {
                                                 href={link.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => { e.stopPropagation(); setLastClickedId(link.id); }}
                                                 className={`font-mono text-sm truncate transition-colors hover:underline hover:text-blue-600 block ${link.checked ? 'text-green-800 line-through opacity-60' : 'text-gray-700 font-medium'}`}
                                             >
                                                 {link.url}
                                             </a>
                                             {link.checked && <div className="text-[10px] font-bold text-green-600 uppercase tracking-wider mt-0.5">Completed</div>}
+                                            {(!link.checked && link.id === lastClickedId) && <div className="text-[10px] font-bold text-blue-500 uppercase tracking-wider mt-0.5 animate-pulse">Last Clicked</div>}
                                         </div>
 
                                         {/* Actions */}
