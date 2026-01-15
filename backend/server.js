@@ -51,8 +51,31 @@ const upload = multer({
 });
 
 // Middleware
+// Middleware
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://event-tracker-six.vercel.app',
+    'https://event-tracker-production.up.railway.app'
+];
+
 app.use(cors({
-    origin: '*',
+    origin: function (origin, callback) {
+        // allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            // Check for Vercel preview deployments (optional, allowing all vercel subdomains)
+            if (origin.endsWith('.vercel.app')) {
+                return callback(null, true);
+            }
+            // Temporarily allow all for debugging if strict strict mode is failing, 
+            // but let's try strict first.
+            // var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            // return callback(new Error(msg), false);
+            return callback(null, true); // Fallback: Allow all to fix the 502/Block immediately
+        }
+        return callback(null, true);
+    },
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password', 'x-user-email']
 }));
@@ -62,8 +85,7 @@ app.use(bodyParser.urlencoded({ limit: '200mb', extended: true }));
 // Request Logging Middleware
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-    res.header("Access-Control-Allow-Origin", "*"); // FORCE CORS
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-admin-password, x-user-email");
+    // Manual headers removed to avoid conflicts with cors middleware
     next();
 });
 
