@@ -50,7 +50,13 @@ const toCamelCase = (row) => {
 
 // Multer Setup for Image Uploads
 const multer = require('multer');
-const sharp = require('sharp');
+let sharp;
+try {
+    sharp = require('sharp');
+} catch (e) {
+    console.error('⚠️ Sharp dependency failed to load. Image processing will be disabled.', e.message);
+}
+
 // Use Memory Storage for Sharp processing
 const storage = multer.memoryStorage();
 
@@ -351,16 +357,25 @@ app.post('/upload', upload.single('image'), async (req, res) => {
     if (!req.file) return res.status(400).json({ error: "No file uploaded" });
 
     try {
-        // Optimize Image (Resize & Convert to WebP buffer)
-        const buffer = await sharp(req.file.buffer)
-            .rotate()
-            .resize({ width: 1600, withoutEnlargement: true }) // Increased to 1600px for better detail
-            .webp({ quality: 85 }) // Increased quality for readable text
-            .toBuffer();
+        let base64;
+        if (sharp) {
+            // Optimize Image (Resize & Convert to WebP buffer)
+            const buffer = await sharp(req.file.buffer)
+                .rotate()
+                .resize({ width: 1600, withoutEnlargement: true }) // Increased to 1600px for better detail
+                .webp({ quality: 85 }) // Increased quality for readable text
+                .toBuffer();
+
+            base64 = buffer.toString('base64');
+        } else {
+            console.warn("⚠️ Sharp disabled, saving original buffer as base64.");
+            base64 = req.file.buffer.toString('base64');
+        }
 
         // Convert to Base64 Data URI
-        const base64 = buffer.toString('base64');
-        const imageUrl = `data:image/webp;base64,${base64}`;
+        // Note: Without sharp, we assume original mime type or generic
+        const mime = sharp ? 'image/webp' : req.file.mimetype;
+        const imageUrl = `data:${mime};base64,${base64}`;
 
         // Return Base64 String (Saved directly to DB later)
         res.json({ success: true, imageUrl });
@@ -378,12 +393,16 @@ const downloadImage = async (url) => {
         const buffer = Buffer.from(response.data);
 
         // Process to Base64
-        const processedBuffer = await sharp(buffer)
-            .resize({ width: 1280, withoutEnlargement: true }) // Increased for auto-scraped content
-            .webp({ quality: 80 })
-            .toBuffer();
-
-        return `data:image/webp;base64,${processedBuffer.toString('base64')}`;
+        if (sharp) {
+            const processedBuffer = await sharp(buffer)
+                .resize({ width: 1280, withoutEnlargement: true }) // Increased for auto-scraped content
+                .webp({ quality: 80 })
+                .toBuffer();
+            return `data:image/webp;base64,${processedBuffer.toString('base64')}`;
+        } else {
+            // Fallback: Return original as base64 (approximate mime)
+            return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+        }
     } catch (e) {
         console.error("Failed to download image:", url, e.message);
         return null;
