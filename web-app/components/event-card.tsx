@@ -90,7 +90,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                     const progressPercent = ((60 - diffMins) / 60) * 100;
                     setStatus({
                         label: `In ${diffMins} min`,
-                        color: 'orange',
+                        color: 'yellow',
                         // Display Time: Use the string directly from DB (already formatted) or slice
                         timeText: `Starts ${event.startTime?.slice(11, 16)}`,
                         progress: progressPercent
@@ -145,7 +145,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 {status.label && (
                     <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10
                         ${status.color === 'green' ? 'bg-green-500/20 text-green-300 border-green-500/50' :
-                            status.color === 'orange' ? 'bg-orange-500/20 text-orange-300 border-orange-500/50' :
+                            status.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' :
                                 status.color === 'purple' ? 'bg-purple-500/20 text-purple-300 border-purple-500/50' :
                                     status.color === 'blue' ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-gray-700/50 text-gray-400 border-gray-600'}`}>
                         {status.label}
@@ -173,9 +173,9 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                             {/* Time */}
                             <div className="flex items-center gap-1 text-gray-400">
                                 <Clock size={10} className={status.color === 'gray' ? 'text-gray-500' : 'text-blue-400'} />
-                                <span className={status.color === 'green' ? 'text-green-400' : ''}>
+                                <span className={status.color === 'green' ? 'text-green-400' : status.color === 'yellow' ? 'text-yellow-400' : ''}>
                                     {status.color === 'green' ? 'Now' :
-                                        status.color === 'orange' ? 'Soon' :
+                                        status.color === 'yellow' ? 'Soon' :
                                             status.color === 'gray' ? 'Ended' : status.timeText}
                                 </span>
                             </div>
@@ -193,7 +193,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 {status.progress !== undefined && (
                     <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
                         <div
-                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'orange' ? 'bg-orange-500 shadow-orange-500' : 'bg-green-500 shadow-green-500'}`}
+                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'yellow' ? 'bg-yellow-500 shadow-yellow-500' : 'bg-green-500 shadow-green-500'}`}
                             style={{ width: `${status.progress}%` }}
                         ></div>
                     </div>
