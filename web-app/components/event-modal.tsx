@@ -1022,18 +1022,20 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <Phone className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
                             </div>
 
-                            {/* Ticket Link Field */}
-                            <div className="relative">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Ticket Link (Optional)</label>
-                                <input
-                                    type="url"
-                                    value={link}
-                                    placeholder="https://"
-                                    onChange={(e) => setLink(e.target.value)}
-                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-base md:text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
-                                />
-                                <ExternalLink className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
-                            </div>
+                            {/* Ticket Link Field (Not for Food) */}
+                            {type !== 'food' && (
+                                <div className="relative">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Ticket Link (Optional)</label>
+                                    <input
+                                        type="url"
+                                        value={link}
+                                        placeholder="https://"
+                                        onChange={(e) => setLink(e.target.value)}
+                                        className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-base md:text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                    />
+                                    <ExternalLink className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
+                                </div>
+                            )}
 
                             <div className="space-y-4">
                                 <div>
