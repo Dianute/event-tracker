@@ -31,6 +31,8 @@ export default function CategoryManager() {
     const [formEmoji, setFormEmoji] = useState('📌');
     const [formColor, setFormColor] = useState('bg-blue-600');
     const [formOrder, setFormOrder] = useState(0);
+    const [formIsFeatured, setFormIsFeatured] = useState(false);
+    const [formDefaultImage, setFormDefaultImage] = useState('');
 
     const fetchCategories = () => {
         setLoading(true);
@@ -58,6 +60,8 @@ export default function CategoryManager() {
         setFormEmoji('📌');
         setFormColor('bg-blue-600');
         setFormOrder(0);
+        setFormIsFeatured(false);
+        setFormDefaultImage('');
     };
 
     const handleEdit = (cat: any) => {
@@ -67,6 +71,8 @@ export default function CategoryManager() {
         setFormEmoji(cat.emoji);
         setFormColor(cat.color || 'bg-blue-600');
         setFormOrder(cat.sortOrder || 0);
+        setFormIsFeatured(cat.isFeatured || false);
+        setFormDefaultImage(cat.defaultImageUrl || '');
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -78,7 +84,9 @@ export default function CategoryManager() {
             label: formLabel,
             emoji: formEmoji,
             color: formColor,
-            sortOrder: Number(formOrder)
+            sortOrder: Number(formOrder),
+            isFeatured: formIsFeatured,
+            defaultImageUrl: formDefaultImage
         };
 
         try {
@@ -192,6 +200,43 @@ export default function CategoryManager() {
                                 className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-center"
                             />
                         </div>
+                    </div>
+
+                    {/* FEATURED & IMAGE */}
+                    <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-700 space-y-4">
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="isFeatured"
+                                checked={formIsFeatured}
+                                onChange={e => setFormIsFeatured(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-600 bg-gray-900 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="isFeatured" className="text-sm font-bold text-white select-none flex items-center gap-2">
+                                ⭐ Featured Category
+                                <span className="text-xs font-normal text-gray-400">(Shows as button on map)</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Default Image URL (Optional)</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={formDefaultImage}
+                                    onChange={e => setFormDefaultImage(e.target.value)}
+                                    placeholder="https://example.com/poster.jpg"
+                                    className="flex-1 px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                {formDefaultImage && (
+                                    <img src={formDefaultImage} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-gray-600" />
+                                )}
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-1">This image will be auto-filled for events in this category.</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-2">
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Color</label>
                             <div className="flex flex-wrap gap-2">
@@ -230,7 +275,10 @@ export default function CategoryManager() {
                                 {cat.emoji}
                             </div>
                             <div>
-                                <h4 className="font-bold text-white text-sm">{cat.label}</h4>
+                                <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                                    {cat.label}
+                                    {cat.isFeatured && <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded border border-yellow-500/30">⭐ Featured</span>}
+                                </h4>
                                 <p className="text-[10px] text-gray-500 font-mono">ID: {cat.id} • Order: {cat.sortOrder}</p>
                             </div>
                         </div>

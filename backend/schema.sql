@@ -79,5 +79,7 @@ CREATE TABLE IF NOT EXISTS categories (
     emoji TEXT,
     color TEXT,
     sortOrder INT DEFAULT 0,
+    is_featured BOOLEAN DEFAULT FALSE,
+    default_image_url TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );

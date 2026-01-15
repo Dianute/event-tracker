@@ -89,7 +89,13 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             // New Analytics Columns
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_location INT DEFAULT 0");
             await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0");
-            console.log("✅ Schema patched successfully (phone column)");
+            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0");
+
+            // New Categories Columns
+            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE");
+            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
+
+            console.log("✅ Schema patched successfully (phone & category columns)");
         } catch (migErr) {
             console.warn("⚠️ Schema patch warning:", migErr.message);
         }
@@ -722,8 +728,11 @@ app.delete('/api/menus/:id', async (req, res) => {
 app.get('/categories', async (req, res) => {
     try {
         const { rows } = await db.query("SELECT * FROM categories ORDER BY sortOrder ASC");
-        // CamelCase conversion if needed, but schema is simple enough
-        res.json(rows);
+        const camelRows = rows.map(r => ({
+            id: r.id, label: r.label, emoji: r.emoji, color: r.color, sortOrder: r.sortorder,
+            isFeatured: r.is_featured, defaultImageUrl: r.default_image_url
+        }));
+        res.json(camelRows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -731,19 +740,31 @@ app.get('/categories', async (req, res) => {
 
 // POST /categories - Create/Update Category (Admin Only)
 app.post('/categories', requireAuth, async (req, res) => {
-    const { id, label, emoji, color, sortOrder } = req.body;
+    const { id, label, emoji, color, sortOrder, isFeatured, defaultImageUrl } = req.body;
     if (!id || !label) return res.status(400).json({ error: "ID and Label are required" });
 
     try {
         const sql = `
-            INSERT INTO categories (id, label, emoji, color, sortOrder) 
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO categories (id, label, emoji, color, sortOrder, is_featured, default_image_url) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             ON CONFLICT (id) DO UPDATE SET 
-            label = EXCLUDED.label, emoji = EXCLUDED.emoji, color = EXCLUDED.color, sortOrder = EXCLUDED.sortOrder
+            label = EXCLUDED.label, emoji = EXCLUDED.emoji, color = EXCLUDED.color, sortOrder = EXCLUDED.sortOrder,
+            is_featured = EXCLUDED.is_featured, default_image_url = EXCLUDED.default_image_url
             RETURNING *
         `;
-        const { rows } = await db.query(sql, [id.toLowerCase(), label, emoji, color, sortOrder || 0]);
-        res.json({ success: true, category: rows[0] });
+        const { rows } = await db.query(sql, [
+            id.toLowerCase(), label, emoji, color, sortOrder || 0,
+            isFeatured || false, defaultImageUrl || null
+        ]);
+
+        // Return camelCase manual map or helper
+        const cat = rows[0];
+        const camelCat = {
+            id: cat.id, label: cat.label, emoji: cat.emoji, color: cat.color, sortOrder: cat.sortorder,
+            isFeatured: cat.is_featured, defaultImageUrl: cat.default_image_url
+        };
+
+        res.json({ success: true, category: camelCat });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

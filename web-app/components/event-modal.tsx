@@ -1062,7 +1062,13 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                 <div className="flex flex-wrap gap-2">
                                     {categories.length > 0 ? (
                                         categories.map(cat => (
-                                            <button key={cat.id} type="button" onClick={() => setType(cat.id)}
+                                            <button key={cat.id} type="button" onClick={() => {
+                                                setType(cat.id);
+                                                // Auto-fill image if empty
+                                                if ((!imageUrl || imageUrl.trim() === '') && cat.defaultImageUrl) {
+                                                    setImageUrl(cat.defaultImageUrl);
+                                                }
+                                            }}
                                                 className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase ${type === cat.id ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-500 border-dashed border-gray-500'}`}>
                                                 {cat.emoji || '📌'} {cat.label}
                                             </button>
