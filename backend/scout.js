@@ -1,5 +1,11 @@
-const puppeteer = require('puppeteer-core');
-const chromium = require('@sparticuz/chromium');
+// Optional dependencies for scraping
+let puppeteer, chromium;
+try {
+    puppeteer = require('puppeteer-core');
+    chromium = require('@sparticuz/chromium');
+} catch (e) {
+    console.warn("⚠️ Scraper dependencies missing. Scout will run in limited mode.");
+}
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
