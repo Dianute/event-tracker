@@ -5,7 +5,7 @@ import VerifyAdminAuth from '@/components/VerifyAdminAuth';
 import ScoutManager from '@/components/admin/ScoutManager';
 import EventManager from '@/components/admin/EventManager';
 import Link from 'next/link';
-import { LayoutDashboard, Calendar, LogOut, Shield, Activity } from 'lucide-react';
+import { LayoutDashboard, Calendar, LogOut, Shield, Activity, Link as LinkIcon } from 'lucide-react';
 
 import DashboardPage from '../dashboard/page';
 
@@ -50,6 +50,14 @@ export default function AdminDashboard() {
                             <Activity size={20} className={`transition-transform duration-300 ${activeTab === 'dashboard' ? 'scale-110' : 'group-hover:scale-110'}`} />
                             <span className="font-bold text-sm hidden lg:block">User Dashboard</span>
                         </button>
+
+                        <Link
+                            href="/test-links"
+                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-gray-500 hover:text-white hover:bg-white/5"
+                        >
+                            <LinkIcon size={20} className="group-hover:scale-110 transition-transform duration-300" />
+                            <span className="font-bold text-sm hidden lg:block">Link Checker</span>
+                        </Link>
                     </nav>
 
                     <div className="p-4 border-t border-white/5">
