@@ -907,7 +907,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                     return true;
                                                 }
                                                 return false;
-                                            }).slice(0, 7);
+                                            }).slice(0, 2);
 
                                             if (candidates.length === 0) return null;
 
