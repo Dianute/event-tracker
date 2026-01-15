@@ -71,30 +71,9 @@ const upload = multer({
 
 // Middleware
 // Middleware
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://event-tracker-six.vercel.app',
-    'https://event-tracker-production.up.railway.app'
-];
-
+// Middleware
 app.use(cors({
-    origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            // Check for Vercel preview deployments (optional, allowing all vercel subdomains)
-            if (origin.endsWith('.vercel.app')) {
-                return callback(null, true);
-            }
-            // Temporarily allow all for debugging if strict strict mode is failing, 
-            // but let's try strict first.
-            // var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            // return callback(new Error(msg), false);
-            return callback(null, true); // Fallback: Allow all to fix the 502/Block immediately
-        }
-        return callback(null, true);
-    },
-    credentials: true,
+    origin: '*', // Reverting to simple wildcard to fix 502/Blocking issues immediately
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-password', 'x-user-email']
 }));
@@ -104,13 +83,14 @@ app.use(bodyParser.urlencoded({ limit: '200mb', extended: true }));
 // Request Logging Middleware
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-    // Manual headers removed to avoid conflicts with cors middleware
     next();
 });
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
+/* 
+// TEMPORARILY DISABLED SCHEMA INIT TO DEBUG 502 CRASH
 // Initialize Schema (Check if tables exist)
 (async () => {
     try {
@@ -122,64 +102,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
         for (const statement of statements) {
             await db.query(statement);
         }
-
-        // --- EXPLICIT MIGRATIONS (Force Schema Update) ---
-        try {
-            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS phone TEXT");
-            await db.query("ALTER TABLE user_locations ADD COLUMN IF NOT EXISTS phone TEXT");
-            // New Analytics Columns
-            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_location INT DEFAULT 0");
-            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0");
-            await db.query("ALTER TABLE events ADD COLUMN IF NOT EXISTS clicks_phone INT DEFAULT 0");
-
-            // New Categories Columns
-            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE");
-            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
-            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS featured_expires_at TIMESTAMP");
-
-            console.log("✅ Schema patched successfully (phone & category columns)");
-        } catch (migErr) {
-            console.warn("⚠️ Schema patch warning:", migErr.message);
-        }
-
-        // --- SEED DEFAULT CATEGORIES ---
-        try {
-            const { rows: catCount } = await db.query("SELECT COUNT(*) FROM categories");
-            if (parseInt(catCount[0].count) === 0) {
-                console.log("🌱 Seeding default categories...");
-                const defaults = [
-                    { id: 'social', label: 'Social', emoji: '🍻', color: 'bg-blue-600', sortOrder: 1 },
-                    { id: 'food', label: 'Food', emoji: '🍔', color: 'bg-orange-500', sortOrder: 2 },
-                    { id: 'music', label: 'Music', emoji: '🎵', color: 'bg-purple-500', sortOrder: 3 },
-                    { id: 'arts', label: 'Arts', emoji: '🎨', color: 'bg-pink-500', sortOrder: 4 },
-                    { id: 'sports', label: 'Sports', emoji: '⚽', color: 'bg-green-500', sortOrder: 5 },
-                    { id: 'learning', label: 'Learning', emoji: '📚', color: 'bg-yellow-500', sortOrder: 6 }
-                ];
-                for (const cat of defaults) {
-                    await db.query(`INSERT INTO categories (id, label, emoji, color, sortOrder) VALUES ($1, $2, $3, $4, $5)`,
-                        [cat.id, cat.label, cat.emoji, cat.color, cat.sortOrder]);
-                }
-                console.log("✅ Default categories seeded.");
-            }
-        } catch (seedErr) {
-            console.warn("⚠️ Category seeding warning:", seedErr.message);
-        }
-
-        // --- HIGH PERFORMANCE INDEXES (Added for 100k+ Scale) ---
-        // 1. Spatial Index for fast map lookups
-        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_lat_lng ON events (lat, lng);`);
-        // 2. Time Index for feed sorting
-        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_start_time ON events (startTime);`);
-        // 3. Email Index for "My Templates" & Analytics
-        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_user_email ON events (userEmail);`);
-        // 4. Analytics Indexes
-        await db.query(`CREATE INDEX IF NOT EXISTS idx_events_views ON events (views);`);
-
-        console.log("✅ Database initialized & Optimized for Scale");
+        console.log("✅ Schema initialized.");
     } catch (err) {
         console.error('❌ Error initializing schema:', err);
     }
 })();
+*/
 
 // ==================== ENDPOINTS ====================
 
