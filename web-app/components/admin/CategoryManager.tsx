@@ -33,7 +33,6 @@ export default function CategoryManager() {
     const [formOrder, setFormOrder] = useState(0);
     const [formIsFeatured, setFormIsFeatured] = useState(false);
     const [formDefaultImage, setFormDefaultImage] = useState('');
-    const [formExpiresAt, setFormExpiresAt] = useState('');
 
     const fetchCategories = () => {
         setLoading(true);
@@ -63,7 +62,6 @@ export default function CategoryManager() {
         setFormOrder(0);
         setFormIsFeatured(false);
         setFormDefaultImage('');
-        setFormExpiresAt('');
     };
 
     const handleEdit = (cat: any) => {
@@ -75,14 +73,6 @@ export default function CategoryManager() {
         setFormOrder(cat.sortOrder || 0);
         setFormIsFeatured(cat.isFeatured || false);
         setFormDefaultImage(cat.defaultImageUrl || '');
-        // Convert to datetime-local format (YYYY-MM-DDTHH:mm) if exists
-        if (cat.featuredExpiresAt) {
-            const date = new Date(cat.featuredExpiresAt);
-            date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
-            setFormExpiresAt(date.toISOString().slice(0, 16));
-        } else {
-            setFormExpiresAt('');
-        }
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -96,8 +86,7 @@ export default function CategoryManager() {
             color: formColor,
             sortOrder: Number(formOrder),
             isFeatured: formIsFeatured,
-            defaultImageUrl: formDefaultImage,
-            featuredExpiresAt: formExpiresAt || null
+            defaultImageUrl: formDefaultImage
         };
 
         try {
@@ -229,20 +218,6 @@ export default function CategoryManager() {
                             </label>
                         </div>
 
-                        {/* Expiration Date (Only visible if Featured) */}
-                        {formIsFeatured && (
-                            <div className="animate-in fade-in slide-in-from-top-2">
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Featured Until (Optional)</label>
-                                <input
-                                    type="datetime-local"
-                                    value={formExpiresAt}
-                                    onChange={e => setFormExpiresAt(e.target.value)}
-                                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white"
-                                />
-                                <p className="text-[10px] text-gray-500 mt-1">Category will automatically un-feature after this date.</p>
-                            </div>
-                        )}
-
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Default Image URL (Optional)</label>
                             <div className="flex gap-2">
@@ -302,18 +277,7 @@ export default function CategoryManager() {
                             <div>
                                 <h4 className="font-bold text-white text-sm flex items-center gap-2">
                                     {cat.label}
-                                    {cat.isFeatured && (
-                                        <div className="flex flex-col gap-0.5">
-                                            <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded border border-yellow-500/30 flex items-center gap-1">
-                                                ⭐ Featured
-                                                {cat.featuredExpiresAt && (
-                                                    <span className="text-yellow-100 opacity-60 font-normal">
-                                                        Until {new Date(cat.featuredExpiresAt).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                )}
-                                            </span>
-                                        </div>
-                                    )}
+                                    {cat.isFeatured && <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded border border-yellow-500/30">⭐ Featured</span>}
                                 </h4>
                                 <p className="text-[10px] text-gray-500 font-mono">ID: {cat.id} • Order: {cat.sortOrder}</p>
                             </div>
