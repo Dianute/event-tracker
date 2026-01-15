@@ -805,9 +805,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             </button>
 
                                             {showLocationDropdown && (
-                                                <div className="absolute right-0 mt-2 w-56 bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl max-h-60 overflow-y-auto z-50">
+                                                <div className={`absolute right-0 mt-2 w-56 border rounded-xl shadow-xl max-h-60 overflow-y-auto z-50 ${theme === 'light' ? 'bg-white border-gray-200' : 'bg-zinc-800 border-zinc-700'}`}>
                                                     {userLocations.slice(1).map(loc => (
-                                                        <div key={loc.id} className="group flex items-center w-full hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 relative">
+                                                        <div key={loc.id} className={`group flex items-center w-full transition-colors border-b last:border-0 relative ${theme === 'light' ? 'hover:bg-gray-50 border-gray-100' : 'hover:bg-white/5 border-white/5'}`}>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
@@ -818,7 +818,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                                     setShowLocationDropdown(false);
                                                                     localStorage.removeItem('event-form-draft');
                                                                 }}
-                                                                className="flex-1 text-left px-4 py-2.5 text-sm text-gray-300 truncate pr-8"
+                                                                className={`flex-1 text-left px-4 py-2.5 text-sm truncate pr-8 ${theme === 'light' ? 'text-gray-700' : 'text-gray-300'}`}
                                                             >
                                                                 {loc.name}
                                                             </button>
@@ -1025,8 +1025,8 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                             </button>
                                         </div>
                                         <div className="flex gap-2">
-                                            <button type="button" onClick={() => handleQuickDate('today')} className="text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors uppercase">Today</button>
-                                            <button type="button" onClick={() => handleQuickDate('tmrw')} className="text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors uppercase">Tmrw</button>
+                                            <button type="button" onClick={() => handleQuickDate('today')} className={`text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-colors uppercase ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Today</button>
+                                            <button type="button" onClick={() => handleQuickDate('tmrw')} className={`text-[10px] font-bold px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-colors uppercase ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`}>Tmrw</button>
                                         </div>
                                     </div>
                                     <input type="date" required value={date} onChange={(e) => setDate(e.target.value)}
@@ -1075,7 +1075,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                 key={menu.id}
                                                 type="button"
                                                 onClick={() => handleAttachMenu(menu)}
-                                                className={`shrink-0 px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 text-xs font-bold transition-all flex flex-col items-start gap-0.5 min-w-[100px]`}
+                                                className={`shrink-0 px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-bold transition-all flex flex-col items-start gap-0.5 min-w-[100px] ${theme === 'light' ? 'text-amber-700' : 'text-amber-200'}`}
                                             >
                                                 <span className="truncate w-full text-left">{menu.title}</span>
                                                 <span className="text-[9px] opacity-60 font-normal">{new Date(menu.createdAt || Date.now()).toLocaleDateString()}</span>
