@@ -270,15 +270,28 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [selectedCategory, setSelectedCategory] = useState<string>('food');
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
-  const categories = [
-    { id: 'all', label: 'All', icon: <Globe size={16} /> },
-    { id: 'food', label: 'Food', icon: '🍔' },
-    { id: 'sports', label: 'Sports', icon: '⚽' },
-    { id: 'music', label: 'Music', icon: '🎵' },
-    { id: 'arts', label: 'Arts', icon: '🎨' },
-    { id: 'learning', label: 'Learning', icon: '📚' },
-    { id: 'social', label: 'Social', icon: '🍻' },
-  ];
+  // Dynamic Categories
+  const [categories, setCategories] = useState<{ id: string; label: string; icon: any }[]>([
+    { id: 'all', label: 'All', icon: <Globe size={16} /> }
+  ]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/categories`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          // Transform backend format to frontend format (icon -> emoji)
+          // Default All + Server Data
+          const dynamicCats = data.map((c: any) => ({
+            id: c.id,
+            label: c.label,
+            icon: c.emoji // Backend stores 'emoji', frontend logic often expects 'icon' prop
+          }));
+          setCategories([{ id: 'all', label: 'All', icon: <Globe size={16} /> }, ...dynamicCats]);
+        }
+      })
+      .catch(err => console.error("Failed to load map categories", err));
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);

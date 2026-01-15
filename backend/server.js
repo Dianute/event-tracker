@@ -94,6 +94,29 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             console.warn("⚠️ Schema patch warning:", migErr.message);
         }
 
+        // --- SEED DEFAULT CATEGORIES ---
+        try {
+            const { rows: catCount } = await db.query("SELECT COUNT(*) FROM categories");
+            if (parseInt(catCount[0].count) === 0) {
+                console.log("🌱 Seeding default categories...");
+                const defaults = [
+                    { id: 'social', label: 'Social', emoji: '🍻', color: 'bg-blue-600', sortOrder: 1 },
+                    { id: 'food', label: 'Food', emoji: '🍔', color: 'bg-orange-500', sortOrder: 2 },
+                    { id: 'music', label: 'Music', emoji: '🎵', color: 'bg-purple-500', sortOrder: 3 },
+                    { id: 'arts', label: 'Arts', emoji: '🎨', color: 'bg-pink-500', sortOrder: 4 },
+                    { id: 'sports', label: 'Sports', emoji: '⚽', color: 'bg-green-500', sortOrder: 5 },
+                    { id: 'learning', label: 'Learning', emoji: '📚', color: 'bg-yellow-500', sortOrder: 6 }
+                ];
+                for (const cat of defaults) {
+                    await db.query(`INSERT INTO categories (id, label, emoji, color, sortOrder) VALUES ($1, $2, $3, $4, $5)`,
+                        [cat.id, cat.label, cat.emoji, cat.color, cat.sortOrder]);
+                }
+                console.log("✅ Default categories seeded.");
+            }
+        } catch (seedErr) {
+            console.warn("⚠️ Category seeding warning:", seedErr.message);
+        }
+
         // --- HIGH PERFORMANCE INDEXES (Added for 100k+ Scale) ---
         // 1. Spatial Index for fast map lookups
         await db.query(`CREATE INDEX IF NOT EXISTS idx_events_lat_lng ON events (lat, lng);`);
@@ -689,6 +712,51 @@ app.delete('/api/menus/:id', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: "Failed to delete menu" });
+    }
+});
+
+
+// ==================== CATEGORIES API ====================
+
+// GET /categories - List all categories
+app.get('/categories', async (req, res) => {
+    try {
+        const { rows } = await db.query("SELECT * FROM categories ORDER BY sortOrder ASC");
+        // CamelCase conversion if needed, but schema is simple enough
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /categories - Create/Update Category (Admin Only)
+app.post('/categories', requireAuth, async (req, res) => {
+    const { id, label, emoji, color, sortOrder } = req.body;
+    if (!id || !label) return res.status(400).json({ error: "ID and Label are required" });
+
+    try {
+        const sql = `
+            INSERT INTO categories (id, label, emoji, color, sortOrder) 
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (id) DO UPDATE SET 
+            label = EXCLUDED.label, emoji = EXCLUDED.emoji, color = EXCLUDED.color, sortOrder = EXCLUDED.sortOrder
+            RETURNING *
+        `;
+        const { rows } = await db.query(sql, [id.toLowerCase(), label, emoji, color, sortOrder || 0]);
+        res.json({ success: true, category: rows[0] });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /categories/:id - Delete Category (Admin Only)
+app.delete('/categories/:id', requireAuth, async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM categories WHERE id = $1", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

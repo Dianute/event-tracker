@@ -370,6 +370,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
         }
     }, [isOpen, session]);
 
+    // Categories Integration
+    const [categories, setCategories] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            // Fetch categories
+            fetch(`${API_URL}/categories`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) setCategories(data);
+                })
+                .catch(err => console.error("Category fetch error", err));
+        }
+    }, [isOpen]);
+
     // MENUS INTEGRATION
     const [savedMenus, setSavedMenus] = useState<any[]>([]);
     useEffect(() => {
@@ -1045,12 +1060,16 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Category</label>
                                 <div className="flex flex-wrap gap-2">
-                                    {[{ id: 'social', emoji: '🍻' }, { id: 'food', emoji: '🍔' }, { id: 'music', emoji: '🎵' }, { id: 'arts', emoji: '🎨' }, { id: 'sports', emoji: '⚽' }].map(cat => (
-                                        <button key={cat.id} type="button" onClick={() => setType(cat.id)}
-                                            className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase ${type === cat.id ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-500 border-dashed border-gray-500'}`}>
-                                            {cat.emoji} {cat.id}
-                                        </button>
-                                    ))}
+                                    {categories.length > 0 ? (
+                                        categories.map(cat => (
+                                            <button key={cat.id} type="button" onClick={() => setType(cat.id)}
+                                                className={`px-3 py-1.5 rounded-full border text-[10px] font-bold uppercase ${type === cat.id ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-500 border-dashed border-gray-500'}`}>
+                                                {cat.emoji || '📌'} {cat.label}
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="text-xs text-gray-500 italic">No categories found.</div>
+                                    )}
                                 </div>
                             </div>
 

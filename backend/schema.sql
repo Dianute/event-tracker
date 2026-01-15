@@ -72,3 +72,12 @@ CREATE TABLE IF NOT EXISTS menus (
 );
 
 CREATE INDEX IF NOT EXISTS idx_menus_user_email ON menus (user_email);
+
+CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY,
+    label TEXT NOT NULL,
+    emoji TEXT,
+    color TEXT,
+    sortOrder INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT NOW()
+);

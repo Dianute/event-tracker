@@ -5,12 +5,13 @@ import VerifyAdminAuth from '@/components/VerifyAdminAuth';
 import ScoutManager from '@/components/admin/ScoutManager';
 import EventManager from '@/components/admin/EventManager';
 import Link from 'next/link';
-import { LayoutDashboard, Calendar, LogOut, Shield, Activity, Link as LinkIcon } from 'lucide-react';
+import { LayoutDashboard, Calendar, LogOut, Shield, Activity, Link as LinkIcon, ListFilter } from 'lucide-react';
+import CategoryManager from '@/components/admin/CategoryManager';
 
 import DashboardPage from '../dashboard/page';
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState<'scout' | 'events' | 'dashboard'>('scout');
+    const [activeTab, setActiveTab] = useState<'scout' | 'events' | 'categories' | 'dashboard'>('scout');
 
     return (
         <VerifyAdminAuth>
@@ -41,6 +42,14 @@ export default function AdminDashboard() {
                         >
                             <Calendar size={20} className={`transition-transform duration-300 ${activeTab === 'events' ? 'scale-110' : 'group-hover:scale-110'}`} />
                             <span className="font-bold text-sm hidden lg:block">Event Manager</span>
+                        </button>
+
+                        <button
+                            onClick={() => setActiveTab('categories')}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === 'categories' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20 shadow-[0_0_15px_rgba(251,146,60,0.1)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                        >
+                            <ListFilter size={20} className={`transition-transform duration-300 ${activeTab === 'categories' ? 'scale-110' : 'group-hover:scale-110'}`} />
+                            <span className="font-bold text-sm hidden lg:block">Categories</span>
                         </button>
 
                         <button
@@ -79,6 +88,7 @@ export default function AdminDashboard() {
                     <div className="max-w-7xl mx-auto">
                         {activeTab === 'scout' && <ScoutManager />}
                         {activeTab === 'events' && <EventManager />}
+                        {activeTab === 'categories' && <CategoryManager />}
                         <div className={`bg-black/20 rounded-3xl border border-white/5 overflow-hidden min-h-[800px] ${activeTab === 'dashboard' ? '' : 'hidden'}`}>
                             {/* Pass minimal props if needed, but Page usually handles itself. 
                                 We might need to strip the dashboard's own padding or layout if it clashes, 
