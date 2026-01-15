@@ -439,8 +439,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   // Deduplication
   const uniqueEvents = new Map<string, Event>();
-  // Deduplication
-  const uniqueEvents = new Map<string, Event>();
   displayEvents.forEach(e => {
     const key = `${e.title}|${e.startTime}`;
     if (!uniqueEvents.has(key)) uniqueEvents.set(key, e);
