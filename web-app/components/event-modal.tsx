@@ -310,7 +310,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
 interface EventModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; phone?: string; userEmail?: string | null }) => void;
+    onSubmit: (eventData: { title: string; description: string; type: string; startTime: string; endTime: string; lat?: number; lng?: number; venue?: string; imageUrl?: string; phone?: string; link?: string; userEmail?: string | null }) => void;
     initialLocation: { lat: number; lng: number } | null;
     userLocation?: { lat: number; lng: number } | null;
     event?: any; // Event object for viewing or editing
@@ -338,6 +338,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     const [venue, setVenue] = useState('');
     const [phone, setPhone] = useState('');
+    const [link, setLink] = useState('');
     const [imageUrl, setImageUrl] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -454,6 +455,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
                 setVenue(event.venue || event.location || '');
                 setPhone(event.phone || '');
+                setLink(event.link || '');
                 setImageUrl(event.imageUrl || '');
                 setCurrentLocation({ lat: event.lat, lng: event.lng });
             } else {
@@ -463,6 +465,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                 setType('social');
                 setImageUrl('');
                 setPhone('');
+                setLink('');
                 setIsUploading(false);
                 setIsSearching(false);
                 setZoomedImage('');
@@ -660,7 +663,7 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             title, description, type,
             startTime: formatForDB(startDateTime),
             endTime: formatForDB(endDateTime),
-            lat: finalLat!, lng: finalLng!, venue, imageUrl, phone,
+            lat: finalLat!, lng: finalLng!, venue, imageUrl, phone, link,
             userEmail: session?.user?.email
         });
 
@@ -1017,6 +1020,19 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                     className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-base md:text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
                                 />
                                 <Phone className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
+                            </div>
+
+                            {/* Ticket Link Field */}
+                            <div className="relative">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Ticket Link (Optional)</label>
+                                <input
+                                    type="url"
+                                    value={link}
+                                    placeholder="https://"
+                                    onChange={(e) => setLink(e.target.value)}
+                                    className={`w-full px-4 py-3 rounded-xl border outline-none transition-all pl-10 text-base md:text-sm ${theme === 'light' ? 'bg-gray-50 border-gray-200 text-gray-900' : 'bg-white/5 border-white/10 text-white'}`}
+                                />
+                                <ExternalLink className="absolute left-3.5 top-[34px] text-gray-400" size={16} />
                             </div>
 
                             <div className="space-y-4">

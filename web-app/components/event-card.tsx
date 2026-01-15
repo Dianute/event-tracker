@@ -255,6 +255,18 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                     </div>
                 </div>
 
+                {event.link && (
+                    <a
+                        href={event.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="absolute bottom-3 right-3 z-20 px-3 py-1 bg-green-500 hover:bg-green-400 text-white text-[10px] font-bold uppercase rounded-full shadow-lg transition-transform active:scale-95 flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        Ticket
+                    </a>
+                )}
+
                 <div className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[8px] font-bold uppercase bg-black/50 backdrop-blur border border-white/20 text-white`}>
                     {status.label}
                 </div>
