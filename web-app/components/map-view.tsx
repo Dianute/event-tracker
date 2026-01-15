@@ -339,7 +339,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const now = new Date();
 
   // 1. First Pass: Comprehensive Filtering
-  const candidates = events.filter(e => {
+  // 1. First Pass: Time & Search Filter Only (For correct Counts)
+  const timeFiltered = events.filter(e => {
     // A. Time Filter (Updated to use Browser Local Time for Local Correctness)
     const start = e.startTime ? new Date(e.startTime) : new Date(0);
     const end = e.endTime ? new Date(e.endTime) : new Date(8640000000000000);
@@ -403,16 +404,22 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     // E. Bounds Filter - DISABLED by request (Always show full list)
     // const boundsMatch = ... 
 
-    return timeMatch && categoryMatch && searchMatch; // && boundsMatch;
+    return timeMatch && searchMatch;
   });
 
-  // 2. Second Pass: Anti-Overlap (Smart Pin De-Clutter)
-  const filteredEvents = (() => {
+  // 1-B. Category Filter (Applied AFTER Time Filter)
+  const finalFiltered = timeFiltered.filter(e => {
+    const categoryMatch = selectedCategory === 'all' || e.type === selectedCategory;
+    return categoryMatch;
+  });
+
+  // 2. Second Pass: Anti-Overlap (Smart Pin De-Clutter) - Using Final Filtered
+  const displayEvents = (() => {
     const result: Event[] = [];
     const foodOccupied = new Set<string>();
 
     // Initial Sort for De-Cluttering (Prioritize Live Food)
-    const sorted = [...candidates].sort((a, b) => {
+    const sorted = [...finalFiltered].sort((a, b) => { // Use finalFiltered
       // ... (Same as before for pin overlaps)
       if (a.type !== 'food' || b.type !== 'food') return 0;
       return (new Date(a.startTime || '').getTime()) - (new Date(b.startTime || '').getTime());
@@ -432,7 +439,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
   // Deduplication
   const uniqueEvents = new Map<string, Event>();
-  filteredEvents.forEach(e => {
+  // Deduplication
+  const uniqueEvents = new Map<string, Event>();
+  displayEvents.forEach(e => {
     const key = `${e.title}|${e.startTime}`;
     if (!uniqueEvents.has(key)) uniqueEvents.set(key, e);
   });
@@ -743,10 +752,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               <div className={`absolute top-full left-0 mt-3 w-48 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]
                 ${mapTheme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-[#0a0a0a]/90 border-white/10'}`}>
                 {categories.map(cat => {
-                  // Calculate Count (using candidates to reflect time/map state)
+                  // Calculate Count (using timeFiltered to ignore current selection)
                   const count = cat.id === 'all'
-                    ? candidates.length
-                    : candidates.filter(e => e.type === cat.id).length;
+                    ? timeFiltered.length
+                    : timeFiltered.filter(e => e.type === cat.id).length;
 
                   return (
                     <button
