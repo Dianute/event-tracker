@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, Copy, ExternalLink, Trash2, Globe, Link as LinkIcon, Plus, X, Layout } from 'lucide-react';
+import { Check, Copy, ExternalLink, Trash2, Globe, Link as LinkIcon, Plus, X, Layout, Pencil } from 'lucide-react';
 
 interface LinkItem {
     id: string;
@@ -107,6 +107,16 @@ export default function LinkTesterPage() {
         if (activeBatchId === id) setActiveBatchId(newBatches[0].id);
     };
 
+    const renameBatch = (id: string, oldName: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newName = prompt("Enter new batch name:", oldName);
+        if (newName && newName.trim()) {
+            setBatches(prev => prev.map(b =>
+                b.id === id ? { ...b, name: newName.trim() } : b
+            ));
+        }
+    };
+
     const processLinks = () => {
         if (!inputRaw.trim()) return;
 
@@ -208,11 +218,21 @@ export default function LinkTesterPage() {
                             <Layout size={14} className={activeBatchId === batch.id ? "text-white" : "text-gray-400"} />
                             {batch.name}
 
-                            {/* Delete Batch (Hover) */}
+                            {/* Rename Batch */}
+                            <button
+                                onClick={(e) => renameBatch(batch.id, batch.name, e)}
+                                className={`ml-2 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-all ${activeBatchId === batch.id ? 'hover:bg-white/20' : 'hover:bg-gray-200 text-gray-400 hover:text-blue-500'}`}
+                                title="Rename Batch"
+                            >
+                                <Pencil size={12} />
+                            </button>
+
+                            {/* Delete Batch */}
                             {batches.length > 1 && (
                                 <button
                                     onClick={(e) => deleteBatch(batch.id, e)}
-                                    className={`ml-1 p-0.5 rounded-full transition-colors ${activeBatchId === batch.id ? 'hover:bg-white/20' : 'hover:bg-gray-200 text-gray-300 hover:text-red-500'}`}
+                                    className={`ml-0.5 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-all ${activeBatchId === batch.id ? 'hover:bg-white/20' : 'hover:bg-gray-200 text-gray-300 hover:text-red-500'}`}
+                                    title="Delete Batch"
                                 >
                                     <X size={12} />
                                 </button>
