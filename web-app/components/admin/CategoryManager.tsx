@@ -245,6 +245,40 @@ export default function CategoryManager() {
                                     placeholder="https://example.com/poster.jpg"
                                     className="flex-1 px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm"
                                 />
+                                <label className="cursor-pointer px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 flex items-center gap-2 transition-colors">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            const formData = new FormData();
+                                            formData.append('image', file);
+
+                                            try {
+                                                setLoading(true);
+                                                const res = await fetch(`${API_URL}/upload`, {
+                                                    method: 'POST',
+                                                    body: formData
+                                                });
+                                                const data = await res.json();
+                                                if (data.imageUrl) {
+                                                    setFormDefaultImage(data.imageUrl);
+                                                } else {
+                                                    alert('Upload failed');
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Upload error');
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }}
+                                    />
+                                    <span className="text-xs font-bold">Upload</span>
+                                </label>
                                 {formDefaultImage && (
                                     <img src={formDefaultImage} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-gray-600" />
                                 )}
