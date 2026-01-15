@@ -48,15 +48,22 @@ export default function LinkTesterPage() {
                 checked: false
             }));
 
-        setLinks(prev => [...prev, ...newLinks]);
+        setLinks(prev => {
+            const combined = [...prev, ...newLinks];
+            return combined.sort((a, b) => Number(a.checked) - Number(b.checked));
+        });
         setInputRaw('');
         setActiveTab('list');
     };
 
     const toggleCheck = (id: string) => {
-        setLinks(prev => prev.map(item =>
-            item.id === id ? { ...item, checked: !item.checked } : item
-        ));
+        setLinks(prev => {
+            const updated = prev.map(item =>
+                item.id === id ? { ...item, checked: !item.checked } : item
+            );
+            // Sort: Unchecked on top (false < true)
+            return updated.sort((a, b) => Number(a.checked) - Number(b.checked));
+        });
     };
 
     const deleteLink = (id: string) => {
