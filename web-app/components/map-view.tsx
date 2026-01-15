@@ -691,13 +691,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           <button
             onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
-            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all ${showList ? 'text-white bg-white/20' : 'text-white/80 hover:text-white'}`}
+            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all 
+              ${showList
+                ? (mapTheme === 'light' ? 'text-gray-900 bg-black/5' : 'text-white bg-white/20')
+                : (mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white')}`}
             title={showList ? "Close List" : "List View"}
           >
             {showList ? <X size={20} /> : <List size={20} />}
           </button>
 
-          <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
+          <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
           {/* Category Selector */}
           <div className="relative shrink-0">
@@ -705,8 +708,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               onClick={() => setShowCategoryMenu(!showCategoryMenu)}
               className={`h-8 flex items-center justify-center rounded-full px-3 gap-2 transition-all border
                 ${selectedCategory !== 'all'
-                  ? 'text-blue-400 border-blue-500/30 bg-blue-500/10'
-                  : 'text-white/80 border-transparent hover:bg-white/10'}`}
+                  ? 'text-blue-500 border-blue-500/30 bg-blue-500/10'
+                  : (mapTheme === 'light' ? 'text-gray-600 border-transparent hover:bg-black/5' : 'text-white/80 border-transparent hover:bg-white/10')}`}
             >
               <span className="text-sm">
                 {categories.find(c => c.id === selectedCategory)?.icon || <Globe size={16} />}
@@ -717,7 +720,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             </button>
 
             {showCategoryMenu && (
-              <div className="absolute top-full left-0 mt-3 w-48 bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]">
+              <div className={`absolute top-full left-0 mt-3 w-48 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]
+                ${mapTheme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-[#0a0a0a]/90 border-white/10'}`}>
                 {categories.map(cat => (
                   <button
                     key={cat.id}
@@ -725,8 +729,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                       setSelectedCategory(cat.id);
                       setShowCategoryMenu(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-white/10
-                      ${selectedCategory === cat.id ? 'text-blue-400 bg-blue-500/5' : 'text-gray-300'}`}
+                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors
+                      ${selectedCategory === cat.id ? 'text-blue-500 bg-blue-500/5' : (mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5' : 'text-gray-300 hover:bg-white/10')}`}
                   >
                     <span className="shrink-0 w-5 flex justify-center">{cat.icon}</span>
                     <span className="font-medium">{cat.label}</span>
@@ -736,7 +740,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             )}
           </div>
 
-          <div className="shrink-0 w-px h-6 bg-white/20 mx-1"></div>
+          <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
           {/* Search */}
           <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
@@ -746,33 +750,35 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                   autoFocus
                   type="text"
                   placeholder="Search tags..."
-                  className="bg-transparent border-none outline-none text-white text-sm w-full font-medium placeholder-gray-400 min-w-0 pr-6"
+                  className={`bg-transparent border-none outline-none text-sm w-full font-medium placeholder-gray-400 min-w-0 pr-6 ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onBlur={() => !searchQuery && setIsSearchOpen(false)}
                 />
                 <button
                   onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); setIsSearchOpen(false); }}
-                  className="absolute right-0 text-white/50 hover:text-white transition-colors p-1"
+                  className={`absolute right-0 transition-colors p-1 ${mapTheme === 'light' ? 'text-gray-400 hover:text-gray-900' : 'text-white/50 hover:text-white'}`}
                 >
                   <X size={16} />
                 </button>
               </div>
             ) : (
-              <button onClick={() => setIsSearchOpen(true)} className="text-white/80 hover:text-white transition-colors">
+              <button onClick={() => setIsSearchOpen(true)} className={`transition-colors ${mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'}`}>
                 <SearchIcon size={20} />
               </button>
             )}
           </div>
 
-          <div className="w-px h-6 bg-white/20 mx-1"></div>
+          <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
           {/* Time Filter */}
           <button
             key="time-btn"
             onClick={cycleTimeFilters}
             className={`h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
-              ${timeFilter !== 'all' ? 'px-3 text-green-300 border-green-500/30 bg-green-500/10' : 'w-8 text-white/50 border-transparent hover:text-white hover:bg-white/10'}`}
+              ${timeFilter !== 'all'
+                ? 'px-3 text-green-500 border-green-500/30 bg-green-500/10'
+                : (mapTheme === 'light' ? 'w-8 text-gray-400 border-transparent hover:text-gray-900 hover:bg-black/5' : 'w-8 text-white/50 border-transparent hover:text-white hover:bg-white/10')}`}
             title="Filter by Time"
           >
             {timeFilter === 'all' ? <Clock size={20} /> : (
@@ -784,7 +790,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           </button>
         </div>
 
-        <div className="w-px h-6 bg-white/20 mx-1 md:mx-2 shrink-0"></div>
+        <div className={`shrink-0 w-px h-6 mx-1 md:mx-2 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
         {/* User Profile */}
         <div className="relative shrink-0 z-[2200]">
@@ -806,23 +812,24 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             </button>
 
             {showUserMenu && (
-              <div className="absolute top-full right-0 mt-4 w-64 bg-[#0a0a0a]/90 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden py-3 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/5">
+              <div className={`absolute top-full right-0 mt-4 w-64 backdrop-blur-2xl border rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden py-3 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1
+                ${mapTheme === 'light' ? 'bg-white/95 border-gray-200 ring-black/5' : 'bg-[#0a0a0a]/90 border-white/10 ring-white/5'}`}>
                 {session ? (
                   <>
-                    <div className="px-4 py-3 border-b border-gray-800">
+                    <div className={`px-4 py-3 border-b ${mapTheme === 'light' ? 'border-gray-100' : 'border-gray-800'}`}>
                       <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
-                      <p className="font-bold text-white text-sm truncate">{session.user?.name || 'User'}</p>
-                      <p className="text-xs text-gray-400 truncate">{session.user?.email}</p>
+                      <p className={`font-bold text-sm truncate ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>{session.user?.name || 'User'}</p>
+                      <p className={`text-xs truncate ${mapTheme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>{session.user?.email}</p>
                     </div>
                     <div className="p-1">
                       {session.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL ? (
-                        <a href="/admin" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group">
-                          <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors"><LayoutDashboard size={16} /></div>
+                        <a href="/admin" className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                          <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors"><LayoutDashboard size={16} /></div>
                           Admin Panel
                         </a>
                       ) : (
-                        <a href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-lg transition-colors group">
-                          <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-400 group-hover:bg-purple-500 group-hover:text-white transition-colors"><LayoutDashboard size={16} /></div>
+                        <a href="/dashboard" className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                          <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors"><LayoutDashboard size={16} /></div>
                           Business Dashboard
                         </a>
                       )}
@@ -837,25 +844,25 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                   </div>
                 )}
 
-                <div className="border-t border-white/10 mx-3 my-1"></div>
+                <div className={`border-t mx-3 my-1 ${mapTheme === 'light' ? 'border-gray-100' : 'border-white/10'}`}></div>
 
                 {/* Common: Theme Toggle */}
                 <div className="p-1">
-                  <button onClick={handleThemeChange} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 hover:text-white rounded-xl transition-colors w-full text-left group">
-                    <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors text-yellow-400 border border-white/5">
+                  <button onClick={handleThemeChange} className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl transition-colors w-full text-left group ${mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                    <div className={`p-1.5 rounded-lg border transition-colors text-yellow-500 ${mapTheme === 'light' ? 'bg-black/5 border-black/5 group-hover:bg-black/10' : 'bg-white/5 border-white/5 group-hover:bg-white/10'}`}>
                       {mapTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
                     </div>
                     <span className="flex-1">{mapTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-                    <span className="text-[10px] bg-gray-800 px-1.5 py-0.5 rounded text-gray-400 group-hover:text-gray-300">Switch</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${mapTheme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-400 group-hover:text-gray-300'}`}>Switch</span>
                   </button>
                 </div>
 
                 {session && (
                   <>
-                    <div className="border-t border-gray-800 mx-2 my-1"></div>
+                    <div className={`border-t mx-2 my-1 ${mapTheme === 'light' ? 'border-gray-100' : 'border-gray-800'}`}></div>
                     <div className="p-1">
-                      <button onClick={() => signOut()} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg transition-colors w-full text-left group">
-                        <div className="p-1.5 rounded-md bg-red-500/10 text-red-400 group-hover:bg-red-500 group-hover:text-white transition-colors"><LogOut size={16} /></div>
+                      <button onClick={() => signOut()} className={`flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-lg transition-colors w-full text-left group`}>
+                        <div className="p-1.5 rounded-md bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors"><LogOut size={16} /></div>
                         Sign Out
                       </button>
                     </div>
