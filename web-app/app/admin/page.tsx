@@ -79,14 +79,12 @@ export default function AdminDashboard() {
                     <div className="max-w-7xl mx-auto">
                         {activeTab === 'scout' && <ScoutManager />}
                         {activeTab === 'events' && <EventManager />}
-                        {activeTab === 'dashboard' && (
-                            <div className="bg-black/20 rounded-3xl border border-white/5 overflow-hidden min-h-[800px]">
-                                {/* Pass minimal props if needed, but Page usually handles itself. 
-                                    We might need to strip the dashboard's own padding or layout if it clashes, 
-                                    but let's try direct embed first. */}
-                                <DashboardPage />
-                            </div>
-                        )}
+                        <div className={`bg-black/20 rounded-3xl border border-white/5 overflow-hidden min-h-[800px] ${activeTab === 'dashboard' ? '' : 'hidden'}`}>
+                            {/* Pass minimal props if needed, but Page usually handles itself. 
+                                We might need to strip the dashboard's own padding or layout if it clashes, 
+                                but let's try direct embed first. */}
+                            <DashboardPage />
+                        </div>
                     </div>
                 </main>
             </div>
