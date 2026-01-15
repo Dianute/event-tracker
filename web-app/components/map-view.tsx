@@ -40,7 +40,15 @@ const createEmojiIcon = (emoji: string, theme: string, isNew?: boolean, isFinish
 
 const getEventIcon = (type: string, theme: string, isNew?: boolean, isFinished?: boolean) => {
   switch (type) {
-    case 'food': return createEmojiIcon('🍔', theme, isNew, isFinished);
+    case 'food':
+      // Custom Pin for Food
+      return L.icon({
+        iconUrl: '/markers/food-pin.png',
+        iconSize: [40, 40], // Resized to match others
+        iconAnchor: [20, 40], // Bottom Tip
+        popupAnchor: [0, -40],
+        className: isFinished ? 'grayscale opacity-50' : 'drop-shadow-lg hover:scale-110 transition-transform'
+      });
     case 'sports': return createEmojiIcon('⚽', theme, isNew, isFinished);
     case 'music': return createEmojiIcon('🎵', theme, isNew, isFinished);
     case 'arts': return createEmojiIcon('🎨', theme, isNew, isFinished);
