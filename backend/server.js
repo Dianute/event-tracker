@@ -96,7 +96,23 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE");
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
 
-            console.log("✅ Schema patched successfully (phone & category columns)");
+            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
+
+            // New Global Suggestions
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS global_suggestions (
+                    id TEXT PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    venue TEXT NOT NULL,
+                    lat DOUBLE PRECISION,
+                    lng DOUBLE PRECISION,
+                    usage_count INT DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT NOW()
+                );
+            `);
+            await db.query(`CREATE INDEX IF NOT EXISTS idx_global_suggestions_usage ON global_suggestions (usage_count DESC);`);
+
+            console.log("✅ Schema patched successfully (phone, category & global suggestions)");
         } catch (migErr) {
             console.warn("⚠️ Schema patch warning:", migErr.message);
         }
@@ -357,6 +373,30 @@ app.post('/events', async (req, res) => {
             }
         }
 
+        // AUTO-SAVE TO GLOBAL SUGGESTIONS
+        (async () => {
+            if (title && venue && lat && lng) {
+                try {
+                    const { rows: existingGlobal } = await db.query(
+                        `SELECT id FROM global_suggestions WHERE title = $1 AND venue = $2`,
+                        [title, venue]
+                    );
+
+                    if (existingGlobal.length > 0) {
+                        await db.query(`UPDATE global_suggestions SET usage_count = usage_count + 1 WHERE id = $1`, [existingGlobal[0].id]);
+                    } else {
+                        const gid = uuidv4();
+                        await db.query(
+                            `INSERT INTO global_suggestions (id, title, venue, lat, lng) VALUES ($1, $2, $3, $4, $5)`,
+                            [gid, title, venue, lat, lng]
+                        );
+                    }
+                } catch (e) {
+                    console.error("Failed to update global suggestions:", e.message);
+                }
+            }
+        })();
+
         res.json(toCamelCase(newEvent[0]));
 
     } catch (err) {
@@ -527,6 +567,18 @@ app.delete('/api/user-locations/:id', async (req, res) => {
         res.json({ success: true });
     } catch (err) {
         console.error('DELETE /api/user-locations error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/suggestions/global - Fetch top global suggestions
+app.get('/api/suggestions/global', async (req, res) => {
+    try {
+        const Limit = 500;
+        const { rows } = await db.query(`SELECT title, venue, lat, lng FROM global_suggestions ORDER BY usage_count DESC LIMIT $1`, [Limit]);
+        res.json(rows.map(toCamelCase));
+    } catch (err) {
+        console.error('GET /api/suggestions/global error:', err);
         res.status(500).json({ error: err.message });
     }
 });

@@ -84,3 +84,16 @@ CREATE TABLE IF NOT EXISTS categories (
     default_image_url TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS global_suggestions (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    venue TEXT NOT NULL,
+    lat DOUBLE PRECISION,
+    lng DOUBLE PRECISION,
+    usage_count INT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_global_suggestions_usage ON global_suggestions (usage_count DESC);
+

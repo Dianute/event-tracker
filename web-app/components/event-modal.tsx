@@ -358,16 +358,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
 
     // Auto-Fill History Cache
     const [historyCache, setHistoryCache] = useState<any[]>([]);
+    const [globalCache, setGlobalCache] = useState<any[]>([]);
 
     useEffect(() => {
         if (isOpen && session?.user?.email) {
-            // Silently fetch full history for autocomplete
+            // Fetch History
             fetch(`${API_URL}/events?history=true`)
                 .then(res => res.json())
-                .then(data => {
-                    if (Array.isArray(data)) setHistoryCache(data);
-                })
+                .then(data => { if (Array.isArray(data)) setHistoryCache(data); })
                 .catch(err => console.error("History fetch error", err));
+
+            // Fetch Global Suggestions
+            fetch(`${API_URL}/api/suggestions/global`)
+                .then(res => res.json())
+                .then(data => { if (Array.isArray(data)) setGlobalCache(data); })
+                .catch(err => console.error("Global fetch error", err));
         }
     }, [isOpen, session]);
 
@@ -882,6 +887,9 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                                                     type: 'location', isLocation: true
                                                 }))];
                                             }
+
+                                            // 4. Add Global Suggestions
+                                            if (globalCache && globalCache.length > 0) pool = [...pool, ...globalCache];
                                             const userEmail = session?.user?.email;
 
                                             const candidates = pool.filter(e => {
