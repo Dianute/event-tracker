@@ -115,40 +115,40 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
 // ==================== CATEGORIES API ====================
 
-// GET /categories - List all categories
+// GET /categories - Fetch all categories (Dynamic)
 app.get('/categories', async (req, res) => {
     try {
         const { rows } = await db.query("SELECT * FROM categories ORDER BY sortOrder ASC");
 
-        // Transform response: camelCase + Check Expiration
-        const now = new Date();
-        const categories = rows.map(row => {
-            let isFeatured = row.is_featured;
+        // Transform for Frontend compatibility
+        const camelCased = rows.map(cat => ({
+            id: cat.id,
+            label: cat.label,
+            emoji: cat.emoji,
+            color: cat.color,
+            isFeatured: cat.is_featured,
+            defaultImageUrl: cat.default_image_url,
+            featuredExpiresAt: cat.featured_expires_at // Pass to frontend for checking
+        }));
 
-            // Check Expiration
-            if (isFeatured && row.featured_expires_at) {
-                const expiry = new Date(row.featured_expires_at);
-                if (expiry < now) {
-                    isFeatured = false; // Expired
+        // Filter out expired featured categories
+        const now = new Date();
+        const processed = camelCased.map(cat => {
+            if (cat.isFeatured && cat.featuredExpiresAt) {
+                const expires = new Date(cat.featuredExpiresAt);
+                if (now > expires) {
+                    return { ...cat, isFeatured: false }; // Expired
                 }
             }
-
-            return {
-                id: row.id,
-                label: row.label,
-                emoji: row.emoji,
-                color: row.color,
-                sortOrder: row.sortorder, // Note: PG returns lowercase unless quoted
-                isFeatured: isFeatured,
-                defaultImageUrl: row.default_image_url,
-                featuredExpiresAt: row.featured_expires_at
-            };
+            return cat;
         });
 
-        res.json(categories);
+        res.json(processed);
     } catch (err) {
-        console.error("GET /categories error:", err);
-        res.status(500).json({ error: "Failed to fetch categories" });
+        // SAFE FALLBACK: If DB fails, return empty array instead of crashing/500
+        // This allows the admin panel to load even if tables are missing
+        console.error("GET /categories error:", err.message);
+        res.json([]); // Return empty list
     }
 });
 
