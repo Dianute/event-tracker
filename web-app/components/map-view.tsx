@@ -283,11 +283,15 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         if (Array.isArray(data)) {
           // Transform backend format to frontend format (icon -> emoji)
           // Default All + Server Data
-          const dynamicCats = data.map((c: any) => ({
+
+          // Filter out inactive categories (isActive is true or undefined)
+          const activeData = data.filter((c: any) => c.isActive !== false);
+
+          const dynamicCats = activeData.map((c: any) => ({
             id: c.id,
             label: c.label,
             icon: c.emoji,
-            isFeatured: c.isFeatured // Capture featured
+            isFeatured: c.isFeatured
           }));
           setCategories([{ id: 'all', label: 'All', icon: <Globe size={16} /> }, ...dynamicCats]);
           setFeaturedCategories(dynamicCats.filter((c: any) => c.isFeatured));

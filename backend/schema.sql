@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS categories (
     color TEXT,
     sortOrder INT DEFAULT 0,
     is_featured BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
     default_image_url TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );

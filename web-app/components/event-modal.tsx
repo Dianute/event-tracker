@@ -379,7 +379,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
             fetch(`${API_URL}/categories`)
                 .then(res => res.json())
                 .then(data => {
-                    if (Array.isArray(data)) setCategories(data);
+                    if (Array.isArray(data)) {
+                        const activeCats = data.filter((c: any) => c.isActive !== false);
+                        setCategories(activeCats);
+                    }
                 })
                 .catch(err => console.error("Category fetch error", err));
         }

@@ -32,6 +32,7 @@ export default function CategoryManager() {
     const [formColor, setFormColor] = useState('bg-blue-600');
     const [formOrder, setFormOrder] = useState(0);
     const [formIsFeatured, setFormIsFeatured] = useState(false);
+    const [formIsActive, setFormIsActive] = useState(true);
     const [formDefaultImage, setFormDefaultImage] = useState('');
 
     const fetchCategories = () => {
@@ -61,6 +62,7 @@ export default function CategoryManager() {
         setFormColor('bg-blue-600');
         setFormOrder(0);
         setFormIsFeatured(false);
+        setFormIsActive(true);
         setFormDefaultImage('');
     };
 
@@ -72,6 +74,7 @@ export default function CategoryManager() {
         setFormColor(cat.color || 'bg-blue-600');
         setFormOrder(cat.sortOrder || 0);
         setFormIsFeatured(cat.isFeatured || false);
+        setFormIsActive(cat.isActive !== undefined ? cat.isActive : true);
         setFormDefaultImage(cat.defaultImageUrl || '');
     };
 
@@ -86,6 +89,7 @@ export default function CategoryManager() {
             color: formColor,
             sortOrder: Number(formOrder),
             isFeatured: formIsFeatured,
+            isActive: formIsActive,
             defaultImageUrl: formDefaultImage
         };
 
@@ -217,6 +221,19 @@ export default function CategoryManager() {
                                 <span className="text-xs font-normal text-gray-400">(Shows as button on map)</span>
                             </label>
                         </div>
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                id="isActive"
+                                checked={formIsActive}
+                                onChange={e => setFormIsActive(e.target.checked)}
+                                className="w-5 h-5 rounded border-gray-600 bg-gray-900 text-green-600 focus:ring-green-500"
+                            />
+                            <label htmlFor="isActive" className="text-sm font-bold text-white select-none flex items-center gap-2">
+                                ✅ Active / Enabled
+                                <span className="text-xs font-normal text-gray-400">(Uncheck to hide from public map)</span>
+                            </label>
+                        </div>
 
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Default Image URL (Optional)</label>
@@ -269,15 +286,16 @@ export default function CategoryManager() {
             {/* List */}
             <div className="grid grid-cols-1 gap-2">
                 {categories.map((cat) => (
-                    <div key={cat.id} className="group flex items-center justify-between p-3 bg-gray-900/50 border border-gray-700/50 rounded-xl hover:bg-gray-800 transition-colors">
+                    <div key={cat.id} className={`group flex items-center justify-between p-3 border rounded-xl transition-colors ${cat.isActive === false ? 'bg-red-900/10 border-red-900/30 opacity-70' : 'bg-gray-900/50 border-gray-700/50 hover:bg-gray-800'}`}>
                         <div className="flex items-center gap-4">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-lg ${cat.color}`}>
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xl shadow-lg ${cat.isActive === false ? 'bg-gray-700 grayscale' : cat.color}`}>
                                 {cat.emoji}
                             </div>
                             <div>
                                 <h4 className="font-bold text-white text-sm flex items-center gap-2">
                                     {cat.label}
                                     {cat.isFeatured && <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 rounded border border-yellow-500/30">⭐ Featured</span>}
+                                    {cat.isActive === false && <span className="text-[10px] bg-red-500/20 text-red-300 px-1.5 py-0.5 rounded border border-red-500/30">Disabled</span>}
                                 </h4>
                                 <p className="text-[10px] text-gray-500 font-mono">ID: {cat.id} • Order: {cat.sortOrder}</p>
                             </div>

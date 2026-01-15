@@ -93,6 +93,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
 
             // New Categories Columns
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE");
+            await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE");
             await db.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS default_image_url TEXT");
 
             console.log("✅ Schema patched successfully (phone & category columns)");
@@ -730,7 +731,7 @@ app.get('/categories', async (req, res) => {
         const { rows } = await db.query("SELECT * FROM categories ORDER BY sortOrder ASC");
         const camelRows = rows.map(r => ({
             id: r.id, label: r.label, emoji: r.emoji, color: r.color, sortOrder: r.sortorder,
-            isFeatured: r.is_featured, defaultImageUrl: r.default_image_url
+            isFeatured: r.is_featured, isActive: r.is_active, defaultImageUrl: r.default_image_url
         }));
         res.json(camelRows);
     } catch (err) {
@@ -738,33 +739,31 @@ app.get('/categories', async (req, res) => {
     }
 });
 
-// POST /categories - Create/Update Category (Admin Only)
+// POST /categories - Create or Update Category (Admin Only)
 app.post('/categories', requireAuth, async (req, res) => {
-    const { id, label, emoji, color, sortOrder, isFeatured, defaultImageUrl } = req.body;
-    if (!id || !label) return res.status(400).json({ error: "ID and Label are required" });
+    const { id, label, emoji, color, sortOrder, isFeatured, isActive, defaultImageUrl } = req.body;
+
+    // Validation
+    if (!id || !label) {
+        return res.status(400).json({ error: "Missing required fields (id, label)" });
+    }
 
     try {
-        const sql = `
-            INSERT INTO categories (id, label, emoji, color, sortOrder, is_featured, default_image_url) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-            ON CONFLICT (id) DO UPDATE SET 
-            label = EXCLUDED.label, emoji = EXCLUDED.emoji, color = EXCLUDED.color, sortOrder = EXCLUDED.sortOrder,
-            is_featured = EXCLUDED.is_featured, default_image_url = EXCLUDED.default_image_url
-            RETURNING *
-        `;
-        const { rows } = await db.query(sql, [
-            id.toLowerCase(), label, emoji, color, sortOrder || 0,
-            isFeatured || false, defaultImageUrl || null
-        ]);
+        await db.query(`
+            INSERT INTO categories (id, label, emoji, color, sortOrder, is_featured, is_active, default_image_url)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO UPDATE SET
+                label = EXCLUDED.label,
+                emoji = EXCLUDED.emoji,
+                color = EXCLUDED.color,
+                sortOrder = EXCLUDED.sortOrder,
+                is_featured = EXCLUDED.is_featured,
+                is_active = EXCLUDED.is_active,
+                default_image_url = EXCLUDED.default_image_url
+        `, [id, label, emoji, color, sortOrder || 0, isFeatured || false, isActive !== undefined ? isActive : true, defaultImageUrl]);
 
-        // Return camelCase manual map or helper
-        const cat = rows[0];
-        const camelCat = {
-            id: cat.id, label: cat.label, emoji: cat.emoji, color: cat.color, sortOrder: cat.sortorder,
-            isFeatured: cat.is_featured, defaultImageUrl: cat.default_image_url
-        };
-
-        res.json({ success: true, category: camelCat });
+        // Return updated object
+        res.json({ success: true, category: { id, label, emoji, color, sortOrder, isFeatured, isActive, defaultImageUrl } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
