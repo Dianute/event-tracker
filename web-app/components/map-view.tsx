@@ -742,20 +742,35 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             {showCategoryMenu && (
               <div className={`absolute top-full left-0 mt-3 w-48 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]
                 ${mapTheme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-[#0a0a0a]/90 border-white/10'}`}>
-                {categories.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      setSelectedCategory(cat.id);
-                      setShowCategoryMenu(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors
-                      ${selectedCategory === cat.id ? 'text-blue-500 bg-blue-500/5' : (mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5' : 'text-gray-300 hover:bg-white/10')}`}
-                  >
-                    <span className="shrink-0 w-5 flex justify-center">{cat.icon}</span>
-                    <span className="font-medium">{cat.label}</span>
-                  </button>
-                ))}
+                {categories.map(cat => {
+                  // Calculate Count (using candidates to reflect time/map state)
+                  const count = cat.id === 'all'
+                    ? candidates.length
+                    : candidates.filter(e => e.type === cat.id).length;
+
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setShowCategoryMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors group
+                        ${selectedCategory === cat.id ? 'text-blue-500 bg-blue-500/5' : (mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5' : 'text-gray-300 hover:bg-white/10')}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="shrink-0 w-5 flex justify-center">{cat.icon}</span>
+                        <span className="font-medium">{cat.label}</span>
+                      </div>
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors 
+                        ${selectedCategory === cat.id
+                          ? 'bg-blue-500 text-white'
+                          : (mapTheme === 'light' ? 'bg-gray-200 text-gray-600 group-hover:bg-gray-300' : 'bg-white/10 text-gray-400 group-hover:bg-white/20')}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
