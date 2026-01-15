@@ -804,7 +804,9 @@ app.get('/categories', async (req, res) => {
         const { rows } = await db.query("SELECT * FROM categories ORDER BY sortOrder ASC");
         const camelRows = rows.map(r => ({
             id: r.id, label: r.label, emoji: r.emoji, color: r.color, sortOrder: r.sortorder,
-            isFeatured: r.is_featured, isActive: r.is_active, defaultImageUrl: r.default_image_url
+            id: r.id, label: r.label, emoji: r.emoji, color: r.color, sortOrder: r.sortorder,
+            isFeatured: r.is_featured, isActive: r.is_active, defaultImageUrl: r.default_image_url,
+            customPinUrl: r.custom_pin_url
         }));
         res.json(camelRows);
     } catch (err) {
@@ -814,7 +816,7 @@ app.get('/categories', async (req, res) => {
 
 // POST /categories - Create or Update Category (Admin Only)
 app.post('/categories', requireAuth, async (req, res) => {
-    const { id, label, emoji, color, sortOrder, isFeatured, isActive, defaultImageUrl } = req.body;
+    const { id, label, emoji, color, sortOrder, isFeatured, isActive, defaultImageUrl, customPinUrl } = req.body;
 
     // Validation
     if (!id || !label) {
@@ -823,8 +825,8 @@ app.post('/categories', requireAuth, async (req, res) => {
 
     try {
         await db.query(`
-            INSERT INTO categories (id, label, emoji, color, sortOrder, is_featured, is_active, default_image_url)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            INSERT INTO categories (id, label, emoji, color, sortOrder, is_featured, is_active, default_image_url, custom_pin_url)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (id) DO UPDATE SET
                 label = EXCLUDED.label,
                 emoji = EXCLUDED.emoji,
@@ -832,11 +834,12 @@ app.post('/categories', requireAuth, async (req, res) => {
                 sortOrder = EXCLUDED.sortOrder,
                 is_featured = EXCLUDED.is_featured,
                 is_active = EXCLUDED.is_active,
-                default_image_url = EXCLUDED.default_image_url
-        `, [id, label, emoji, color, sortOrder || 0, isFeatured || false, isActive !== undefined ? isActive : true, defaultImageUrl]);
+                default_image_url = EXCLUDED.default_image_url,
+                custom_pin_url = EXCLUDED.custom_pin_url
+        `, [id, label, emoji, color, sortOrder || 0, isFeatured || false, isActive !== undefined ? isActive : true, defaultImageUrl, customPinUrl]);
 
         // Return updated object
-        res.json({ success: true, category: { id, label, emoji, color, sortOrder, isFeatured, isActive, defaultImageUrl } });
+        res.json({ success: true, category: { id, label, emoji, color, sortOrder, isFeatured, isActive, defaultImageUrl, customPinUrl } });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

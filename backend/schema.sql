@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS categories (
     is_featured BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
     default_image_url TEXT,
+    custom_pin_url TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 

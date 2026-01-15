@@ -34,6 +34,7 @@ export default function CategoryManager() {
     const [formIsFeatured, setFormIsFeatured] = useState(false);
     const [formIsActive, setFormIsActive] = useState(true);
     const [formDefaultImage, setFormDefaultImage] = useState('');
+    const [formCustomPinUrl, setFormCustomPinUrl] = useState('');
 
     const fetchCategories = () => {
         setLoading(true);
@@ -63,7 +64,9 @@ export default function CategoryManager() {
         setFormOrder(0);
         setFormIsFeatured(false);
         setFormIsActive(true);
+        setFormIsActive(true);
         setFormDefaultImage('');
+        setFormCustomPinUrl('');
     };
 
     const handleEdit = (cat: any) => {
@@ -75,7 +78,9 @@ export default function CategoryManager() {
         setFormOrder(cat.sortOrder || 0);
         setFormIsFeatured(cat.isFeatured || false);
         setFormIsActive(cat.isActive !== undefined ? cat.isActive : true);
+
         setFormDefaultImage(cat.defaultImageUrl || '');
+        setFormCustomPinUrl(cat.customPinUrl || '');
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -90,7 +95,9 @@ export default function CategoryManager() {
             sortOrder: Number(formOrder),
             isFeatured: formIsFeatured,
             isActive: formIsActive,
-            defaultImageUrl: formDefaultImage
+
+            defaultImageUrl: formDefaultImage,
+            customPinUrl: formCustomPinUrl
         };
 
         try {
@@ -284,6 +291,58 @@ export default function CategoryManager() {
                                 )}
                             </div>
                             <p className="text-[10px] text-gray-500 mt-1">This image will be auto-filled for events in this category.</p>
+                        </div>
+
+                        {/* CUSTOM PIN URL */}
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Custom Map Pin (Optional)</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={formCustomPinUrl}
+                                    onChange={e => setFormCustomPinUrl(e.target.value)}
+                                    placeholder="https://example.com/pin.png"
+                                    className="flex-1 px-3 py-2 bg-gray-900 border border-gray-600 rounded-lg text-white text-sm"
+                                />
+                                <label className="cursor-pointer px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg border border-gray-600 flex items-center gap-2 transition-colors">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+
+                                            const formData = new FormData();
+                                            formData.append('image', file);
+
+                                            try {
+                                                setLoading(true);
+                                                const res = await fetch(`${API_URL}/upload`, {
+                                                    method: 'POST',
+                                                    body: formData
+                                                });
+                                                const data = await res.json();
+                                                if (data.imageUrl) {
+                                                    setFormCustomPinUrl(data.imageUrl);
+                                                } else {
+                                                    alert('Upload failed');
+                                                }
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Upload error');
+                                            } finally {
+                                                setLoading(false);
+                                            }
+                                        }}
+                                    />
+                                    <span className="text-xs font-bold">Upload</span>
+                                </label>
+                                {formCustomPinUrl && (
+                                    <img src={formCustomPinUrl} alt="Pin Preview" className="w-10 h-10 object-contain p-1 bg-white/10 rounded-lg border border-gray-600" />
+                                )}
+                            </div>
+                            <p className="text-[10px] text-gray-500 mt-1">This icon will replace the standard marker on the map.</p>
                         </div>
                     </div>
 

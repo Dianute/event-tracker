@@ -38,7 +38,33 @@ const createEmojiIcon = (emoji: string, theme: string, isNew?: boolean, isFinish
   });
 };
 
-const getEventIcon = (type: string, theme: string, isNew?: boolean, isFinished?: boolean) => {
+const createCustomImageIcon = (url: string, theme: string, isNew?: boolean, isFinished?: boolean) => {
+  // Theme-based Styles for container
+  let containerClass = 'bg-white border-white shadow-md';
+  if (theme === 'cyberpunk') containerClass = 'bg-black/90 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.6)]';
+  else if (theme === 'dark') containerClass = 'bg-gray-900/90 border-gray-600 shadow-xl';
+
+  const borderClass = theme === 'cyberpunk' ? 'border' : 'border-2';
+  const animationClass = isNew && !isFinished ? 'animate-bounce-slow ring-4 ring-yellow-400 ring-offset-2 ring-offset-black' :
+    isFinished ? 'grayscale opacity-50' : 'transform hover:scale-110';
+
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div class="relative flex items-center justify-center w-14 h-14 ${containerClass} rounded-full ${borderClass} overflow-hidden transition-transform ${animationClass}">
+                <img src="${url}" class="w-full h-full object-cover" alt="icon" />
+                ${isFinished ? '<div class="absolute inset-0 bg-black/50 flex items-center justify-center"><div class="text-[8px] text-white font-bold uppercase rotate-45 border border-white px-1">Ended</div></div>' : ''}
+               </div>`,
+    iconSize: [56, 56],
+    iconAnchor: [28, 28],
+    popupAnchor: [0, -28],
+  });
+};
+
+const getEventIcon = (type: string, theme: string, isNew?: boolean, isFinished?: boolean, customIconUrl?: string | null) => {
+  if (customIconUrl) {
+    return createCustomImageIcon(customIconUrl, theme, isNew, isFinished);
+  }
+
   switch (type) {
     case 'food': return createEmojiIcon('🍔', theme, isNew, isFinished);
     case 'sports': return createEmojiIcon('⚽', theme, isNew, isFinished);
@@ -271,7 +297,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
   // Dynamic Categories
-  const [categories, setCategories] = useState<{ id: string; label: string; icon: any; isFeatured?: boolean }[]>([
+  const [categories, setCategories] = useState<{ id: string; label: string; icon: any; isFeatured?: boolean; customPinUrl?: string }[]>([
     { id: 'all', label: 'All', icon: <Globe size={16} /> }
   ]);
   const [featuredCategories, setFeaturedCategories] = useState<any[]>([]);
@@ -291,7 +317,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             id: c.id,
             label: c.label,
             icon: c.emoji,
-            isFeatured: c.isFeatured
+            isFeatured: c.isFeatured,
+            customPinUrl: c.customPinUrl
           }));
           setCategories([{ id: 'all', label: 'All', icon: <Globe size={16} /> }, ...dynamicCats]);
           setFeaturedCategories(dynamicCats.filter((c: any) => c.isFeatured));
@@ -670,11 +697,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           }
           const link = event.link || (event.description && event.description.split('\n')[2]?.startsWith('http') ? event.description.split('\n')[2] : '');
 
+          const category = categories.find(c => c.id === event.type);
+          const customPinUrl = category?.customPinUrl;
+
           const markerIcon = isCluster ? L.divIcon({
             className: 'cluster-marker',
             html: `<div class="flex items-center justify-center w-12 h-12 ${isCyber ? 'bg-black/80 border-cyan-500 text-cyan-400 shadow-[0_0_15px_#22d3ee]' : 'bg-blue-600 text-white shadow-lg'} rounded-xl border-2 font-bold text-lg backdrop-blur-md">${group.length}</div>`,
             iconSize: [48, 48]
-          }) : getEventIcon(event.type, mapTheme, false, !!isPast);
+          }) : getEventIcon(event.type, mapTheme, false, !!isPast, customPinUrl);
 
           return (
             <Marker
