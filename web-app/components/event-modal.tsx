@@ -89,7 +89,7 @@ const formatAddress = (data: any, originalName?: string) => {
 };
 
 // Helper Component: Single Slide in the Feed
-function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event: any, theme: string, onClose: () => void, onZoom: (url: string) => void, userLocation?: { lat: number, lng: number } | null }) {
+function EventFeedSlide({ event, theme, onClose, onZoom, userLocation, customIcon }: { event: any, theme: string, onClose: () => void, onZoom: (url: string) => void, userLocation?: { lat: number, lng: number } | null, customIcon?: string }) {
     const [showControls, setShowControls] = useState(true);
 
     const title = event.title;
@@ -173,6 +173,7 @@ function EventFeedSlide({ event, theme, onClose, onZoom, userLocation }: { event
             {/* 2. Top Controls - pointer-events-none ensures clicks pass to image unless hitting buttons */}
             <div className={`absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-50 transition-opacity duration-300 pointer-events-none ${showControls ? 'opacity-100' : 'opacity-0'}`}>
                 <div onClick={(e) => e.stopPropagation()} className={`pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg backdrop-blur-xl border border-white/20 text-white bg-black/50`}>
+                    {customIcon && <img src={customIcon} alt="" className="w-4 h-4 object-contain filter drop-shadow hidden-on-empty" />}
                     <span className="drop-shadow-md">{type}</span>
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -1141,17 +1142,21 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                         ref={scrollRef}
                         className="w-full h-full overflow-y-auto snap-y snap-mandatory hide-scrollbar"
                     >
-                        {activeFeed.map((evt) => (
-                            <div key={evt.id} id={`slide-${evt.id}`} className="w-full h-full snap-start flex-shrink-0 relative">
-                                <EventFeedSlide
-                                    event={evt}
-                                    theme={theme}
-                                    userLocation={userLocation}
-                                    onClose={onClose}
-                                    onZoom={(url) => { setZoomedImage(url); setIsFullImage(true); }}
-                                />
-                            </div>
-                        ))}
+                        {activeFeed.map((evt) => {
+                            const cat = categories.find(c => c.id === evt.type);
+                            return (
+                                <div key={evt.id} id={`slide-${evt.id}`} className="w-full h-full snap-start flex-shrink-0 relative">
+                                    <EventFeedSlide
+                                        event={evt}
+                                        theme={theme}
+                                        userLocation={userLocation}
+                                        onClose={onClose}
+                                        onZoom={(url) => { setZoomedImage(url); setIsFullImage(true); }}
+                                        customIcon={cat?.customPinUrl}
+                                    />
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
