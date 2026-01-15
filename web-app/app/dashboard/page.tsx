@@ -279,7 +279,7 @@ export default function DashboardPage() {
                             </div>
 
                             <div className="flex items-center gap-4">
-                                <h1 className="text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x leading-tight">
+                                <h1 className="text-3xl md:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 animate-gradient-x leading-tight">
                                     Business Hub
                                 </h1>
                                 <div className="bg-gradient-to-br from-yellow-400/20 to-orange-500/20 border border-yellow-500/30 px-3 py-1 rounded-lg flex items-center gap-2 animate-pulse">
@@ -288,33 +288,33 @@ export default function DashboardPage() {
                                 </div>
                             </div>
 
-                            <p className="text-gray-400 text-base font-medium max-w-lg leading-relaxed">
+                            <p className="text-gray-400 text-sm md:text-base font-medium max-w-lg leading-relaxed">
                                 Welcome back, <span className="text-white font-bold">{session?.user?.name || 'Partner'}</span>. Monitor your reach and manage your active promotions.
                             </p>
                         </div>
 
-                        <div className="flex flex-col md:flex-row gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                             <Link
                                 href="/menu-test"
-                                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3"
+                                className="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[11px] font-black uppercase tracking-widest px-6 py-4 rounded-2xl transition-all active:scale-95 flex items-center justify-center gap-3 w-full sm:w-auto"
                             >
                                 <LayoutTemplate size={18} className="text-pink-400" />
-                                <span>Menu Architect</span>
+                                My Menus
                             </Link>
                             <button
-                                onClick={() => { setSelectedEvent(null); setIsModalOpen(true); }}
-                                className="bg-blue-600 hover:bg-blue-500 text-white text-[11px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-900/40 active:scale-95 flex items-center justify-center gap-3"
+                                onClick={() => setIsModalOpen(true)}
+                                className="bg-white text-black hover:bg-gray-200 text-[11px] font-black uppercase tracking-widest px-8 py-4 rounded-2xl shadow-xl shadow-white/10 transition-all transform hover:-translate-y-1 active:translate-y-0 active:scale-95 flex items-center justify-center gap-3 w-full sm:w-auto"
                             >
-                                <Plus size={20} />
-                                <span>Launch Event</span>
+                                <Plus size={18} />
+                                New Event
                             </button>
                         </div>
                     </div>
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                         <div className="bg-gray-800/20 border border-white/5 p-6 rounded-3xl backdrop-blur-md relative overflow-hidden group hover:border-blue-500/30 transition-all">
-                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+                            <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl"></div>
                             <div className="flex items-center gap-4 mb-3">
                                 <div className="p-3 bg-blue-500/10 text-blue-400 rounded-2xl">
                                     <CalendarIcon size={24} />
