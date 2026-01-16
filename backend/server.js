@@ -113,6 +113,31 @@ app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
             `);
             await db.query(`CREATE INDEX IF NOT EXISTS idx_global_suggestions_usage ON global_suggestions (usage_count DESC);`);
 
+            // Link Checker Cloud Sync
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS link_batches (
+                    id UUID PRIMARY KEY,
+                    user_email TEXT,
+                    name TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+            await db.query(`
+                CREATE TABLE IF NOT EXISTS link_items (
+                    id UUID PRIMARY KEY,
+                    batch_id UUID REFERENCES link_batches(id) ON DELETE CASCADE,
+                    url TEXT NOT NULL,
+                    status TEXT DEFAULT 'unchecked',
+                    last_checked TIMESTAMP,
+                    http_status INTEGER,
+                    error_message TEXT,
+                    sort_order INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            `);
+            await db.query(`CREATE INDEX IF NOT EXISTS idx_link_items_batch ON link_items(batch_id);`);
+
             // --- BACKFILL GLOBAL SUGGESTIONS (One-time or idempotent) ---
             // Populate global suggestions from existing events if the table is empty
             const { rows: globalCount } = await db.query('SELECT COUNT(*) FROM global_suggestions');
@@ -1004,6 +1029,153 @@ cron.schedule('0 * * * *', runCleanup); // Run every hour
 app.get('/cleanup', (req, res) => {
     runCleanup();
     res.json({ message: "Cleanup started" });
+});
+
+// ==================== LINK CHECKER API (CLOUD SYNC) ====================
+
+// GET /api/link-batches - List all batches (with item count)
+app.get('/api/link-batches', async (req, res) => {
+    // Optional: Filter by user email if provided
+    const userEmail = req.headers['x-user-email'];
+    try {
+        const { rows } = await db.query(`
+            SELECT b.*, COUNT(i.id) as item_count 
+            FROM link_batches b
+            LEFT JOIN link_items i ON b.id = i.batch_id
+            GROUP BY b.id
+            ORDER BY b.created_at DESC
+        `);
+        // If we strictly want to filter by user:
+        // WHERE user_email = $1 OR user_email IS NULL ...
+
+        res.json(rows.map(r => ({
+            id: r.id,
+            name: r.name,
+            createdAt: r.created_at,
+            itemCount: parseInt(r.item_count)
+        })));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/link-batches - Create new batch
+app.post('/api/link-batches', async (req, res) => {
+    const { name, userEmail } = req.body;
+    if (!name) return res.status(400).json({ error: "Name is required" });
+
+    const id = uuidv4();
+    try {
+        await db.query(
+            "INSERT INTO link_batches (id, name, user_email) VALUES ($1, $2, $3)",
+            [id, name, userEmail]
+        );
+        res.json({ success: true, id, name });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT /api/link-batches/:id - Rename batch
+app.put('/api/link-batches/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    try {
+        await db.query("UPDATE link_batches SET name = $1, updated_at = NOW() WHERE id = $2", [name, id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/link-batches/:id - Delete batch
+app.delete('/api/link-batches/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM link_batches WHERE id = $1", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// GET /api/link-batches/:id/items - Get items for a batch
+app.get('/api/link-batches/:id/items', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { rows } = await db.query(
+            "SELECT * FROM link_items WHERE batch_id = $1 ORDER BY sort_order ASC, created_at ASC",
+            [id]
+        );
+        res.json(rows.map(r => ({
+            id: r.id,
+            url: r.url,
+            status: r.status,
+            httpStatus: r.http_status,
+            errorMessage: r.error_message,
+            lastChecked: r.last_checked
+        })));
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// POST /api/link-batches/:id/items - Add items to batch
+app.post('/api/link-batches/:id/items', async (req, res) => {
+    const { id } = req.params;
+    const { urls } = req.body; // Array of strings
+
+    if (!urls || !Array.isArray(urls)) return res.status(400).json({ error: "urls array required" });
+
+    try {
+        const values = [];
+        const placeholders = [];
+        let pIndex = 1;
+
+        urls.forEach(url => {
+            const itemId = uuidv4();
+            placeholders.push(`($${pIndex}, $${pIndex + 1}, $${pIndex + 2})`);
+            values.push(itemId, id, url);
+            pIndex += 3;
+        });
+
+        if (values.length > 0) {
+            const sql = `INSERT INTO link_items (id, batch_id, url) VALUES ${placeholders.join(', ')} RETURNING *`;
+            const { rows } = await db.query(sql, values);
+            res.json({ success: true, count: rows.length, items: rows });
+        } else {
+            res.json({ success: true, count: 0 });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// PUT /api/link-items/:id - Update item status
+app.put('/api/link-items/:id', async (req, res) => {
+    const { id } = req.params;
+    const { status, httpStatus, errorMessage } = req.body;
+    try {
+        await db.query(`
+            UPDATE link_items 
+            SET status = $1, http_status = $2, error_message = $3, last_checked = NOW() 
+            WHERE id = $4
+        `, [status, httpStatus, errorMessage, id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// DELETE /api/link-items/:id - Delete item
+app.delete('/api/link-items/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM link_items WHERE id = $1", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.listen(PORT, () => {

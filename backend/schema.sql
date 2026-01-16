@@ -98,3 +98,26 @@ CREATE TABLE IF NOT EXISTS global_suggestions (
 
 CREATE INDEX IF NOT EXISTS idx_global_suggestions_usage ON global_suggestions (usage_count DESC);
 
+-- Link Checker Cloud Sync
+CREATE TABLE IF NOT EXISTS link_batches (
+    id UUID PRIMARY KEY,
+    user_email TEXT, -- Owner (nullable for public usage or legacy)
+    name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS link_items (
+    id UUID PRIMARY KEY,
+    batch_id UUID REFERENCES link_batches(id) ON DELETE CASCADE,
+    url TEXT NOT NULL,
+    status TEXT DEFAULT 'unchecked', -- 'unchecked', 'ok', 'error', 'warning'
+    last_checked TIMESTAMP,
+    http_status INTEGER,
+    error_message TEXT,
+    sort_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_link_items_batch ON link_items(batch_id);
+
