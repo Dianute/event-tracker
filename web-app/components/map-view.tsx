@@ -556,6 +556,9 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   if (showingFallback) {
     const fallbackEvents = events
       .filter(e => {
+        // 1. Consistency: Respect Selected Category
+        if (selectedCategory !== 'all' && e.type !== selectedCategory) return false;
+
         const start = e.startTime ? new Date(e.startTime) : new Date(0);
         // Consistency: Apply same "Today Only" rule for Food in fallback
         if (e.type === 'food') {
