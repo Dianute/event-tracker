@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard, X } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -1048,129 +1048,151 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
               <div className={`sticky top-0 z-10 pb-2 border-b backdrop-blur-md flex items-center
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
-                {/* Horizontal Category Scroller */}
-                <div
-                  ref={categoryScrollRef}
-                  className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-1 w-full pb-1"
-                >
-                  {categories.map(cat => {
-                    const count = cat.id === 'all'
-                      ? timeFiltered.length
-                      : timeFiltered.filter(e => e.type === cat.id).length;
+                {/* Horizontal Category Scroller Container */}
+                <div className="relative w-full group/scroll">
 
-                    const isSelected = selectedCategory === cat.id;
+                  {/* Left Arrow & Fade */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black/20 to-transparent z-10 flex items-center justify-start pointer-events-none transition-opacity duration-300 ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`}>
+                    <button
+                      onClick={() => scrollContainer('left')}
+                      className="pointer-events-auto ml-1 p-1 rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 hover:bg-black/60 active:scale-95 transition-all shadow-lg hidden md:flex"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                  </div>
 
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => setSelectedCategory(cat.id)}
-                        className={`group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 whitespace-nowrap active:scale-95
+                  {/* Right Arrow & Fade */}
+                  <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/20 to-transparent z-10 flex items-center justify-end pointer-events-none transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0'}`}>
+                    <button
+                      onClick={() => scrollContainer('right')}
+                      className="pointer-events-auto mr-1 p-1 rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 hover:bg-black/60 active:scale-95 transition-all shadow-lg hidden md:flex"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+
+                  <div
+                    ref={categoryScrollRef}
+                    className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-1 w-full pb-1 scroll-smooth"
+                  >
+                    {categories.map(cat => {
+                      const count = cat.id === 'all'
+                        ? timeFiltered.length
+                        : timeFiltered.filter(e => e.type === cat.id).length;
+
+                      const isSelected = selectedCategory === cat.id;
+
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => setSelectedCategory(cat.id)}
+                          className={`group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 whitespace-nowrap active:scale-95
                           ${isSelected
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                            : (mapTheme === 'light' ? 'bg-white/80 text-gray-700 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-md' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white')}
+                              ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                              : (mapTheme === 'light' ? 'bg-white/80 text-gray-700 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-md' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white')}
                         `}
-                      >
-                        <span className={`text-sm transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{cat.icon}</span>
-                        <span className="text-sm font-bold">{cat.label}</span>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1
+                        >
+                          <span className={`text-sm transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{cat.icon}</span>
+                          <span className="text-sm font-bold">{cat.label}</span>
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1
                           ${isSelected ? 'bg-white/20 text-white' : (mapTheme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-black/40 text-gray-400')}
                         `}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {activeList.map(event => {
-                const category = categories.find(c => c.id === event.type);
-                return (
-                  <div key={event.id} className="w-full">
-                    <EventCard
-                      event={event}
-                      userLocation={userLocation}
-                      variant="standard"
-                      customIcon={category?.customPinUrl}
-                      onClick={() => {
-                        // Don't close list - preserve context for "Back" navigation
-                        if (map) map.flyTo([event.lat, event.lng], 16);
-                        if (onEventSelect) onEventSelect(event);
-                      }}
-                    />
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
-                );
-              })}
-
-              {activeList.length === 0 && (
-                <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found.</div>
-              )}
-            </div>
-          </div>
-        )
-      }
-
-      {/* Add Button - Visible to all, prompts login if needed */}
-      <div className="fixed bottom-40 right-6 z-[1000]">
-        <button
-          onClick={() => {
-            if (!session) {
-              setShowAuthModal(true);
-              return;
-            }
-            const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
-            if (onAddEventClick) onAddEventClick(loc);
-          }}
-          className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
-          title={session ? "Add New Event" : "Sign in to Add Event"}
-        >
-          <Plus size={24} className="transition-transform duration-300" />
-        </button>
-      </div>
-
-      {/* Auth Modal (Final Design) */}
-      {
-        showAuthModal && (
-          <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-            <div onClick={() => setShowAuthModal(false)} className="absolute inset-0" />
-            <div className="relative w-full max-w-sm bg-[#0a0a0a] border border-white/10 rounded-xl p-8 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-white/5 text-center">
-
-              <button onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
-                <X size={20} />
-              </button>
-
-              <div className="pt-2 pb-6">
-                <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Create your account</h3>
-                <p className="text-sm text-gray-400">
-                  Or <span className="text-blue-400 cursor-pointer hover:underline" onClick={() => signIn('google')}>sign in to your existing account</span>
-                </p>
-              </div>
-
-              <button
-                onClick={() => signIn('google')}
-                className="w-full bg-[#131314] hover:bg-[#1b1b1c] border border-gray-600 rounded-full py-2.5 flex items-center justify-center gap-3 transition-colors group active:scale-[0.98]"
-              >
-                <div className="w-5 h-5 flex items-center justify-center bg-white rounded-full p-0.5 shrink-0">
-                  <svg viewBox="0 0 24 24" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
                 </div>
-                <span className="text-white font-medium text-sm font-roboto">Continue with Google</span>
-              </button>
 
-              <div className="mt-8 pt-6 border-t border-white/5 w-full">
-                <p className="text-[10px] text-gray-600">
-                  By continuing, you agree to our Terms of Service.
-                </p>
+                {activeList.map(event => {
+                  const category = categories.find(c => c.id === event.type);
+                  return (
+                    <div key={event.id} className="w-full">
+                      <EventCard
+                        event={event}
+                        userLocation={userLocation}
+                        variant="standard"
+                        customIcon={category?.customPinUrl}
+                        onClick={() => {
+                          // Don't close list - preserve context for "Back" navigation
+                          if (map) map.flyTo([event.lat, event.lng], 16);
+                          if (onEventSelect) onEventSelect(event);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+
+                {activeList.length === 0 && (
+                  <div className={`text-center mt-20 ${mapTheme === 'light' ? 'text-gray-400' : 'text-gray-600'}`}>No events found.</div>
+                )}
               </div>
-
             </div>
-          </div>
-        )
+            )
       }
-    </>
-  );
+
+            {/* Add Button - Visible to all, prompts login if needed */}
+            <div className="fixed bottom-40 right-6 z-[1000]">
+              <button
+                onClick={() => {
+                  if (!session) {
+                    setShowAuthModal(true);
+                    return;
+                  }
+                  const loc = userLocation ? { lat: userLocation.lat, lng: userLocation.lng } : undefined;
+                  if (onAddEventClick) onAddEventClick(loc);
+                }}
+                className="p-4 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)] border border-white/20 transition-all active:scale-95 backdrop-blur-sm group bg-blue-600 hover:bg-blue-500 text-white"
+                title={session ? "Add New Event" : "Sign in to Add Event"}
+              >
+                <Plus size={24} className="transition-transform duration-300" />
+              </button>
+            </div>
+
+            {/* Auth Modal (Final Design) */}
+            {
+              showAuthModal && (
+                <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                  <div onClick={() => setShowAuthModal(false)} className="absolute inset-0" />
+                  <div className="relative w-full max-w-sm bg-[#0a0a0a] border border-white/10 rounded-xl p-8 shadow-2xl animate-in zoom-in-95 duration-300 ring-1 ring-white/5 text-center">
+
+                    <button onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/10">
+                      <X size={20} />
+                    </button>
+
+                    <div className="pt-2 pb-6">
+                      <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">Create your account</h3>
+                      <p className="text-sm text-gray-400">
+                        Or <span className="text-blue-400 cursor-pointer hover:underline" onClick={() => signIn('google')}>sign in to your existing account</span>
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => signIn('google')}
+                      className="w-full bg-[#131314] hover:bg-[#1b1b1c] border border-gray-600 rounded-full py-2.5 flex items-center justify-center gap-3 transition-colors group active:scale-[0.98]"
+                    >
+                      <div className="w-5 h-5 flex items-center justify-center bg-white rounded-full p-0.5 shrink-0">
+                        <svg viewBox="0 0 24 24" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                        </svg>
+                      </div>
+                      <span className="text-white font-medium text-sm font-roboto">Continue with Google</span>
+                    </button>
+
+                    <div className="mt-8 pt-6 border-t border-white/5 w-full">
+                      <p className="text-[10px] text-gray-600">
+                        By continuing, you agree to our Terms of Service.
+                      </p>
+                    </div>
+
+                  </div>
+                </div>
+              )
+            }
+          </>
+        );
 }
