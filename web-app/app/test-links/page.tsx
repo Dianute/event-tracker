@@ -31,6 +31,7 @@ export default function LinkTesterPage() {
     const [links, setLinks] = useState<LinkItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [syncing, setSyncing] = useState(false);
+    const [lastClickedId, setLastClickedId] = useState<string | null>(null);
 
     // 1. Load Batches
     useEffect(() => {
@@ -273,38 +274,25 @@ export default function LinkTesterPage() {
     };
 
     // --- CHECKER LOGIC ---
-    const checkAll = async () => {
-        // This relies on CLIENT-SIDE fetching to verify links (CORS might be an issue for some, but same as before)
-        // Ideally we'd use a proxy, but for now let's keep client-side + proxy fallback if needed.
-        // We will update the DB with results.
+    const resetAll = async () => {
+        if (!confirm("Reset all checkmarks for this list?")) return;
+
+        // Optimistic UI update
+        setLinks(prev => prev.map(l => ({ ...l, status: 'unchecked' })));
 
         for (const link of links) {
-            if (link.status === 'ok') continue; // Skip checked? Or re-check all? Let's re-check all if user clicks Check All.
+            if (link.status === 'unchecked') continue;
 
-            setStatus(link.id, 'checking');
-
+            // We can run these in parallel or sequentially. Sequential safer for rate limits / db connections if typical user has < 100 links.
             try {
-                // Try Head First
-                const res = await fetch(link.url, { method: 'HEAD', mode: 'no-cors' });
-                // Note: mode: 'no-cors' returns opaque response (status 0). We can't know if it worked 100%.
-                // To really check, we might need a backend proxy.
-                // But previously this was client side?
-                // Actually, client side link checking is notoriously hard due to CORS.
-                // Let's use a simple fetch call. If it throws, it's likely error. If it returns (even opaque), it's likely alive.
-
-                // For a real checker, we should add a backend proxy endpoint: POST /api/check-link { url }
-                // Let's assume for now we mark 'warning' for Opaque and 'error' for failure.
-
-                // UPDATE: Actually, let's just mark it 'ok' if no error thrown, 'error' if thrown.
-                await updateLinkStatus(link.id, 'ok', 200);
-
+                await updateLinkStatus(link.id, 'unchecked', 0);
             } catch (err) {
-                await updateLinkStatus(link.id, 'error', 0, String(err));
+                console.error(err);
             }
         }
     };
 
-    const updateLinkStatus = async (id: string, status: 'ok' | 'error' | 'warning', httpStatus = 0, msg = '') => {
+    const updateLinkStatus = async (id: string, status: 'ok' | 'error' | 'warning' | 'unchecked', httpStatus = 0, msg = '') => {
         setLinks(prev => prev.map(l => l.id === id ? { ...l, status, httpStatus, errorMessage: msg } : l));
         await fetch(`${API_URL}/api/link-items/${id}`, {
             method: 'PUT',
@@ -454,8 +442,8 @@ export default function LinkTesterPage() {
                                             {links.filter(l => l.status === 'ok').length} / {links.length} Checked
                                         </div>
                                         <div className="flex gap-2">
-                                            <button onClick={checkAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-medium text-gray-300 transition-colors">
-                                                Fast Check (Ping)
+                                            <button onClick={resetAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-medium text-gray-300 transition-colors">
+                                                Reset Checks
                                             </button>
                                         </div>
                                     </div>
@@ -466,9 +454,10 @@ export default function LinkTesterPage() {
                                             <div
                                                 key={link.id}
                                                 className={`group flex items-center gap-3 p-3 rounded-xl border transition-all hover:border-white/10 relative overflow-hidden
-                                                ${link.status === 'ok' ? 'bg-green-500/5 border-green-500/10 opacity-60 hover:opacity-100' :
-                                                        link.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
-                                                            'bg-[#131313] border-transparent'}`}
+                                                ${link.id === lastClickedId ? 'bg-blue-600/10 border-blue-500/30' :
+                                                        link.status === 'ok' ? 'bg-green-500/5 border-green-500/10 opacity-60 hover:opacity-100' :
+                                                            link.status === 'error' ? 'bg-red-500/5 border-red-500/20' :
+                                                                'bg-[#131313] border-transparent'}`}
                                             >
                                                 {/* Status Indicator / Checkbox */}
                                                 <button
@@ -488,7 +477,7 @@ export default function LinkTesterPage() {
                                                         href={link.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        onClick={(e) => e.stopPropagation()}
+                                                        onClick={(e) => { e.stopPropagation(); setLastClickedId(link.id); }}
                                                         className="text-sm font-medium text-blue-400 hover:text-blue-300 hover:underline truncate block"
                                                     >
                                                         {link.url}
