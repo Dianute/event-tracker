@@ -794,10 +794,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
             mapTheme === 'light' ? 'bg-white/70 border-gray-200' : 'bg-gray-900/40 border-white/10'}`}>
 
           <button
-            onClick={() => { setShowList(true); setSelectedCluster(null); }}
+            onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
             className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all 
-                ${mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'}`}
-            title="List View"
+                ${showList
+                ? (mapTheme === 'light' ? 'text-gray-900 bg-black/5' : 'text-white bg-white/20')
+                : (mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white')}`}
+            title={showList ? "Close List" : "List View"}
           >
             <List size={20} />
           </button>
