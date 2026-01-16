@@ -1068,7 +1068,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       {/* Full List View Overlay */}
       {
         showList && (
-          <div className={`fixed inset-0 z-[1500] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
+          <div className={`fixed inset-0 z-[2500] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
           ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
             <div className="max-w-md mx-auto space-y-3">
               <div className={`sticky top-0 z-10 pb-2 border-b backdrop-blur-md flex items-center
