@@ -1026,20 +1026,38 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
           <div className={`fixed inset-0 z-[1500] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
           ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
             <div className="max-w-md mx-auto space-y-3">
-              <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
+              <div className={`sticky top-0 z-10 pb-2 border-b backdrop-blur-md flex items-center
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
-                <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
-                  {selectedCluster ? `Cluster Events (${selectedCluster.length})` : `All Events (${displayList.length})`}
-                </h2>
+                {/* Horizontal Category Scroller */}
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none px-1 w-full">
+                  {categories.map(cat => {
+                    const count = cat.id === 'all'
+                      ? timeFiltered.length
+                      : timeFiltered.filter(e => e.type === cat.id).length;
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setShowList(false); setSelectedCluster(null); }}
-                    className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                  >
-                    <Plus size={24} className="rotate-45" />
-                  </button>
+                    const isSelected = selectedCategory === cat.id;
+
+                    return (
+                      <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.id)}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
+                          ${isSelected
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
+                            : (mapTheme === 'light' ? 'bg-white text-gray-700 border-gray-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')}
+                        `}
+                      >
+                        <span className="text-sm">{cat.icon}</span>
+                        <span className="text-sm font-bold">{cat.label}</span>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1
+                          ${isSelected ? 'bg-white/20 text-white' : (mapTheme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-black/40 text-gray-400')}
+                        `}>
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
