@@ -239,6 +239,9 @@ export default function Home() {
       .then(res => res.json())
       .then(savedEvent => {
         setEvents([...events, savedEvent]);
+        // Prevent duplicate notification from poller
+        if (eventsRef.current) eventsRef.current.add(savedEvent.id);
+
         setSelectedLocation(null);
         fetchLocations();
 
