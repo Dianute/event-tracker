@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { useSession, signIn, signOut } from "next-auth/react";
 import L from 'leaflet';
-import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Navigation, Search as SearchIcon, Moon, Sun, Zap, RotateCw, Plus, List, Calendar, Clock, Target, Globe, User, LogOut, LayoutDashboard, X } from 'lucide-react';
 
 // Custom Emoji Marker Helper
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -473,51 +473,6 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   // --- SMART LIST SORTING ---
   const [mapCenter, setMapCenter] = useState<L.LatLng | null>(null);
 
-  // Scroll Adapter for Desktop/PC + Arrow Logic
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
-
-  const checkScroll = () => {
-    if (!categoryScrollRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = categoryScrollRef.current;
-    setShowLeftArrow(scrollLeft > 5);
-    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
-  };
-
-  const scrollContainer = (direction: 'left' | 'right') => {
-    if (!categoryScrollRef.current) return;
-    const scrollAmount = 200;
-    categoryScrollRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    const el = categoryScrollRef.current;
-    if (!el) return;
-
-    checkScroll(); // Check initially
-
-    const onWheel = (e: WheelEvent) => {
-      // If vertical scroll (deltaY) present, convert to horizontal
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-        checkScroll();
-      }
-    };
-
-    el.addEventListener('wheel', onWheel, { passive: false });
-    el.addEventListener('scroll', checkScroll); // Check on native scroll too
-
-    return () => {
-      el.removeEventListener('wheel', onWheel);
-      el.removeEventListener('scroll', checkScroll);
-    }
-  }, [showList]); // Re-bind when list toggles
-
-
-
-
   // Hook to track map center
   const MapEvents = () => {
     const map = useMap();
@@ -788,30 +743,30 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </MapContainer>
 
       {/* Top Floating Navigation */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[3000] flex items-center gap-2 max-w-[95vw] md:max-w-none">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[2000] flex items-center gap-2 max-w-[95vw] md:max-w-none">
         <div className={`flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-2xl border shadow-2xl transition-all duration-500
-            ${mapTheme === 'cyberpunk' ? 'bg-black/60 border-cyan-500/50 shadow-cyan-500/20' :
+          ${mapTheme === 'cyberpunk' ? 'bg-black/60 border-cyan-500/50 shadow-cyan-500/20' :
             mapTheme === 'light' ? 'bg-white/70 border-gray-200' : 'bg-gray-900/40 border-white/10'}`}>
 
           <button
             onClick={() => { setShowList(!showList); setSelectedCluster(null); }}
             className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all 
-                ${showList
+              ${showList
                 ? (mapTheme === 'light' ? 'text-gray-900 bg-black/5' : 'text-white bg-white/20')
                 : (mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white')}`}
             title={showList ? "Close List" : "List View"}
           >
-            <List size={20} />
+            {showList ? <X size={20} /> : <List size={20} />}
           </button>
+
           <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
           {/* Category Selector */}
           <div className="relative shrink-0">
-            {/* ... category selector logic internal ... */}
             <button
               onClick={() => setShowCategoryMenu(!showCategoryMenu)}
               className={`h-8 flex items-center justify-center rounded-full px-3 gap-2 transition-all border
-                  ${selectedCategory !== 'all'
+                ${selectedCategory !== 'all'
                   ? 'text-blue-500 border-blue-500/30 bg-blue-500/10'
                   : (mapTheme === 'light' ? 'text-gray-600 border-transparent hover:bg-black/5' : 'text-white/80 border-transparent hover:bg-white/10')}`}
             >
@@ -822,15 +777,16 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 {categories.find(c => c.id === selectedCategory)?.label}
               </span>
             </button>
-            {/* ... */}
 
             {showCategoryMenu && (
               <div className={`absolute top-full left-0 mt-3 w-48 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]
-                  ${mapTheme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-[#0a0a0a]/90 border-white/10'}`}>
+                ${mapTheme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-[#0a0a0a]/90 border-white/10'}`}>
                 {categories.map(cat => {
+                  // Calculate Count (using timeFiltered to ignore current selection)
                   const count = cat.id === 'all'
                     ? timeFiltered.length
                     : timeFiltered.filter(e => e.type === cat.id).length;
+
                   return (
                     <button
                       key={cat.id}
@@ -839,14 +795,14 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                         setShowCategoryMenu(false);
                       }}
                       className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors group
-                          ${selectedCategory === cat.id ? 'text-blue-500 bg-blue-500/5' : (mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5' : 'text-gray-300 hover:bg-white/10')}`}
+                        ${selectedCategory === cat.id ? 'text-blue-500 bg-blue-500/5' : (mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5' : 'text-gray-300 hover:bg-white/10')}`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="shrink-0 w-5 flex justify-center">{cat.icon}</span>
                         <span className="font-medium">{cat.label}</span>
                       </div>
                       <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors 
-                          ${selectedCategory === cat.id
+                        ${selectedCategory === cat.id
                           ? 'bg-blue-500 text-white'
                           : (mapTheme === 'light' ? 'bg-gray-200 text-gray-600 group-hover:bg-gray-300' : 'bg-white/10 text-gray-400 group-hover:bg-white/20')}`}>
                         {count}
@@ -891,11 +847,13 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
 
           {/* Time Filter */}
           <button
+            key="time-btn"
             onClick={cycleTimeFilters}
             className={`h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
-                ${timeFilter !== 'all'
+              ${timeFilter !== 'all'
                 ? 'px-3 text-green-500 border-green-500/30 bg-green-500/10'
                 : (mapTheme === 'light' ? 'w-8 text-gray-400 border-transparent hover:text-gray-900 hover:bg-black/5' : 'w-8 text-white/50 border-transparent hover:text-white hover:bg-white/10')}`}
+            title="Filter by Time"
           >
             {timeFilter === 'all' ? <Clock size={20} /> : (
               <>
@@ -909,11 +867,12 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         <div className={`shrink-0 w-px h-6 mx-1 md:mx-2 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
         {/* User Profile */}
-        <div className="relative shrink-0 z-[3000]">
+        <div className="relative shrink-0 z-[2200]">
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="w-10 h-10 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95 flex items-center justify-center bg-black/40 text-gray-300 hover:text-white backdrop-blur-md"
+              title={session ? `Logged in as ${session.user?.name || 'User'}` : "Menu"}
             >
               {session?.user?.image ? (
                 <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
@@ -925,189 +884,166 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 <User size={18} />
               )}
             </button>
+
             {showUserMenu && (
               <div className={`absolute top-full right-0 mt-4 w-64 backdrop-blur-2xl border rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden py-3 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1
-                  ${mapTheme === 'light' ? 'bg-white/95 border-gray-200 ring-black/5' : 'bg-[#0a0a0a]/90 border-white/10 ring-white/5'}`}>
-                {/* User Menu Content */}
+                ${mapTheme === 'light' ? 'bg-white/95 border-gray-200 ring-black/5' : 'bg-[#0a0a0a]/90 border-white/10 ring-white/5'}`}>
                 {session ? (
                   <>
-                    <div className="px-4 py-3 border-b border-gray-700/50">
+                    <div className={`px-4 py-3 border-b ${mapTheme === 'light' ? 'border-gray-100' : 'border-gray-800'}`}>
                       <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
-                      <p className="font-bold text-sm truncate text-white">{session.user?.name}</p>
+                      <p className={`font-bold text-sm truncate ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>{session.user?.name || 'User'}</p>
+                      <p className={`text-xs truncate ${mapTheme === 'light' ? 'text-gray-500' : 'text-gray-400'}`}>{session.user?.email}</p>
                     </div>
                     <div className="p-1">
-                      <a href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
-                        <LayoutDashboard size={16} /> Business Dashboard
-                      </a>
-                    </div>
-                    <div className="border-t border-gray-700/50 mx-2 my-1"></div>
-                    <div className="p-1">
-                      <button onClick={() => signOut()} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
-                        <LogOut size={16} /> Sign Out
-                      </button>
+                      {session.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL ? (
+                        <a href="/admin" className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                          <div className="p-1.5 rounded-md bg-blue-500/10 text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-colors"><LayoutDashboard size={16} /></div>
+                          Admin Panel
+                        </a>
+                      ) : (
+                        <a href="/dashboard" className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors group ${mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                          <div className="p-1.5 rounded-md bg-purple-500/10 text-purple-500 group-hover:bg-purple-500 group-hover:text-white transition-colors"><LayoutDashboard size={16} /></div>
+                          Business Dashboard
+                        </a>
+                      )}
                     </div>
                   </>
                 ) : (
                   <div className="p-2">
-                    <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg w-full justify-center">
-                      Sign In
+                    <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-white hover:bg-white/10 rounded-xl transition-colors w-full text-left bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30">
+                      <div className="p-1.5 rounded-lg bg-blue-600 text-white shadow-lg"><User size={16} /></div>
+                      Sign In / Join
                     </button>
                   </div>
                 )}
-                {/* Theme Toggle */}
-                <div className="border-t border-gray-700/50 mx-2 my-1"></div>
+
+                <div className={`border-t mx-3 my-1 ${mapTheme === 'light' ? 'border-gray-100' : 'border-white/10'}`}></div>
+
+                {/* Common: Theme Toggle */}
                 <div className="p-1">
-                  <button onClick={handleThemeChange} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 rounded-lg w-full text-left">
-                    {mapTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />} <span>{mapTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                  <button onClick={handleThemeChange} className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl transition-colors w-full text-left group ${mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-gray-300 hover:bg-white/10 hover:text-white'}`}>
+                    <div className={`p-1.5 rounded-lg border transition-colors text-yellow-500 ${mapTheme === 'light' ? 'bg-black/5 border-black/5 group-hover:bg-black/10' : 'bg-white/5 border-white/5 group-hover:bg-white/10'}`}>
+                      {mapTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                    </div>
+                    <span className="flex-1">{mapTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${mapTheme === 'light' ? 'bg-gray-100 text-gray-400' : 'bg-gray-800 text-gray-400 group-hover:text-gray-300'}`}>Switch</span>
                   </button>
                 </div>
+
+                {session && (
+                  <>
+                    <div className={`border-t mx-2 my-1 ${mapTheme === 'light' ? 'border-gray-100' : 'border-gray-800'}`}></div>
+                    <div className="p-1">
+                      <button onClick={() => signOut()} className={`flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-lg transition-colors w-full text-left group`}>
+                        <div className="p-1.5 rounded-md bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-colors"><LogOut size={16} /></div>
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
 
-
       {/* Featured Categories Quick Row */}
-      {featuredCategories.length > 0 && !showList && (
+      {featuredCategories.length > 0 && (
         <div className="pointer-events-auto flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none animate-in fade-in slide-in-from-top-4 duration-500 pl-1">
           {featuredCategories.map(cat => (
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(selectedCategory === cat.id ? 'all' : cat.id)}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border shadow-lg backdrop-blur-md transition-all active:scale-95 bg-black/60 border-white/10 text-white"
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border shadow-lg backdrop-blur-md transition-all active:scale-95 whitespace-nowrap
+                 ${selectedCategory === cat.id
+                  ? (mapTheme === 'cyberpunk' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-300 shadow-yellow-500/20' : 'bg-yellow-500 text-white border-yellow-600')
+                  : (mapTheme === 'light' ? 'bg-white/90 border-gray-200 text-gray-700 hover:bg-gray-50' : 'bg-black/60 border-white/10 text-white hover:bg-white/10')}`}
             >
-              {cat.icon} <span className="text-sm font-bold uppercase">{cat.label}</span>
+              <span className="text-lg drop-shadow-sm">{cat.icon}</span>
+              <span className="font-bold text-sm uppercase tracking-wide">{cat.label}</span>
             </button>
           ))}
         </div>
       )}
 
 
-      {/* Live Event List (Bottom) - Vertical on Mobile now */}
-      {!showList && (
-        <div className="fixed bottom-0 left-0 right-0 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-          flex flex-col 
-          overflow-y-auto 
-          max-h-[35vh] md:max-h-[60vh]
-          md:w-80
-          gap-2
-          px-3 pb-6 pt-2
-          md:px-0 md:py-0
-          hide-scrollbar pointer-events-none bg-gradient-to-t from-black/90 via-black/60 to-transparent md:bg-none">
-          {
-            displayList.slice(0, 20).map(event => {
-              // ... (existing event card logic)
-              const category = categories.find(c => c.id === event.type);
-              return (
-                <div key={event.id} className="pointer-events-auto w-full md:mb-3">
-                  <EventCard event={event} userLocation={userLocation} customIcon={category?.customPinUrl}
-                    onClick={() => {
-                      if (map) map.flyTo([event.lat, event.lng], 16);
-                      if (onEventSelect) onEventSelect(event);
-                    }}
-                  />
-                </div>
-              )
-            })
-          }
-        </div>
-      )}
-      {/* Mobile List Toggle Button (Right Side) - Hide when List Open */}
-      {!showList && (
-        <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
-          <button
-            onClick={() => setShowList(true)}
-            className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
-            title="Open List"
-          >
-            <List size={24} />
-          </button>
-        </div>
-      )}
+      {/* Live Event List (Bottom) */}
+      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+        flex flex-row md:flex-col
+        overflow-x-auto md:overflow-x-visible md:overflow-y-auto
+        snap-x snap-mandatory
+        gap-0 md:gap-0
+        px-2 md:px-0 md:w-80
+        py-3 md:py-0
+        max-h-[50vh] md:max-h-[60vh]
+        hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
+
+
+        {
+          displayList.slice(0, 20).map(event => {
+            const category = categories.find(c => c.id === event.type);
+            return (
+              <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+                <EventCard
+                  event={event}
+                  userLocation={userLocation}
+                  customIcon={category?.customPinUrl}
+                  onClick={() => {
+                    // Analytics: Track Click
+                    fetch(`${API_URL}/api/analytics/click`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ eventId: event.id })
+                    }).catch(err => console.error("Click track error", err));
+
+                    if (map) {
+                      map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                    }
+                    if (onEventSelect) onEventSelect(event);
+                  }}
+                />
+              </div>
+            );
+          })
+        }
+      </div>
+
+      {/* Mobile List Toggle Button (Right Side) */}
+      <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
+        <button
+          onClick={() => setShowList(true)}
+          className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
+          title="Open List"
+        >
+          <List size={24} />
+        </button>
+      </div>
 
       {/* Full List View Overlay */}
       {
         showList && (
-          <div className={`fixed inset-0 z-[2500] pt-32 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
+          <div className={`fixed inset-0 z-[1500] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
           ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
             <div className="max-w-md mx-auto space-y-3">
-              <div className={`sticky top-0 z-10 pb-2 border-b backdrop-blur-md flex items-center
+              <div className={`flex justify-between items-center mb-4 sticky top-0 z-10 py-2 border-b backdrop-blur-md
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
-                {/* Horizontal Category Scroller Container */}
-                <div className="relative w-full group/scroll">
+                <h2 className={`text-xl font-bold ${mapTheme === 'cyberpunk' ? 'text-cyan-400 drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                  {selectedCluster ? `Cluster Events (${selectedCluster.length})` : `All Events (${displayList.length})`}
+                </h2>
 
-                  {/* Left Arrow & Fade */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black/20 to-transparent z-10 flex items-center justify-start pointer-events-none transition-opacity duration-300 ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`}>
-                    <button
-                      onClick={() => scrollContainer('left')}
-                      className="pointer-events-auto ml-1 p-1 rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 hover:bg-black/60 active:scale-95 transition-all shadow-lg hidden md:flex"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                  </div>
-
-                  {/* Right Arrow & Fade */}
-                  <div className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/20 to-transparent z-10 flex items-center justify-end pointer-events-none transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0'}`}>
-                    <button
-                      onClick={() => scrollContainer('right')}
-                      className="pointer-events-auto mr-1 p-1 rounded-full bg-black/40 text-white backdrop-blur-md border border-white/20 hover:bg-black/60 active:scale-95 transition-all shadow-lg hidden md:flex"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-
-                  <div
-                    ref={categoryScrollRef}
-                    className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-1 w-full pb-1 scroll-smooth"
-                  >
-                    {categories.map(cat => {
-                      const count = cat.id === 'all'
-                        ? timeFiltered.length
-                        : timeFiltered.filter(e => e.type === cat.id).length;
-
-                      const isSelected = selectedCategory === cat.id;
-
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => setSelectedCategory(cat.id)}
-                          className={`group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 whitespace-nowrap active:scale-95
-                          ${isSelected
-                              ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
-                              : (mapTheme === 'light' ? 'bg-white/80 text-gray-700 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-md' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white')}
-                        `}
-                        >
-                          <span className={`text-sm transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{cat.icon}</span>
-                          <span className="text-sm font-bold">{cat.label}</span>
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1
-                          ${isSelected ? 'bg-white/20 text-white' : (mapTheme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-black/40 text-gray-400')}
-                        `}>
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Close Button */}
-                <div className="pl-3 border-l border-white/10 ml-2">
+                <div className="flex gap-2">
                   <button
-                    onClick={() => setShowList(false)}
-                    className={`p-2 rounded-full transition-all active:scale-95 border
-                      ${mapTheme === 'light'
-                        ? 'bg-white/50 hover:bg-white text-gray-500 hover:text-gray-900 border-gray-200 hover:border-gray-300'
-                        : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border-white/10 hover:border-white/30'}`}
+                    onClick={() => { setShowList(false); setSelectedCluster(null); }}
+                    className={`p-1 rounded-full transition-colors ${mapTheme === 'light' ? 'text-gray-500 hover:text-gray-900 hover:bg-gray-200' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                   >
-                    <X size={20} />
+                    <Plus size={24} className="rotate-45" />
                   </button>
                 </div>
               </div>
 
               {activeList.map(event => {
-                // ... map logic ...
                 const category = categories.find(c => c.id === event.type);
                 return (
                   <div key={event.id} className="w-full">
@@ -1117,6 +1053,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                       variant="standard"
                       customIcon={category?.customPinUrl}
                       onClick={() => {
+                        // Don't close list - preserve context for "Back" navigation
                         if (map) map.flyTo([event.lat, event.lng], 16);
                         if (onEventSelect) onEventSelect(event);
                       }}
