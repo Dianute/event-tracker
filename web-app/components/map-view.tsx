@@ -788,7 +788,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </MapContainer>
 
       {/* Top Floating Navigation */}
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[2000] flex items-center gap-2 max-w-[95vw] md:max-w-none">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[3000] flex items-center gap-2 max-w-[95vw] md:max-w-none">
         <div className={`flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-2xl border shadow-2xl transition-all duration-500
           ${mapTheme === 'cyberpunk' ? 'bg-black/60 border-cyan-500/50 shadow-cyan-500/20' :
             mapTheme === 'light' ? 'bg-white/70 border-gray-200' : 'bg-gray-900/40 border-white/10'}`}>
@@ -912,7 +912,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         <div className={`shrink-0 w-px h-6 mx-1 md:mx-2 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
         {/* User Profile */}
-        <div className="relative shrink-0 z-[2200]">
+        <div className="relative shrink-0 z-[3000]">
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
@@ -994,7 +994,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       </div>
 
       {/* Featured Categories Quick Row */}
-      {featuredCategories.length > 0 && (
+      {featuredCategories.length > 0 && !showList && (
         <div className="pointer-events-auto flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none animate-in fade-in slide-in-from-top-4 duration-500 pl-1">
           {featuredCategories.map(cat => (
             <button
@@ -1013,57 +1013,61 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       )}
 
 
-      {/* Live Event List (Bottom) */}
-      <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
-        flex flex-row md:flex-col
-        overflow-x-auto md:overflow-x-visible md:overflow-y-auto
-        snap-x snap-mandatory
-        gap-0 md:gap-0
-        px-2 md:px-0 md:w-80
-        py-3 md:py-0
-        max-h-[50vh] md:max-h-[60vh]
-        hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
+      {/* Live Event List (Bottom) - Hide when Full List is open */}
+      {!showList && (
+        <div className="fixed bottom-0 left-0 right-14 md:right-auto md:bottom-6 md:left-6 z-[1000] 
+          flex flex-row md:flex-col
+          overflow-x-auto md:overflow-x-visible md:overflow-y-auto
+          snap-x snap-mandatory
+          gap-0 md:gap-0
+          px-2 md:px-0 md:w-80
+          py-3 md:py-0
+          max-h-[50vh] md:max-h-[60vh]
+          hide-scrollbar pointer-events-none bg-gradient-to-t from-black/80 via-black/40 to-transparent md:bg-none">
 
 
-        {
-          displayList.slice(0, 20).map(event => {
-            const category = categories.find(c => c.id === event.type);
-            return (
-              <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
-                <EventCard
-                  event={event}
-                  userLocation={userLocation}
-                  customIcon={category?.customPinUrl}
-                  onClick={() => {
-                    // Analytics: Track Click
-                    fetch(`${API_URL}/api/analytics/click`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ eventId: event.id })
-                    }).catch(err => console.error("Click track error", err));
+          {
+            displayList.slice(0, 20).map(event => {
+              const category = categories.find(c => c.id === event.type);
+              return (
+                <div key={event.id} className="pointer-events-auto min-w-[85vw] h-20 md:h-auto md:min-w-0 md:w-full snap-center mr-3 md:mr-0 md:mb-3">
+                  <EventCard
+                    event={event}
+                    userLocation={userLocation}
+                    customIcon={category?.customPinUrl}
+                    onClick={() => {
+                      // Analytics: Track Click
+                      fetch(`${API_URL}/api/analytics/click`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ eventId: event.id })
+                      }).catch(err => console.error("Click track error", err));
 
-                    if (map) {
-                      map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
-                    }
-                    if (onEventSelect) onEventSelect(event);
-                  }}
-                />
-              </div>
-            );
-          })
-        }
-      </div>
+                      if (map) {
+                        map.flyTo([event.lat, event.lng], 16, { duration: 1.5 });
+                      }
+                      if (onEventSelect) onEventSelect(event);
+                    }}
+                  />
+                </div>
+              );
+            })
+          }
+        </div>
+      )}
 
-      {/* Mobile List Toggle Button (Right Side) */}
-      <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
-        <button
-          onClick={() => setShowList(true)}
-          className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
-          title="Open List"
-        >
-          <List size={24} />
-        </button>
-      </div>
+      {/* Mobile List Toggle Button (Right Side) - Hide when List Open */}
+      {!showList && (
+        <div className="fixed bottom-0 right-0 w-14 h-auto md:hidden z-[1000] pointer-events-none flex flex-col justify-end pb-3 items-center">
+          <button
+            onClick={() => setShowList(true)}
+            className="pointer-events-auto w-10 h-20 bg-black/60 backdrop-blur-md border border-white/20 rounded-l-xl flex items-center justify-center active:scale-95 transition-all text-blue-300 hover:text-white shadow-xl"
+            title="Open List"
+          >
+            <List size={24} />
+          </button>
+        </div>
+      )}
 
       {/* Full List View Overlay */}
       {
