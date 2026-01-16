@@ -787,185 +787,183 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         />
       </MapContainer>
 
-      {/* Top Floating Navigation - Hide when List is open */}
-      {!showList && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[3000] flex items-center gap-2 max-w-[95vw] md:max-w-none">
-          <div className={`flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-2xl border shadow-2xl transition-all duration-500
+      {/* Top Floating Navigation */}
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[3000] flex items-center gap-2 max-w-[95vw] md:max-w-none">
+        <div className={`flex items-center gap-1.5 px-3 py-2 rounded-full backdrop-blur-2xl border shadow-2xl transition-all duration-500
             ${mapTheme === 'cyberpunk' ? 'bg-black/60 border-cyan-500/50 shadow-cyan-500/20' :
-              mapTheme === 'light' ? 'bg-white/70 border-gray-200' : 'bg-gray-900/40 border-white/10'}`}>
+            mapTheme === 'light' ? 'bg-white/70 border-gray-200' : 'bg-gray-900/40 border-white/10'}`}>
 
-            <button
-              onClick={() => { setShowList(true); setSelectedCluster(null); }}
-              className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all 
+          <button
+            onClick={() => { setShowList(true); setSelectedCluster(null); }}
+            className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-full transition-all 
                 ${mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'}`}
-              title="List View"
-            >
-              <List size={20} />
-            </button>
-            <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
+            title="List View"
+          >
+            <List size={20} />
+          </button>
+          <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
-            {/* Category Selector */}
-            <div className="relative shrink-0">
-              {/* ... category selector logic internal ... */}
-              <button
-                onClick={() => setShowCategoryMenu(!showCategoryMenu)}
-                className={`h-8 flex items-center justify-center rounded-full px-3 gap-2 transition-all border
+          {/* Category Selector */}
+          <div className="relative shrink-0">
+            {/* ... category selector logic internal ... */}
+            <button
+              onClick={() => setShowCategoryMenu(!showCategoryMenu)}
+              className={`h-8 flex items-center justify-center rounded-full px-3 gap-2 transition-all border
                   ${selectedCategory !== 'all'
-                    ? 'text-blue-500 border-blue-500/30 bg-blue-500/10'
-                    : (mapTheme === 'light' ? 'text-gray-600 border-transparent hover:bg-black/5' : 'text-white/80 border-transparent hover:bg-white/10')}`}
-              >
-                <span className="text-sm">
-                  {categories.find(c => c.id === selectedCategory)?.icon || <Globe size={16} />}
-                </span>
-                <span className="text-xs font-bold uppercase tracking-tight hidden sm:inline">
-                  {categories.find(c => c.id === selectedCategory)?.label}
-                </span>
-              </button>
-              {/* ... */}
+                  ? 'text-blue-500 border-blue-500/30 bg-blue-500/10'
+                  : (mapTheme === 'light' ? 'text-gray-600 border-transparent hover:bg-black/5' : 'text-white/80 border-transparent hover:bg-white/10')}`}
+            >
+              <span className="text-sm">
+                {categories.find(c => c.id === selectedCategory)?.icon || <Globe size={16} />}
+              </span>
+              <span className="text-xs font-bold uppercase tracking-tight hidden sm:inline">
+                {categories.find(c => c.id === selectedCategory)?.label}
+              </span>
+            </button>
+            {/* ... */}
 
-              {showCategoryMenu && (
-                <div className={`absolute top-full left-0 mt-3 w-48 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]
+            {showCategoryMenu && (
+              <div className={`absolute top-full left-0 mt-3 w-48 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden py-1 z-[3000]
                   ${mapTheme === 'light' ? 'bg-white/90 border-gray-200' : 'bg-[#0a0a0a]/90 border-white/10'}`}>
-                  {categories.map(cat => {
-                    const count = cat.id === 'all'
-                      ? timeFiltered.length
-                      : timeFiltered.filter(e => e.type === cat.id).length;
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => {
-                          setSelectedCategory(cat.id);
-                          setShowCategoryMenu(false);
-                        }}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors group
+                {categories.map(cat => {
+                  const count = cat.id === 'all'
+                    ? timeFiltered.length
+                    : timeFiltered.filter(e => e.type === cat.id).length;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setSelectedCategory(cat.id);
+                        setShowCategoryMenu(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors group
                           ${selectedCategory === cat.id ? 'text-blue-500 bg-blue-500/5' : (mapTheme === 'light' ? 'text-gray-700 hover:bg-black/5' : 'text-gray-300 hover:bg-white/10')}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="shrink-0 w-5 flex justify-center">{cat.icon}</span>
-                          <span className="font-medium">{cat.label}</span>
-                        </div>
-                        <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors 
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="shrink-0 w-5 flex justify-center">{cat.icon}</span>
+                        <span className="font-medium">{cat.label}</span>
+                      </div>
+                      <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full transition-colors 
                           ${selectedCategory === cat.id
-                            ? 'bg-blue-500 text-white'
-                            : (mapTheme === 'light' ? 'bg-gray-200 text-gray-600 group-hover:bg-gray-300' : 'bg-white/10 text-gray-400 group-hover:bg-white/20')}`}>
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+                          ? 'bg-blue-500 text-white'
+                          : (mapTheme === 'light' ? 'bg-gray-200 text-gray-600 group-hover:bg-gray-300' : 'bg-white/10 text-gray-400 group-hover:bg-white/20')}`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-            <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
+          <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
-            {/* Search */}
-            <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
-              {isSearchOpen ? (
-                <div className="flex items-center w-full relative">
-                  <input
-                    autoFocus
-                    type="text"
-                    placeholder="Search tags..."
-                    className={`bg-transparent border-none outline-none text-sm w-full font-medium placeholder-gray-400 min-w-0 pr-6 ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onBlur={() => !searchQuery && setIsSearchOpen(false)}
-                  />
-                  <button
-                    onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); setIsSearchOpen(false); }}
-                    className={`absolute right-0 transition-colors p-1 ${mapTheme === 'light' ? 'text-gray-400 hover:text-gray-900' : 'text-white/50 hover:text-white'}`}
-                  >
-                    <X size={16} />
-                  </button>
+          {/* Search */}
+          <div className={`flex items-center transition-all duration-300 ease-in-out shrink-0 ${isSearchOpen ? 'w-32 md:w-64 px-2' : 'w-10 justify-center'}`}>
+            {isSearchOpen ? (
+              <div className="flex items-center w-full relative">
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search tags..."
+                  className={`bg-transparent border-none outline-none text-sm w-full font-medium placeholder-gray-400 min-w-0 pr-6 ${mapTheme === 'light' ? 'text-gray-900' : 'text-white'}`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onBlur={() => !searchQuery && setIsSearchOpen(false)}
+                />
+                <button
+                  onMouseDown={(e) => { e.preventDefault(); setSearchQuery(''); setIsSearchOpen(false); }}
+                  className={`absolute right-0 transition-colors p-1 ${mapTheme === 'light' ? 'text-gray-400 hover:text-gray-900' : 'text-white/50 hover:text-white'}`}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setIsSearchOpen(true)} className={`transition-colors ${mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'}`}>
+                <SearchIcon size={20} />
+              </button>
+            )}
+          </div>
+
+          <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
+
+          {/* Time Filter */}
+          <button
+            onClick={cycleTimeFilters}
+            className={`h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
+                ${timeFilter !== 'all'
+                ? 'px-3 text-green-500 border-green-500/30 bg-green-500/10'
+                : (mapTheme === 'light' ? 'w-8 text-gray-400 border-transparent hover:text-gray-900 hover:bg-black/5' : 'w-8 text-white/50 border-transparent hover:text-white hover:bg-white/10')}`}
+          >
+            {timeFilter === 'all' ? <Clock size={20} /> : (
+              <>
+                {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
+                {getTimeLabel()}
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className={`shrink-0 w-px h-6 mx-1 md:mx-2 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
+
+        {/* User Profile */}
+        <div className="relative shrink-0 z-[3000]">
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-10 h-10 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95 flex items-center justify-center bg-black/40 text-gray-300 hover:text-white backdrop-blur-md"
+            >
+              {session?.user?.image ? (
+                <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
+              ) : session ? (
+                <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                  {session.user?.name?.[0] || 'U'}
                 </div>
               ) : (
-                <button onClick={() => setIsSearchOpen(true)} className={`transition-colors ${mapTheme === 'light' ? 'text-gray-600 hover:text-gray-900' : 'text-white/80 hover:text-white'}`}>
-                  <SearchIcon size={20} />
-                </button>
-              )}
-            </div>
-
-            <div className={`shrink-0 w-px h-6 mx-1 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
-
-            {/* Time Filter */}
-            <button
-              onClick={cycleTimeFilters}
-              className={`h-8 flex items-center justify-center rounded-full font-bold text-xs transition-all border whitespace-nowrap gap-1.5 shrink-0
-                ${timeFilter !== 'all'
-                  ? 'px-3 text-green-500 border-green-500/30 bg-green-500/10'
-                  : (mapTheme === 'light' ? 'w-8 text-gray-400 border-transparent hover:text-gray-900 hover:bg-black/5' : 'w-8 text-white/50 border-transparent hover:text-white hover:bg-white/10')}`}
-            >
-              {timeFilter === 'all' ? <Clock size={20} /> : (
-                <>
-                  {timeFilter === 'live' && <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>}
-                  {getTimeLabel()}
-                </>
+                <User size={18} />
               )}
             </button>
-          </div>
-
-          <div className={`shrink-0 w-px h-6 mx-1 md:mx-2 ${mapTheme === 'light' ? 'bg-gray-200' : 'bg-white/20'}`}></div>
-
-          {/* User Profile */}
-          <div className="relative shrink-0 z-[3000]">
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="w-10 h-10 rounded-full overflow-hidden border border-white/20 hover:border-blue-500 transition-all active:scale-95 flex items-center justify-center bg-black/40 text-gray-300 hover:text-white backdrop-blur-md"
-              >
-                {session?.user?.image ? (
-                  <img src={session.user.image} alt="U" className="w-full h-full object-cover" />
-                ) : session ? (
-                  <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                    {session.user?.name?.[0] || 'U'}
-                  </div>
-                ) : (
-                  <User size={18} />
-                )}
-              </button>
-              {showUserMenu && (
-                <div className={`absolute top-full right-0 mt-4 w-64 backdrop-blur-2xl border rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden py-3 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1
+            {showUserMenu && (
+              <div className={`absolute top-full right-0 mt-4 w-64 backdrop-blur-2xl border rounded-3xl shadow-[0_0_40px_rgba(0,0,0,0.5)] overflow-hidden py-3 flex flex-col animate-in fade-in zoom-in-95 duration-200 ring-1
                   ${mapTheme === 'light' ? 'bg-white/95 border-gray-200 ring-black/5' : 'bg-[#0a0a0a]/90 border-white/10 ring-white/5'}`}>
-                  {/* User Menu Content */}
-                  {session ? (
-                    <>
-                      <div className="px-4 py-3 border-b border-gray-700/50">
-                        <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
-                        <p className="font-bold text-sm truncate text-white">{session.user?.name}</p>
-                      </div>
-                      <div className="p-1">
-                        <a href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
-                          <LayoutDashboard size={16} /> Business Dashboard
-                        </a>
-                      </div>
-                      <div className="border-t border-gray-700/50 mx-2 my-1"></div>
-                      <div className="p-1">
-                        <button onClick={() => signOut()} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
-                          <LogOut size={16} /> Sign Out
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="p-2">
-                      <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg w-full justify-center">
-                        Sign In
+                {/* User Menu Content */}
+                {session ? (
+                  <>
+                    <div className="px-4 py-3 border-b border-gray-700/50">
+                      <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-0.5">Signed in as</p>
+                      <p className="font-bold text-sm truncate text-white">{session.user?.name}</p>
+                    </div>
+                    <div className="p-1">
+                      <a href="/dashboard" className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-gray-300 hover:bg-white/10 hover:text-white transition-colors">
+                        <LayoutDashboard size={16} /> Business Dashboard
+                      </a>
+                    </div>
+                    <div className="border-t border-gray-700/50 mx-2 my-1"></div>
+                    <div className="p-1">
+                      <button onClick={() => signOut()} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-500 hover:bg-red-500/10 rounded-lg w-full text-left">
+                        <LogOut size={16} /> Sign Out
                       </button>
                     </div>
-                  )}
-                  {/* Theme Toggle */}
-                  <div className="border-t border-gray-700/50 mx-2 my-1"></div>
-                  <div className="p-1">
-                    <button onClick={handleThemeChange} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 rounded-lg w-full text-left">
-                      {mapTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />} <span>{mapTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                  </>
+                ) : (
+                  <div className="p-2">
+                    <button onClick={() => setShowAuthModal(true)} className="flex items-center gap-3 px-3 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg w-full justify-center">
+                      Sign In
                     </button>
                   </div>
+                )}
+                {/* Theme Toggle */}
+                <div className="border-t border-gray-700/50 mx-2 my-1"></div>
+                <div className="p-1">
+                  <button onClick={handleThemeChange} className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-300 hover:bg-white/10 rounded-lg w-full text-left">
+                    {mapTheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />} <span>{mapTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                  </button>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
 
 
       {/* Featured Categories Quick Row */}
@@ -1029,7 +1027,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
       {/* Full List View Overlay */}
       {
         showList && (
-          <div className={`fixed inset-0 z-[2500] pt-20 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
+          <div className={`fixed inset-0 z-[2500] pt-32 px-4 pb-24 overflow-y-auto animate-in fade-in slide-in-from-bottom-5 duration-200 
           ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/95' : mapTheme === 'light' ? 'bg-gray-100/95' : 'bg-[#121212]/95'}`}>
             <div className="max-w-md mx-auto space-y-3">
               <div className={`sticky top-0 z-10 pb-2 border-b backdrop-blur-md flex items-center
