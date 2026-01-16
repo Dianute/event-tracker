@@ -201,6 +201,22 @@ export default function Home() {
       if (a.id === event.id) return -1; // Selected always first
       if (b.id === event.id) return 1;
 
+      // Priority 1: Same Category
+      const aIsSameCat = a.type === event.type;
+      const bIsSameCat = b.type === event.type;
+
+      if (aIsSameCat && !bIsSameCat) return -1;
+      if (!aIsSameCat && bIsSameCat) return 1;
+
+      if (aIsSameCat && bIsSameCat) {
+        // Both same category: Sort by Date (Soonest first)
+        // Handle missing times by pushing them to end
+        const timeA = a.startTime ? new Date(a.startTime).getTime() : 8640000000000000;
+        const timeB = b.startTime ? new Date(b.startTime).getTime() : 8640000000000000;
+        return timeA - timeB;
+      }
+
+      // Priority 2: Distance (Classic Fallback for others)
       // Use safe coordinates (handle potential missing lat/lng)
       const latA = a.lat || 0; const lngA = a.lng || 0;
       const latB = b.lat || 0; const lngB = b.lng || 0;
