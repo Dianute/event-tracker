@@ -1030,7 +1030,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
                 {/* Horizontal Category Scroller */}
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-none px-1 w-full">
+                <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-1 w-full pb-1">
                   {categories.map(cat => {
                     const count = cat.id === 'all'
                       ? timeFiltered.length
@@ -1042,13 +1042,13 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                       <button
                         key={cat.id}
                         onClick={() => setSelectedCategory(cat.id)}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all whitespace-nowrap
+                        className={`group flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 whitespace-nowrap active:scale-95
                           ${isSelected
-                            ? 'bg-blue-600 text-white border-blue-500 shadow-lg'
-                            : (mapTheme === 'light' ? 'bg-white text-gray-700 border-gray-200' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10')}
+                            ? 'bg-blue-600 text-white border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                            : (mapTheme === 'light' ? 'bg-white/80 text-gray-700 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-md' : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:border-white/20 hover:text-white')}
                         `}
                       >
-                        <span className="text-sm">{cat.icon}</span>
+                        <span className={`text-sm transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`}>{cat.icon}</span>
                         <span className="text-sm font-bold">{cat.label}</span>
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full ml-1
                           ${isSelected ? 'bg-white/20 text-white' : (mapTheme === 'light' ? 'bg-gray-100 text-gray-500' : 'bg-black/40 text-gray-400')}
