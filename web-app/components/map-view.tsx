@@ -473,6 +473,25 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   // --- SMART LIST SORTING ---
   const [mapCenter, setMapCenter] = useState<L.LatLng | null>(null);
 
+  // Scroll Adapter for Desktop/PC (Vertical Scroll -> Horizontal)
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // If vertical scroll (deltaY) present, convert to horizontal
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+      }
+    };
+
+    // Non-passive to allow preventDefault
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [showList]); // Re-bind when list toggles
+
   // Hook to track map center
   const MapEvents = () => {
     const map = useMap();
@@ -1030,7 +1049,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                ${mapTheme === 'cyberpunk' ? 'bg-[#050510]/80 border-cyan-500/30' : mapTheme === 'light' ? 'bg-gray-100/80 border-gray-300' : 'bg-[#121212]/80 border-white/10'}`}>
 
                 {/* Horizontal Category Scroller */}
-                <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-1 w-full pb-1">
+                <div
+                  ref={categoryScrollRef}
+                  className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-1 w-full pb-1"
+                >
                   {categories.map(cat => {
                     const count = cat.id === 'all'
                       ? timeFiltered.length
