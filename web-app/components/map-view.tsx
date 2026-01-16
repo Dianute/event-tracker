@@ -515,24 +515,8 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
     }
   }, [showList]); // Re-bind when list toggles
 
-  // Scroll Adapter for Desktop/PC (Vertical Scroll -> Horizontal)
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = categoryScrollRef.current;
-    if (!el) return;
 
-    const onWheel = (e: WheelEvent) => {
-      // If vertical scroll (deltaY) present, convert to horizontal
-      if (e.deltaY !== 0) {
-        e.preventDefault();
-        el.scrollLeft += e.deltaY;
-      }
-    };
 
-    // Non-passive to allow preventDefault
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [showList]); // Re-bind when list toggles
 
   // Hook to track map center
   const MapEvents = () => {
