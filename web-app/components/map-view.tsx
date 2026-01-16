@@ -1096,7 +1096,10 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
                 <div className="pl-3 border-l border-white/10 ml-2">
                   <button
                     onClick={() => setShowList(false)}
-                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all active:scale-95 border border-white/10 hover:border-white/30"
+                    className={`p-2 rounded-full transition-all active:scale-95 border
+                      ${mapTheme === 'light'
+                        ? 'bg-white/50 hover:bg-white text-gray-500 hover:text-gray-900 border-gray-200 hover:border-gray-300'
+                        : 'bg-white/5 hover:bg-white/10 text-white/70 hover:text-white border-white/10 hover:border-white/30'}`}
                   >
                     <X size={20} />
                   </button>
