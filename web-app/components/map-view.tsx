@@ -473,6 +473,48 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
   // --- SMART LIST SORTING ---
   const [mapCenter, setMapCenter] = useState<L.LatLng | null>(null);
 
+  // Scroll Adapter for Desktop/PC + Arrow Logic
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+
+  const checkScroll = () => {
+    if (!categoryScrollRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = categoryScrollRef.current;
+    setShowLeftArrow(scrollLeft > 5);
+    setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
+  };
+
+  const scrollContainer = (direction: 'left' | 'right') => {
+    if (!categoryScrollRef.current) return;
+    const scrollAmount = 200;
+    categoryScrollRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    checkScroll(); // Check initially
+
+    const onWheel = (e: WheelEvent) => {
+      // If vertical scroll (deltaY) present, convert to horizontal
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        el.scrollLeft += e.deltaY;
+        checkScroll();
+      }
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    el.addEventListener('scroll', checkScroll); // Check on native scroll too
+
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('scroll', checkScroll);
+    }
+  }, [showList]); // Re-bind when list toggles
+
   // Scroll Adapter for Desktop/PC (Vertical Scroll -> Horizontal)
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
