@@ -534,7 +534,10 @@ export default function EventModal({ isOpen, onClose, onSubmit, initialLocation,
                     if (!description && data.description) setDescription(data.description);
                     if (data.type) setType(data.type);
                     if (!venue && data.venue && !initialLocation) setVenue(data.venue);
-                    if (data.date) setDate(data.date);
+
+                    // FORCE RESET DATE TO TODAY (User Request: Avoid accidental future dates)
+                    // if (data.date) setDate(data.date); <--- Removed
+
                     if (data.timeStart) setTimeStart(data.timeStart);
                     if (data.timeEnd) setTimeEnd(data.timeEnd);
                     if (data.isAllDay !== undefined) setIsAllDay(data.isAllDay);
