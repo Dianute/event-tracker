@@ -147,7 +147,7 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
         return (
             <div
                 onClick={onClick}
-                className="bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-sm border border-white/10 transition-all hover:bg-white/10 group cursor-pointer w-full h-full flex flex-col justify-between"
+                className="relative overflow-hidden bg-black/60 backdrop-blur-md rounded-xl p-3 shadow-sm border border-white/10 transition-all hover:bg-white/10 group cursor-pointer w-full h-full flex flex-col justify-between"
             >
                 {status.label && (
                     <div className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide border z-10
@@ -198,9 +198,9 @@ export default function EventCard({ event, userLocation, onClick, variant = 'sta
                 </div>
 
                 {status.progress !== undefined && (
-                    <div className="w-full bg-white/10 rounded-full h-0.5 mt-3 overflow-hidden">
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-20">
                         <div
-                            className={`h-0.5 rounded-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'yellow' ? 'bg-yellow-500 shadow-yellow-500' : 'bg-green-500 shadow-green-500'}`}
+                            className={`h-full transition-all duration-1000 shadow-[0_0_10px] ${status.color === 'yellow' ? 'bg-yellow-500 shadow-yellow-500' : 'bg-green-500 shadow-green-500'}`}
                             style={{ width: `${status.progress}%` }}
                         ></div>
                     </div>
