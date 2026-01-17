@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Calendar, Clock, MapPin, Camera, Upload, ArrowRight, Save, Phone } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Camera, Upload, ArrowRight, Save, Phone, Sparkles } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 interface WeeklyMenuModalProps {
     isOpen: boolean;
@@ -16,12 +17,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLocation, userLocations = [] }: WeeklyMenuModalProps) {
     // Common Details
     const [title, setTitle] = useState('Business Lunch');
+    const [showTitleSuggestions, setShowTitleSuggestions] = useState(false); // NEW
     const [description, setDescription] = useState('Delicious daily lunch menu.');
     const [venue, setVenue] = useState('');
     const [phone, setPhone] = useState('');
     const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [isSearching, setIsSearching] = useState(false);
     const [suggestions, setSuggestions] = useState<any[]>([]);
+
+    // History & Global Cache
+    const [historyCache, setHistoryCache] = useState<any[]>([]);
+    const [globalCache, setGlobalCache] = useState<any[]>([]);
+    const { data: session } = useSession();
 
     // Timing
     const [weekStart, setWeekStart] = useState('');
@@ -47,8 +54,21 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                 setCoords(initialLocation);
                 // Reverse geocode if needed (omitted for brevity, user can search)
             }
+
+            // Fetch Suggestions
+            if (session?.user?.email) {
+                fetch(`${API_URL}/events?history=true`)
+                    .then(res => res.json())
+                    .then(data => { if (Array.isArray(data)) setHistoryCache(data); })
+                    .catch(err => console.error(err));
+
+                fetch(`${API_URL}/api/suggestions/global`)
+                    .then(res => res.json())
+                    .then(data => { if (Array.isArray(data)) setGlobalCache(data); })
+                    .catch(err => console.error(err));
+            }
         }
-    }, [isOpen, initialLocation]);
+    }, [isOpen, initialLocation, session]);
 
     // Venue Search Debounce
     useEffect(() => {
@@ -209,8 +229,75 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5">Title</label>
-                                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+                                <input type="text" value={title} onChange={(e) => { setTitle(e.target.value); setShowTitleSuggestions(true); }}
+                                    onFocus={() => setShowTitleSuggestions(true)}
                                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-blue-500/50 transition-colors" />
+
+                                {/* SMART AUTO-FILL DROPDOWN */}
+                                {(title.length > 2 && showTitleSuggestions) && (
+                                    <div className="relative">
+                                        {(() => {
+                                            const seenTitles = new Set();
+                                            let pool = [...(historyCache || [])];
+
+                                            // Add Saved Locations
+                                            if (userLocations && userLocations.length > 0) {
+                                                pool = [...pool, ...userLocations.map((loc: any) => ({
+                                                    title: loc.name || loc.venue, venue: loc.venue,
+                                                    lat: loc.lat, lng: loc.lng, description: '',
+                                                    isLocation: true
+                                                }))];
+                                            }
+                                            // Add Global
+                                            if (globalCache && globalCache.length > 0) pool = [...pool, ...globalCache];
+
+                                            const candidates = pool.filter(e => {
+                                                if (!e.title) return false;
+                                                const normalized = e.title.trim().toLowerCase();
+                                                const input = title.trim().toLowerCase();
+                                                if (seenTitles.has(normalized)) return false;
+                                                if (normalized.includes(input)) {
+                                                    seenTitles.add(normalized);
+                                                    return true;
+                                                }
+                                                return false;
+                                            }).slice(0, 3); // Top 3
+
+                                            if (candidates.length === 0) return null;
+
+                                            return (
+                                                <div className="absolute z-30 w-full mt-1 border rounded-xl shadow-xl overflow-hidden bg-zinc-800 border-zinc-700">
+                                                    <div className="p-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-opacity-50 backdrop-blur-sm flex items-center gap-2">
+                                                        <Sparkles size={10} className="text-yellow-500" />
+                                                        <span>Past Events</span>
+                                                    </div>
+                                                    {candidates.map((suggestion: any, i: number) => (
+                                                        <button
+                                                            key={i}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setTitle(suggestion.title);
+                                                                if (suggestion.description) setDescription(suggestion.description);
+                                                                if (suggestion.venue) {
+                                                                    setVenue(suggestion.venue);
+                                                                    if (suggestion.lat && suggestion.lng) {
+                                                                        setCoords({ lat: suggestion.lat, lng: suggestion.lng });
+                                                                    }
+                                                                }
+                                                                if (suggestion.phone) setPhone(suggestion.phone);
+                                                                setShowTitleSuggestions(false);
+                                                            }}
+                                                            className="w-full text-left p-3 text-sm truncate flex items-center justify-between group transition-colors text-gray-200 hover:bg-white/10"
+                                                        >
+                                                            <span>{suggestion.title}</span>
+                                                            <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="relative">
