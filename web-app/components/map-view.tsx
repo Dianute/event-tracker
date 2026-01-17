@@ -380,6 +380,7 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         // Also ensure it is TODAY (already handled by start >= dayStart check implicitly if we only look at today's logic)
         // But the user said "it shows everything" for the week.
         // So we must enforce: Is this menu for TODAY?
+        // Also ensure it is TODAY
         const dayStart = new Date(now);
         dayStart.setHours(0, 0, 0, 0);
         const dayEnd = new Date(dayStart);
@@ -389,8 +390,13 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         const isToday = start >= dayStart && start < dayEnd;
         if (!isToday) return false;
 
-        // strict: now >= start && now <= end
-        return now >= start && now <= end;
+        // WEEKEND BONUS: Show 1 hour early on Sat/Sun to fill the map
+        const day = now.getDay();
+        const isWeekend = day === 0 || day === 6; // 0=Sun, 6=Sat
+        const buffer = isWeekend ? 60 * 60 * 1000 : 0; // 1 Hour Buffer
+
+        // strict: now >= start - buffer && now <= end
+        return now.getTime() >= (start.getTime() - buffer) && now <= end;
       }
 
       // ... (Standard Logic uses 'now') ...
@@ -560,14 +566,22 @@ export default function MapView({ events, onMapClick, newLocation, onDeleteEvent
         if (selectedCategory !== 'all' && e.type !== selectedCategory) return false;
 
         const start = e.startTime ? new Date(e.startTime) : new Date(0);
-        // Consistency: Apply same "Today Only" rule for Food in fallback
+        // Consistency: Apply same "Today Only" rule for Food in fallback (WITH WEEKEND BUFFER)
         if (e.type === 'food') {
           const dayStart = new Date(now);
           dayStart.setHours(0, 0, 0, 0);
           const dayEnd = new Date(dayStart);
           dayEnd.setDate(dayEnd.getDate() + 1);
           dayEnd.setHours(4, 0, 0, 0);
-          return start >= dayStart && start < dayEnd;
+
+          const isToday = start >= dayStart && start < dayEnd;
+          if (!isToday) return false;
+
+          // Weekend Buffer
+          const day = now.getDay();
+          const isWeekend = day === 0 || day === 6;
+          const buffer = isWeekend ? 60 * 60 * 1000 : 0;
+          return now.getTime() >= (start.getTime() - buffer) && now <= (e.endTime ? new Date(e.endTime) : start);
         }
         return start >= now;
       })
