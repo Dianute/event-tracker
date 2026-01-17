@@ -28,8 +28,8 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
     const [timeStart, setTimeStart] = useState('11:00');
     const [timeEnd, setTimeEnd] = useState('14:00');
 
-    // Images for Mon-Fri
-    const [images, setImages] = useState<string[]>(['', '', '', '', '']);
+    // Images for Mon-Sun (7 days)
+    const [images, setImages] = useState<string[]>(['', '', '', '', '', '', '']);
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 
@@ -99,10 +99,10 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
         if (!coords) { alert("Please select a valid location from the list"); return; }
 
         const events = [];
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const startObj = new Date(weekStart); // Monday
 
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 7; i++) {
             const currentDay = new Date(startObj);
             currentDay.setDate(startObj.getDate() + i);
             const dateStr = currentDay.toISOString().split('T')[0];
@@ -135,14 +135,14 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
 
     return (
         <div className="fixed inset-0 z-[2000] flex items-end md:items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="w-full h-[95vh] md:h-auto md:max-h-[85vh] md:max-w-2xl bg-[#050510] border border-gray-800 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="w-full h-[95vh] md:h-auto md:max-h-[85vh] md:max-w-4xl bg-[#050510] border border-gray-800 rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden">
                 {/* Header */}
                 <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#0a0a15]">
                     <div>
                         <h2 className="text-xl font-black text-white flex items-center gap-2">
                             <span className="text-2xl">🍔</span> Weekly Lunch Menu
                         </h2>
-                        <p className="text-xs text-gray-400 mt-1">Create 5 events (Mon-Fri) in one go.</p>
+                        <p className="text-xs text-gray-400 mt-1">Create up to 7 events (Mon-Sun) in one go.</p>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
@@ -309,10 +309,10 @@ export default function WeeklyMenuModal({ isOpen, onClose, onSubmit, initialLoca
                     <div>
                         <div className="flex justify-between items-end mb-4">
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Daily Menus</label>
-                            <span className="text-xs text-gray-400">Upload 5 images below</span>
+                            <span className="text-xs text-gray-400">Upload images for any days you want</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map((day, idx) => (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, idx) => (
                                 <div key={day} className="flex flex-col gap-2 group">
                                     <div className={`relative aspect-[3/4] rounded-xl border border-dashed border-white/10 bg-white/5 overflow-hidden transition-all ${images[idx] ? 'border-none' : 'hover:bg-white/10 hover:border-white/20'}`}>
                                         {images[idx] ? (
